@@ -1,0 +1,15 @@
+# Svegatjørn Rådal
+# Prop 134S 2013-2014
+# Sier at snitt må være 39 kr, over 15år
+# Svar her: 49..52 kr
+# 42 med 3.5% rente
+# 2 omstasjoner utenfor...
+#
+loansum: 2620000000  # NOK
+interest: 0.035  #
+buildyears: 5  #?
+targetyears: 15
+tollavg: 39
+aadt: 16000  #??
+trafficgrowth: 0.0014
+tollcost: 15000000  # 15 mill

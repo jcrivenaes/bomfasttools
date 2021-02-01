@@ -1,0 +1,13 @@
+# Sotrasambandet
+# Sier at snitt må være 40.5 kr, over 20år
+# Svar her: 65.51
+# Mange bomstasjoner, OPS, komplisert
+#
+loansum: 6500000000  # NOK
+interest: 0.055  # 5.5 de først 10, så øke til 0.065 sier de
+buildyears: 5  #?
+targetyears: 20
+tollavg: 40.5
+aadt: 24680
+trafficgrowth: 0.0
+tollcost: 15500000  # inkludert i bompengene?

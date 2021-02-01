@@ -1,0 +1,12 @@
+# E6 Vindåsliene - Korporalsbrua Prop 124S 2016-2017
+# Sier at snitt må være 38 kr, over 15år
+# Svar her: 37.9
+
+loansum: 770000000  # NOK
+interest: 0.055  # 5.5 de først 10, så øke til 0.065 sier de
+buildyears: 3
+targetyears: 15
+tollavg: 31
+aadt: 5000
+trafficgrowth: 0.025
+tollcost: 4000000  # NOK

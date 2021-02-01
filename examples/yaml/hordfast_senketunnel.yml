@@ -1,0 +1,15 @@
+# HORDFAST extra bompenger pga senketunnel
+# Bompengeandel 1 MRD
+loansum: 1000000000  # MRD NOK original 12.36 but subtract pretoll 1.7
+interest: 0.055
+buildyears: 8
+targetyears: 15
+tollavg: 10
+aadt: 5500
+trafficgrowth: 0.02
+tollcost: 0  # 20 mill NOK
+vehicles:
+  elcarfraction: 0.6
+  elcarrate: 0.5
+  heavyfraction: 0.12
+  heavymultiplier: 3

@@ -1,0 +1,15 @@
+# ROGFAST case
+# Jeg får 401 ved 5% rente, 427 ved 5,5% rente
+loansum: 10660000000  # MRD NOK original 12.36 but subtract pretoll 1.7
+interest: 0.055
+buildyears: 10
+targetyears: 20
+tollavg: 409
+aadt: 5980
+trafficgrowth: 0.02
+tollcost: 6000000  # mill NOK
+vehicles:
+  elcarfraction: 0.16
+  elcarrate: 0.5
+  heavyfraction: 0.12
+  heavymultiplier: 3

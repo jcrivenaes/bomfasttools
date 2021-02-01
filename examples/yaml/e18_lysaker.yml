@@ -1,0 +1,14 @@
+# E18 lysaker - ramstadsletta i Arkershus, prop 38S (2019-2020)
+# 4,4 km lang, pris styringsramme 16,3 MRD! Bompenger 10,77 MRD
+# Forventet gjennomsnitt inntekt pr passering 23 kr, tid 15 år
+# Svar her: 33.3
+# Men komplisert pga bomtakster fra sideveier også
+
+loansum: 10770000000  # NOK
+interest: 0.055  # 5.5 de først 10, så øke til 0.065 sier de
+buildyears: 7
+targetyears: 15
+tollavg: 23
+aadt: 97000
+trafficgrowth: 0.0096
+tollcost: 48500000  # 48.5 milliner ja! NOK

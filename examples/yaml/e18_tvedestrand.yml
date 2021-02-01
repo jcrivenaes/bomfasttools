@@ -1,0 +1,18 @@
+# Prop 86S 2015-2016.
+# 21km+2km firefelts, 5,505 MRD P50, bomandel 2 074
+# To bomstasjoner i serie: lette biler 30 + 14=44, tunge biler ...=110
+# Snitt blir da 0.9*44 + 0.1*110 = 50.6
+# Jeg får 50.3 med 11000 biler
+loansum: 2074000000  # MRD NOK original 12.36 but subtract pretoll 1.7
+interest: 0.055
+buildyears: 5
+targetyears: 15
+tollavg: 50.6  # avg foreslått i prop
+aadt: 11000 # ?? snitt to bomstasjoner
+trafficgrowth: 0.024
+tollcost: 16000000  # 16 mill NOK
+vehicles:
+  elcarfraction: 0.01
+  elcarrate: 0.5
+  heavyfraction: 0.10
+  heavymultiplier: 2.5
