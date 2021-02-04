@@ -1,0 +1,95 @@
+<body>
+    <script language="JavaScript">
+        // < !--
+        function showpay() {
+            if ((document.calc.loan.value == null || document.calc.loan.value.length == 0) ||
+                (document.calc.months.value == null || document.calc.months.value.length == 0)
+                ||
+                (document.calc.rate.value == null || document.calc.rate.value.length == 0)) {
+                document.calc.pay.value = "Incomplete data";
+            }
+            else {
+                var princ = document.calc.loan.value;
+                var term = document.calc.months.value;
+                var intr = document.calc.rate.value / 1200;
+                document.calc.pay.value = princ * intr / (1 - (Math.pow(1 / (1 + intr), term)));
+            }
+
+            // payment = principle * monthly interest/(1 - (1/(1+MonthlyInterest)*Months))
+
+        }
+
+        function compute_sumloan() {
+            var cum = 0.0
+
+            var calcrate = document.calc.rate.value / 100.0
+            var loan = document.calc.loan.value * 1000000000
+
+            var year
+            for (year = 0; year < document.calc.buildyears.value; year++) {
+                cum = cum + Math.pow(1.0 + calcrate, year)
+            }
+            result = cum * loan / document.calc.buildyears.value
+            document.calc.cumloan.value = (result / 1000000000).toFixed(4)
+        }
+
+
+
+
+    </script>
+
+    Bompengekalkulator baser på Minken 2013. Under arbeid, fungerer ikke nå.
+    <p>
+        <center>
+            <form name=calc method=POST>
+                <table width=60% border=0>
+                    <tr>
+                        <th bgcolor="#aaaaaa" width=40%>
+                            <font color=blue>Beskrivelse</font>
+                        </th>
+                        <th bgcolor="#aaaaaa" width=20%>
+                            <font color=blue>Verdier</font>
+                        </th>
+                        <th bgcolor="#aaaaaa" width=40%>
+                            <font color=blue>Mellomregning</font>
+                        </th>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeeee">Byggetid (år)</td>
+                        <td bgcolor="#aaeeaa" align=center><input type=text name=buildyears size=10></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeeee">Total Bompengeandel (MRD NOK)</td>
+                        <td bgcolor="#aaeeaa" align=center><input type=text name=loan size=10></td>
+                        <td bgcolor="pink" align=center>Kumulativt: <input type=text name=cumloan size=10 readonly></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeeee">Nedbetalingstid (år)</td>
+                        <td bgcolor="#aaeeaa" align=center><input type=text name=months size=10></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeeee">Lånerente i %</td>
+                        <td bgcolor="#aaeeaa" align=center><input type=text name=rate size=10></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeeee">ÅDT oppstart</td>
+                        <td bgcolor="#aaeeaa" align=center><input type=text name=aadt size=10></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeeee">Forventet trafikkvekst %</td>
+                        <td bgcolor="#aaeeaa" align=center><input type=text name=trafficgrowth size=10></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#aaeeaa" align=center><input type=button onClick='compute_sumloan()' value=Beregn>
+                        </td>
+                        <td bgcolor="#eeeeaa" align=center><input type=reset value=Reset></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#eeaaaa">GJENNOMSNITT BOMTAKST</td>
+                        <td bgcolor="#eeaaaa" align=center><em><input type=text name=pay size=10 readonly></td>
+                    </tr>
+                </table>
+            </form>
+        </center>
+    </p>
+</body>

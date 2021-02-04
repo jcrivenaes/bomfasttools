@@ -1,0 +1,15 @@
+# HORDFAST case 1
+# Bompengeandel 14,4 MRD
+loansum: 14400000000  # input to NTP 2020
+interest: 0.055
+buildyears: 8
+targetyears: 15
+tollavg: 700
+aadt: 5000
+trafficgrowth: 0.02
+tollcost: 20000000  # 20 mill NOK
+vehicles:
+  elcarfraction: 0.6
+  elcarrate: 0.5
+  heavyfraction: 0.001
+  heavymultiplier: 3
