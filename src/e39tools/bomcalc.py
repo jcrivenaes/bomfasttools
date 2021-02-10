@@ -76,8 +76,24 @@ def find_finalyear(df):
 def iterate_toll_value(dc):
     """Read a dict input and find toll by iteration."""
 
-    cumloan = compute_sumloan(dc["loansum"], dc["buildyears"], dc["interest"])
+    buildyears = dc["buildyears"]
+    loansum = dc["loansum"]
 
+    cumloan = 0.0
+    if buildyears < 5:
+        partloansum = loansum
+        year = buildyears
+        cumloan += compute_sumloan(partloansum, year, dc["interest"])
+
+    elif buildyears >= 5:
+        b1 = buildyears // 2
+        b2 = buildyears
+        partloansum = loansum / 2
+        cumloan += compute_sumloan(partloansum, b1, dc["interest"])
+        cumloan += compute_sumloan(partloansum, b2, dc["interest"])
+        # print(f"Year 1")
+
+    print(f"INLOAN {loansum}, CUMLOAN: {cumloan}")
     toll = dc["tollavg"]
     for _ in range(MAXTRIES):
         df = yearly_streams(
@@ -92,10 +108,10 @@ def iterate_toll_value(dc):
 
         trg = dc["targetyears"]
 
-        print(df[(df.YEARS > trg - 2) & (df.YEARS < trg + 2)])
+        # print(df[(df.YEARS > trg - 2) & (df.YEARS < trg + 2)])
 
         finalyear = find_finalyear(df)
-        print(finalyear)
+        # print(finalyear)
 
         if finalyear == 1:
             toll = toll / 2.0
@@ -124,7 +140,7 @@ def iterate_toll_value(dc):
 
         trg = dc["targetyears"]
 
-        print(df[(df.YEARS > trg - 2) & (df.YEARS < trg + 3)])
+        # print(df[(df.YEARS > trg - 2) & (df.YEARS < trg + 3)])
 
         if df.iloc[trg - 1, 2] < -1 * limit:
             toll = toll - 0.1
