@@ -158,37 +158,29 @@
     }
 
     function bycar_type(toll) {
-        a = document.calc.elratio.value
-        n = document.calc.elrabatt.value / 100.0
-        u = document.calc.heavyratio.value
+        v = document.calc.elratio.value / 100.0
+        e = document.calc.elrabatt.value / 100.0
+        u = document.calc.heavyratio.value / 100.0
         t = document.calc.heavymult.value
 
         // person car vs heavy
-        x = toll / ((1 - u) + t * u)
+        x = toll / (1 - u - v + u * v + v * e - v * e * u + u * t)
 
         console.log("Person vs Heavy", x, x * t)
 
-        if (x > 1 || x <= 0) {
+        if (x > toll && t > 1) {
             x = NaN
-            document.getElementById("umulig").innerHTML = "Umulig regnestykke!";
+            document.getElementById("umulig").innerHTML = "Umulig regnestykke, juster elbil fraksjon og/eller rabatt!";
         }
-        lett = x * toll
-        tung = x * t * toll
+        else {
+            document.getElementById("umulig").innerHTML = "";
 
-        // elcar distro, here y will what normal cars will have (y*toll)
-        y = lett / ((1 - a) + a * n);
+        }
 
-        // if (y > 1 || y <= 0) {
-        //     y = NaN
-        //     document.getElementById("umulig").innerHTML = "Umulig regnestykke!";
-        // }
+        lettfossil = x
+        lettelbil = x * e
+        tung = x * t
 
-        lettfossil = lett * y
-        lettelbil = lett * y * a
-
-        console.log("Person vs EL x y y*a", x, y, y * a)
-
-        document.result.lettavg.value = lett.toFixed(1)
         document.result.propfossil.value = lettfossil.toFixed(1)
         document.result.propelbil.value = lettelbil.toFixed(1)
         document.result.proptung.value = tung.toFixed(1)
@@ -198,7 +190,8 @@
     function main() {
         proposed_toll = iterate_toll_value();
 
-        var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545;", "&#129324;"];
+        var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
+            "&#129324;&#128128;"];
 
 
         emoj = emojis[0]
@@ -233,10 +226,11 @@
         document.info.intoll.value = 14;
     }
 
+    // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
     function hordfast1() {
         document.calc.buildyears.value = 7;
-        document.calc.totalkost.value = 37;
-        document.calc.totalkostramme.value = 44;
+        document.calc.totalkost.value = 37.7;
+        document.calc.totalkostramme.value = "45?"; // gjett
         document.calc.loan.value = 14;
         document.calc.payyears.value = 15;
         document.calc.rate.value = 5.5;
@@ -247,13 +241,13 @@
         document.calc.heavymult.value = 3;
         document.calc.elratio.value = 70;
         document.calc.elrabatt.value = 50;
-        document.info.intoll.value = "??";
+        document.calc.intoll.value = "352 personbil SVV 2020";
     }
 
     function rogfast1() {
         document.calc.buildyears.value = 10;
         document.calc.totalkost.value = 20.6;
-        document.calc.totalkostramme.value = 24.9;
+        document.calc.totalkostramme.value = 24.8;
         document.calc.loan.value = 10.66;
         document.calc.payyears.value = 20;
         document.calc.rate.value = 5.5;
@@ -264,7 +258,7 @@
         document.calc.heavymult.value = 3;
         document.calc.elratio.value = 70;
         document.calc.elrabatt.value = 50;
-        document.info.intoll.value = 409;
+        document.calc.intoll.value = "409 St.prop. 54 S 2020";
 
     }
 
@@ -342,9 +336,15 @@
             padding: 6px;
         }
 
+
         #res tr:nth-child(even) {
             background-color: #f2f2f2;
         }
+
+        #res tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
 
         #res input {
             border: 1px solid #ddd;
@@ -368,7 +368,7 @@
             text-align: center;
             text-decoration: none;
             display: inline-block;
-            font-size: 18px;
+            font-size: 22px;
             margin: 4px 2px;
             cursor: pointer;
             border-radius: 6px;
@@ -395,22 +395,6 @@
     <p>
         <center>
             <br>
-            <h3>Fyll in</h3>
-            <form name=case method=POST>
-                <table id="knapp">
-
-                    <tr>
-                        <td align=center><input type=button class="button button4" onClick='testcase()' value=Generell>
-                        </td>
-                        <td align=center><input type=button class="button button4" onClick='rogfast1()' value=Rogfast>
-                        </td>
-                        <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
-                        </td>
-                    </tr>
-                </table>
-            </form>
-            <br>
-            <br>
             <form name=calc method=POST>
                 <table id="bom">
                     <tr>
@@ -422,11 +406,11 @@
                         <td><input type=text name=buildyears size=10></td>
                     </tr>
                     <tr>
-                        <td>Total kostnad (MRD NOK)</td>
+                        <td>Total kostnad styringsramme (MRD NOK)</td>
                         <td><input type=text name=totalkost size=10></td>
                     </tr>
                     <tr>
-                        <td>Total kostnad øvre ramme (MRD NOK)</td>
+                        <td>Total kostnad kostnadsramme (MRD NOK)</td>
                         <td><input type=text name=totalkostramme size=10></td>
                     </tr>
                     <tr>
@@ -466,7 +450,7 @@
                         <td><input type=text name=elratio size=10></td>
                     </tr>
                     <tr>
-                        <td>Elbil rabatt (typisk 50%) %</td>
+                        <td>Elbil pris% av lett fossilbil (typisk 50%) %</td>
                         <td><input type=text name=elrabatt size=10></td>
                     </tr>
                     <tr>
@@ -474,15 +458,33 @@
                         <td></td>
                     </tr>
                     <tr>
-                        <td>Gjennomsnitt bompenger offisielt fra vedtak NOK</td>
-                        <td><input type=text name=intoll size=10 placeholder="?" readonly></td>
+                        <td style="color: #74178b;" ;">Gjennomsnitt bompenger offisielt fra vedtak eller kjent svar, NOK
+                        </td>
+                        <td><input type=text name=intoll size=25 style="background-color:#dd92f0;" readonly></td>
                     </tr>
                 </table>
             </form>
             <br>
+            <h3>Fyll in</h3>
+            <form name=case method=POST>
+                <table id="knapp">
+
+                    <tr>
+                        <td align=center><input type=button class="button button4" onClick='testcase()' value=Generell>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='rogfast1()' value=Rogfast>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <br>
+            <hr>
+            <br>
             <br>
             <form name=knapp method=POST>
-                <table id="knapp">
+                <table id=" knapp">
 
                     <tr>
                         <td align=center width=50%><input type=button class="button" onClick='main()' value="Beregn"
@@ -495,35 +497,33 @@
                 </table>
             </form>
             <br>
+            <br>
             <form name=result method=POST>
+                <span style="font-size: 250%" id="emoji"></span>
+                <br>
+                <span style="font-size: 120%" id="umulig"></span>
                 <table id="res">
                     <tr>
                         <th width=70%>Beregnede verdier</th>
                         <th width=30%>Verdi</th>
                     </tr>
-                    <tr>
+                    <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
                         <td>Estimert gjennomsnitt bomtakst</td>
-                        <td><input type=text name=proposed size=10 readonly</td>
-                            <span style="font-size: 150%" id="emoji"></span>
-                    </tr>
-                    <tr>
-                        <td>Bompenger lett bil gjennomsnitt</td>
-                        <td><input type=text name=lettavg size=10 readonly></td>
+                        <td><input type=text name=proposed size=10 readonly
+                                style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
                     </tr>
                     <tr>
                         <td>Bompenger lett bil fossil</td>
                         <td><input type=text name=propfossil size=10 readonly></td>
-                        <span style="font-size: 120%" id="umulig"></span>
+
                     </tr>
                     <tr>
                         <td>Bompenger lett bil el</td>
                         <td><input type=text name=propelbil size=10 readonly></td>
-                        <span style="font-size: 120%" id="umulig"></span>
                     </tr>
                     <tr>
                         <td>Bompenger tunge kjøretøy</td>
                         <td><input type=text name=proptung size=10 readonly></td>
-                        <span style="font-size: 120%" id="umulig"></span>
                     </tr>
                     <tr>
                         <td>Total kumulativ kostnad (MRD NOK)</td>
