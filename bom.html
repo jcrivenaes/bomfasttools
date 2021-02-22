@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html>
+
+<script language="JavaScript">
+    // < !--
+
+    var MAXTRIES = 1000
+    var MAXYEARS = 200
+
+    // function showpay() {
+    //     if ((document.calc.loan.value == null || document.calc.loan.value.length == 0) ||
+    //         (document.calc.months.value == null || document.calc.months.value.length == 0)
+    //         ||
+    //         (document.calc.rate.value == null || document.calc.rate.value.length == 0)) {
+    //         document.calc.pay.value = "Incomplete data";
+    //     }
+    //     else {
+    //         var princ = document.calc.loan.value;
+    //         var term = document.calc.months.value;
+    //         var intr = document.calc.rate.value / 1200;
+    //         document.calc.pay.value = princ * intr / (1 - (Math.pow(1 / (1 + intr), term)));
+    //     }
+
+    //     // payment = principle * monthly interest/(1 - (1/(1+MonthlyInterest)*Months))
+
+    // }
+
+    function compute_sumloan(loan, buildyears, rate) {
+        var cum = 0.0
+
+        // var calcrate = document.calc.rate.value / 100.0
+        // var loan = document.calc.loan.value * 1000000000
+
+        var year;
+        rate = rate / 100;
+        loan = loan * 1000000000;
+
+        for (year = 0; year < buildyears; year++) {
+            cum = cum + Math.pow(1.0 + rate, year);
+            console.log(cum);
+        }
+        result = cum * loan / buildyears;
+
+
+        return (result);
+    }
+
+    function iterate_toll_value() {
+
+        var buildyears = document.calc.buildyears.value;
+        var loan = document.calc.loan.value;
+        var cumloan = 0.0;
+        var rate = document.calc.rate.value;
+        var trg = document.calc.payyears.value;
+        var toll;
+        var total = document.calc.totalkost.value * 1000000000;
+        var xtotal = document.calc.totalkost.value;
+        var aadt = document.calc.aadt.value
+
+        if (buildyears <= 6) {
+            cumloan += compute_sumloan(loan, buildyears, rate);
+        } else {
+            // for buildyears > 6 think loan split into two where the first
+            // at year 0 and the second at year 3
+            loanhalf = loan / 2.0;
+            cumloan += compute_sumloan(loanhalf, buildyears, rate);
+            cumloan += compute_sumloan(loanhalf, (buildyears - 3), rate);
+        }
+
+        // rough estimate of toll as start value...
+        var fracrate = rate / 100.0
+        toll = (1.0 + fracrate) * cumloan / (trg * 365 * aadt)
+        finalyear = yearly_streams(cumloan, toll, rate / 100);
+        if (finalyear < trg) {
+            toll = toll / 2.0
+        }
+
+
+        console.log("CUMLOAN", cumloan)
+        console.log("START TOLL VALUE IS", toll)
+        document.result.cumloan.value = (cumloan / 1000000000).toFixed(4);
+        document.result.statandel.value = (100 * (xtotal - loan) / xtotal).toFixed(2)
+
+        tollincrement = 1;
+        if (toll > 100) tollincrement = 5;
+        if (toll > 300) tollincrement = 10;
+
+
+        for (var i = 0; i < MAXTRIES; i++) {
+            finalyear = yearly_streams(cumloan, toll, rate / 100);
+            console.log(finalyear)
+
+            if (finalyear == 1 || finalyear > trg) {
+                previoustoll = toll
+                toll = toll + tollincrement;
+            }
+            // else if (finalyear = -1 || finalyear < trg) {
+            //     toll = toll - tollincrement
+            // }
+            else {
+                break;
+            }
+
+        }
+        console.log("ROUGH TOLL VALUE IS", toll)
+        console.log("ITERATE USING", previoustoll)
+
+        // fine tune to 50 øre
+        tollincrement = 0.5
+        toll = previoustoll
+        for (var i = 0; i < MAXTRIES; i++) {
+            console.log("Fine tune, toll = ", toll)
+            finalyear = yearly_streams(cumloan, toll, rate / 100);
+            console.log(finalyear)
+
+            if (finalyear == 1 || finalyear > trg) {
+                toll = toll + tollincrement;
+            }
+            // else if (finalyear = -1 || finalyear < trg) {
+            //     toll = toll - tollincrement
+            // }
+            else {
+                break;
+            }
+        }
+
+        console.log("Proposed toll is ", toll)
+        return (toll);
+
+    }
+
+    function yearly_streams(cumloan, toll, rate) {
+        var payyears = document.calc.payyears.value;
+        var aadt = document.calc.aadt.value;
+        var trafficgrowth = document.calc.trafficgrowth.value / 100.0;
+        var bomselskap = document.calc.bomselskap.value * 1000000;
+        var cumincome = [];
+        var cumrest = [];
+        var year;
+
+        var rest = cumloan
+        var previousrest = cumloan
+        console.log("INITIAL REST", rest)
+        for (year = 1; year <= MAXYEARS; year++) {
+
+            income = 365 * aadt * Math.pow((1 + trafficgrowth), (year - 1)) * toll - bomselskap;
+            rest = (rest - income) * (1.0 + rate)
+            console.log("YEAR", year, "REST:", rest)
+
+            if (previousrest > 0.0 && rest <= 0.0) {
+                return (year);
+            }
+            previousrest = rest;
+        }
+
+        return (-1);
+
+    }
+
+    function bycar_type(toll) {
+        v = document.calc.elratio.value / 100.0
+        e = document.calc.elrabatt.value / 100.0
+        u = document.calc.heavyratio.value / 100.0
+        t = document.calc.heavymult.value
+
+        // person car vs heavy
+        x = toll / (1 - u - v + u * v + v * e - v * e * u + u * t)
+
+        console.log("Person vs Heavy", x, x * t)
+
+        if (x > toll && t > 1) {
+            x = NaN
+            document.getElementById("umulig").innerHTML = "Umulig regnestykke, juster elbil fraksjon og/eller rabatt!";
+        }
+        else {
+            document.getElementById("umulig").innerHTML = "";
+
+        }
+
+        lettfossil = x
+        lettelbil = x * e
+        tung = x * t
+
+        document.result.propfossil.value = lettfossil.toFixed(1)
+        document.result.propelbil.value = lettelbil.toFixed(1)
+        document.result.proptung.value = tung.toFixed(1)
+
+    }
+
+    function main() {
+        proposed_toll = iterate_toll_value();
+
+        var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
+            "&#129324;&#128128;"];
+
+
+        emoj = emojis[0]
+        if (proposed_toll > 10) emoj = emojis[1];
+        if (proposed_toll > 50) emoj = emojis[2];
+        if (proposed_toll > 100) emoj = emojis[3];
+        if (proposed_toll > 200) emoj = emojis[4];
+        if (proposed_toll > 500) emoj = emojis[5];
+
+        document.getElementById("emoji").innerHTML = emoj;
+
+        document.result.proposed.value = proposed_toll.toFixed(0)
+
+        bycar_type(proposed_toll)
+
+    }
+
+    function testcase() {
+        document.calc.buildyears.value = 5;
+        document.calc.totalkost.value = 1.5;
+        document.calc.totalkostramme.value = 1.7;
+        document.calc.loan.value = 1;
+        document.calc.payyears.value = 15;
+        document.calc.rate.value = 5.5;
+        document.calc.aadt.value = 20000;
+        document.calc.trafficgrowth.value = 1;
+        document.calc.bomselskap.value = 5;
+        document.calc.heavyratio.value = 15;
+        document.calc.heavymult.value = 3;
+        document.calc.elratio.value = 0.2;
+        document.calc.elrabatt.value = 50;
+        document.info.intoll.value = 14;
+    }
+
+    // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
+    function hordfast1() {
+        document.calc.buildyears.value = 7;
+        document.calc.totalkost.value = 37.7;
+        document.calc.totalkostramme.value = "45?"; // gjett
+        document.calc.loan.value = 14;
+        document.calc.payyears.value = 15;
+        document.calc.rate.value = 5.5;
+        document.calc.aadt.value = 5000;
+        document.calc.trafficgrowth.value = 1;
+        document.calc.bomselskap.value = 15;
+        document.calc.heavyratio.value = 15;
+        document.calc.heavymult.value = 3;
+        document.calc.elratio.value = 70;
+        document.calc.elrabatt.value = 50;
+        document.calc.intoll.value = "352 personbil SVV 2020";
+    }
+
+    function rogfast1() {
+        document.calc.buildyears.value = 10;
+        document.calc.totalkost.value = 20.6;
+        document.calc.totalkostramme.value = 24.8;
+        document.calc.loan.value = 10.66;
+        document.calc.payyears.value = 20;
+        document.calc.rate.value = 5.5;
+        document.calc.aadt.value = 5980;
+        document.calc.trafficgrowth.value = 2;
+        document.calc.bomselskap.value = 6;
+        document.calc.heavyratio.value = 12;
+        document.calc.heavymult.value = 3;
+        document.calc.elratio.value = 70;
+        document.calc.elrabatt.value = 50;
+        document.calc.intoll.value = "409 St.prop. 54 S 2020";
+
+    }
+
+</script>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"] {
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        #knapp {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #knapp td,
+        #knapp th {
+            border: 0px solid #ddd;
+            padding: 8px;
+        }
+
+        #knapp tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #bom {
+            font-family: 'Courier New', monospace;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #bom input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #bom td,
+        #bom th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #bom tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #bom tr:hover {
+            background-color: #ddd;
+        }
+
+        #bom th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #5b5b5c;
+            color: white;
+        }
+
+
+        #res {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #res td,
+        #res th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+
+        #res tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #res tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
+
+        #res input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #res th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #682288;
+            color: white;
+        }
+
+        .button {
+            background-color: #616909;
+            font-family: 'Courier New', monospace;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 22px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .button3 {
+            background-color: #A44400;
+        }
+
+        .button4 {
+            background-color: #e597f0;
+            padding: 10px 32px;
+            font-size: 13px;
+            color: black;
+            border-radius: 6px;
+        }
+
+        /* Red */
+    </style>
+</head>
+
+<body>
+
+    <p>
+        <center>
+            <br>
+            <form name=calc method=POST>
+                <table id="bom">
+                    <tr>
+                        <th width=70%>Beskrivelse</th>
+                        <th width=30%>Inngangsdata</th>
+                    </tr>
+                    <tr>
+                        <td>Byggetid (år)</td>
+                        <td><input type=text name=buildyears size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Total kostnad styringsramme (MRD NOK)</td>
+                        <td><input type=text name=totalkost size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Total kostnad kostnadsramme (MRD NOK)</td>
+                        <td><input type=text name=totalkostramme size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Totalt bompengelån (MRD NOK)</td>
+                        <td><input type=text name=loan size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Nedbetalingstid (år)</td>
+                        <td><input type=text name=payyears size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Lånerente i %</td>
+                        <td><input type=text name=rate size=10></td>
+                    </tr>
+                    <tr>
+                        <td>ÅDT oppstart</td>
+                        <td><input type=text name=aadt size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Forventet trafikkvekst per år %</td>
+                        <td><input type=text name=trafficgrowth size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Årlig betaling til bomselskap (mill. NOK)</td>
+                        <td><input type=text name=bomselskap size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Andel tunge kjøretøy %</td>
+                        <td><input type=text name=heavyratio size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Bompengefaktor (multiplikator) tunge kjøretøy</td>
+                        <td><input type=text name=heavymult size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Lette kjøretøy, elbil andel %</td>
+                        <td><input type=text name=elratio size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Elbil pris% av lett fossilbil (typisk 50%) %</td>
+                        <td><input type=text name=elrabatt size=10></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td style="color: #74178b;" ;">Gjennomsnitt bompenger offisielt fra vedtak eller kjent svar, NOK
+                        </td>
+                        <td><input type=text name=intoll size=25 style="background-color:#dd92f0;" readonly></td>
+                    </tr>
+                </table>
+            </form>
+            <br>
+            <h3>Fyll in</h3>
+            <form name=case method=POST>
+                <table id="knapp">
+
+                    <tr>
+                        <td align=center><input type=button class="button button4" onClick='testcase()' value=Generell>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='rogfast1()' value=Rogfast>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <br>
+            <hr>
+            <br>
+            <br>
+            <form name=knapp method=POST>
+                <table id=" knapp">
+
+                    <tr>
+                        <td align=center width=50%><input type=button class="button" onClick='main()' value="Beregn"
+                                <Input>
+                        </td>
+                        <td align=center width=50%><input type=button class="button button3" onClick='testcase()'
+                                value="Reset" <Input>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <br>
+            <br>
+            <form name=result method=POST>
+                <span style="font-size: 250%" id="emoji"></span>
+                <br>
+                <span style="font-size: 120%" id="umulig"></span>
+                <table id="res">
+                    <tr>
+                        <th width=70%>Beregnede verdier</th>
+                        <th width=30%>Verdi</th>
+                    </tr>
+                    <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
+                        <td>Estimert gjennomsnitt bomtakst</td>
+                        <td><input type=text name=proposed size=10 readonly
+                                style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
+                    </tr>
+                    <tr>
+                        <td>Bompenger lett bil fossil</td>
+                        <td><input type=text name=propfossil size=10 readonly></td>
+
+                    </tr>
+                    <tr>
+                        <td>Bompenger lett bil el</td>
+                        <td><input type=text name=propelbil size=10 readonly></td>
+                    </tr>
+                    <tr>
+                        <td>Bompenger tunge kjøretøy</td>
+                        <td><input type=text name=proptung size=10 readonly></td>
+                    </tr>
+                    <tr>
+                        <td>Total kumulativ kostnad (MRD NOK)</td>
+                        <td><input type=text name=cumloan size=10 readonly></td>
+                    </tr>
+                    <tr>
+                        <td>Statlig bidrag %</td>
+                        <td><input type=text name=statandel size=10 readonly></td>
+                    </tr>
+                </table>
+            </form>
+
+        </center>
+    </p>
+</body>
+
+</html>

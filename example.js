@@ -15,7 +15,7 @@ new Chart(document.getElementById("bar-chart"), {
       legend: { display: false },
       title: {
         display: true,
-        text: 'THIS IS A TEST'
+        text: 'Predicted world population (millions) in 2050'
       }
     }
 });
