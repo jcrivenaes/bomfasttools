@@ -52,6 +52,7 @@
             }
         }
         console.log(rogfast)
+        Chart.defaults.global.defaultFontSize = 14;
 
         new Chart(document.getElementById("line-chart"), {
             type: 'line',
@@ -73,14 +74,15 @@
                     borderColor: "red",
                     fill: true,
                     pointStyle: "star",
+                    pointRadius: 10,
                 },
                 ],
             },
             options: {
                 title: {
                     display: true,
-                    text: 'Trafikk Bjørnafjorden og Boknafjorden',
-                    fontSize: 15,
+                    text: 'Ferge ÅDT Bjørnafjorden og Boknafjorden',
+                    fontSize: 20,
                     fontColor: 'black',
                 }
             }
