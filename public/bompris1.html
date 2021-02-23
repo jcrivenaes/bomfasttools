@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+    <canvas id="line-chart" width="400" height="250"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script>
+
+        var year = [];
+        var index = 0;
+        for (i = 2008; i < 2032; i++) {
+            year[index++] = i;
+        }
+
+        bjfj = [
+            2727,
+            2814,
+            2840,
+            2904,
+            2978,
+            3029,
+            3152,
+            3158,
+            3180,
+            3259,
+            3284,
+            3212,
+            2972
+        ]
+
+        bofj = [
+            3307,
+            3478,
+            3564,
+            3632,
+            3733,
+            3885,
+            4157,
+            4183,
+            4125,
+            4182,
+            4212,
+            4112,
+            3806,
+        ]
+
+        var rogfast = []
+        for (i = 0; i < year.length; i++) {
+            rogfast[i] = NaN
+            if (year[i] == 2031) {
+                rogfast[i] = 5980
+            }
+        }
+        console.log(rogfast)
+        Chart.defaults.global.defaultFontSize = 14;
+
+        new Chart(document.getElementById("line-chart"), {
+            type: 'line',
+            data: {
+                labels: year,
+                datasets: [{
+                    data: bjfj,
+                    label: "Bjørnafjorden",
+                    borderColor: "#682288",
+                    fill: false
+                }, {
+                    data: bofj,
+                    label: "Boknafjorden",
+                    borderColor: "grey",
+                    fill: false
+                }, {
+                    data: rogfast,
+                    label: "Rogfast estimert ÅDT oppstart",
+                    borderColor: "red",
+                    fill: true,
+                    pointStyle: "star",
+                    pointRadius: 10,
+                },
+                ],
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: 'Ferge ÅDT Bjørnafjorden og Boknafjorden',
+                    fontSize: 20,
+                    fontColor: 'black',
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>
