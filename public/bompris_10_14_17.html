@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+
+
+
+<body>
+    <canvas id="line-chart" width="400" height="250"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script>
+
+        // Byggetid 7år, nedbetaling 15 år, rente 5,5%, trafikkvekts 1%,
+        // årlige innkrevingskotsn = 15 millioner
+
+
+        var aadt = [];
+        var index = 0;
+        for (i = 3000; i < 10000; i += 1000) {
+            aadt[index++] = i;
+        }
+
+        // 14 MRD investment
+        case14 = [
+            1301,
+            976,
+            780,
+            651,
+            558,
+            488,
+            436,
+            390,
+        ]
+
+        case10 = [
+            933,
+            700,
+            560,
+            466,
+            400,
+            350,
+            311,
+            280,
+        ]
+
+        case17 = [
+            1577,
+            1183,
+            946,
+            789,
+            676,
+            592,
+            526,
+            473,
+        ]
+
+
+
+        Chart.defaults.global.defaultFontSize = 14;
+
+        new Chart(document.getElementById("line-chart"), {
+            type: 'line',
+            data: {
+                labels: aadt,
+                datasets: [{
+                    data: case10,
+                    label: "10 MRD",
+                    borderColor: "green",
+                    fill: false
+                }, {
+                    data: case14,
+                    label: "14 MRD",
+                    borderColor: "blue",
+                    fill: false
+                }, {
+                    data: case17,
+                    label: "17 MRD",
+                    borderColor: "red",
+                    fill: false
+                }
+                ],
+            },
+            options: {
+                title: {
+                    display: true,
+                    text: ['Bompengelån scenarier'],
+                    fontSize: 20,
+                    fontColor: 'black',
+                },
+                scales: {
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Gjennomsnitt bompengesats'
+                        }
+                    }],
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Trafikk ÅDT'
+                        }
+                    }]
+                }
+            }
+        });
+
+    </script>
+</body>
+
+</html>
