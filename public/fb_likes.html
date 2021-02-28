@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+
+<body>
+    <canvas id="bar-chart" width="400" height="250"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script>
+
+        // data samplet inn 28 feb. 2021
+
+        Chart.defaults.global.defaultFontSize = 18;
+        new Chart(document.getElementById("bar-chart"), {
+            type: 'bar',
+            data: {
+                labels: ["Ny E16 Bergen-Voss", "Hordfast AS", "Ny E39 indre trase", "Nei Bro Bjørnafjorden", "Hordalandsdiagonalen"],
+                datasets: [
+                    {
+                        label: "Følgere",
+                        backgroundColor: ["#3e95cd", "#8e5ea2", "#3cba9f", "#e8c3b9", "orange"],
+                        data: [40200, 2993, 3682, 2395, 3732]
+                    }
+                ]
+            },
+            options: {
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: 'FB engasjement (oppdatert 1 mars 2021)',
+                    fontSize: 20,
+                    fontColor: 'black',
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
