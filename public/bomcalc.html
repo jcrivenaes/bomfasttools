@@ -7,24 +7,6 @@
     var MAXTRIES = 1000
     var MAXYEARS = 200
 
-    // function showpay() {
-    //     if ((document.calc.loan.value == null || document.calc.loan.value.length == 0) ||
-    //         (document.calc.months.value == null || document.calc.months.value.length == 0)
-    //         ||
-    //         (document.calc.rate.value == null || document.calc.rate.value.length == 0)) {
-    //         document.calc.pay.value = "Incomplete data";
-    //     }
-    //     else {
-    //         var princ = document.calc.loan.value;
-    //         var term = document.calc.months.value;
-    //         var intr = document.calc.rate.value / 1200;
-    //         document.calc.pay.value = princ * intr / (1 - (Math.pow(1 / (1 + intr), term)));
-    //     }
-
-    //     // payment = principle * monthly interest/(1 - (1/(1+MonthlyInterest)*Months))
-
-    // }
-
     function compute_sumloan(loan, buildyears, rate) {
         var cum = 0.0
 
@@ -37,7 +19,6 @@
 
         for (year = 0; year < buildyears; year++) {
             cum = cum + Math.pow(1.0 + rate, year);
-            console.log(cum);
         }
         result = cum * loan / buildyears;
 
@@ -47,15 +28,22 @@
 
     function iterate_toll_value() {
 
-        var buildyears = document.calc.buildyears.value;
-        var loan = document.calc.loan.value;
-        var cumloan = 0.0;
-        var rate = document.calc.rate.value;
-        var trg = document.calc.payyears.value;
+        var buildyears = parseInt(document.calc.buildyears.value);
+        var loan = parseFloat(document.calc.loan.value.replace(",", "."));
+        var cumloan = parseFloat(0.0);
+        var rate = parseFloat(document.calc.rate.value.replace(",", "."));
+        var trg = parseFloat(document.calc.payyears.value);
         var toll;
-        var total = document.calc.totalkost.value * 1000000000;
-        var xtotal = document.calc.totalkost.value;
-        var aadt = document.calc.aadt.value
+        var total = parseFloat(document.calc.totalkost.value.replace(",", ".") * 1000000000);
+        var xtotal = parseFloat(document.calc.totalkost.value);
+        var aadt = parseFloat(document.calc.aadt.value);
+        var bomselskap = parseFloat(document.calc.bomselskap.value.replace(",", ".") * 1000000);
+        var forhaand = parseFloat(document.calc.preloan.value.replace(",", ".") * 1000000000);
+        var xforhaand = parseFloat(document.calc.preloan.value.replace(",", "."));
+
+        console.log("Buildyears:", buildyears)
+        console.log("Loan:", loan)
+
 
         if (buildyears <= 6) {
             cumloan += compute_sumloan(loan, buildyears, rate);
@@ -69,17 +57,30 @@
 
         // rough estimate of toll as start value...
         var fracrate = rate / 100.0
-        toll = (1.0 + fracrate) * cumloan / (trg * 365 * aadt)
+        toll = ((1.0 + fracrate) * cumloan + bomselskap * trg) / (trg * 365 * aadt)
+        console.log("Initial toll (1):", toll);
         finalyear = yearly_streams(cumloan, toll, rate / 100);
-        if (finalyear < trg) {
+        console.log("Initial finalyear:", finalyear)
+        if (finalyear != -1 && finalyear <= trg) {
             toll = toll / 2.0
         }
+        console.log("Initial toll (2):", toll);
 
+        console.log("CUMLOAN", cumloan);
+        console.log("START TOLL VALUE IS", toll);
 
-        console.log("CUMLOAN", cumloan)
-        console.log("START TOLL VALUE IS", toll)
+        var cumtotal = cumloan + trg * bomselskap
+
         document.result.cumloan.value = (cumloan / 1000000000).toFixed(4);
-        document.result.statandel.value = (100 * (xtotal - loan) / xtotal).toFixed(2)
+        document.result.cumloanall.value = (cumtotal / 1000000000).toFixed(4);
+
+        allplus = cumtotal + forhaand;
+        document.result.cumloanallplus.value = (allplus / 1000000000).toFixed(4);
+
+        var bompengeinit = loan + xforhaand;
+        console.log("BOMPENGEINIT =", bompengeinit)
+
+        document.result.statandel.value = (100 * (xtotal - bompengeinit) / xtotal).toFixed(2);
 
         tollincrement = 1;
         if (toll > 100) tollincrement = 5;
@@ -88,26 +89,34 @@
 
         for (var i = 0; i < MAXTRIES; i++) {
             finalyear = yearly_streams(cumloan, toll, rate / 100);
-            console.log(finalyear)
+            console.log("Final year vs target:", finalyear, trg)
 
             if (finalyear == 1 || finalyear > trg) {
                 previoustoll = toll
                 toll = toll + tollincrement;
             }
-            // else if (finalyear = -1 || finalyear < trg) {
-            //     toll = toll - tollincrement
-            // }
+            else if (finalyear == -1) {
+                previoustoll = toll
+                toll = toll + tollincrement
+            }
+            else if (finalyear < trg) {
+                toll = toll - tollincrement
+            }
             else {
                 break;
             }
 
         }
+        previoustoll = toll * 0.95
         console.log("ROUGH TOLL VALUE IS", toll)
         console.log("ITERATE USING", previoustoll)
 
-        // fine tune to 50 øre
+        // fine tune to 50 or 10 øre
         tollincrement = 0.5
-        toll = previoustoll
+        if (toll < 50) {
+            tollincrement = 0.1
+        }
+        toll = previoustoll;
         for (var i = 0; i < MAXTRIES; i++) {
             console.log("Fine tune, toll = ", toll)
             finalyear = yearly_streams(cumloan, toll, rate / 100);
@@ -116,9 +125,12 @@
             if (finalyear == 1 || finalyear > trg) {
                 toll = toll + tollincrement;
             }
-            // else if (finalyear = -1 || finalyear < trg) {
-            //     toll = toll - tollincrement
-            // }
+            else if (finalyear == -1) {
+                toll = toll + tollincrement
+            }
+            else if (finalyear < trg) {
+                toll = toll - tollincrement
+            }
             else {
                 break;
             }
@@ -132,8 +144,8 @@
     function yearly_streams(cumloan, toll, rate) {
         var payyears = document.calc.payyears.value;
         var aadt = document.calc.aadt.value;
-        var trafficgrowth = document.calc.trafficgrowth.value / 100.0;
-        var bomselskap = document.calc.bomselskap.value * 1000000;
+        var trafficgrowth = parseFloat(document.calc.trafficgrowth.value.replace(",", ".") / 100.0);
+        var bomselskap = parseFloat(document.calc.bomselskap.value.replace(",", ".") * 1000000);
         var cumincome = [];
         var cumrest = [];
         var year;
@@ -158,10 +170,10 @@
     }
 
     function bycar_type(toll) {
-        v = document.calc.elratio.value / 100.0
-        e = document.calc.elrabatt.value / 100.0
-        u = document.calc.heavyratio.value / 100.0
-        t = document.calc.heavymult.value
+        v = parseFloat(document.calc.elratio.value / 100.0);
+        e = parseFloat(document.calc.elrabatt.value / 100.0);
+        u = parseFloat(document.calc.heavyratio.value / 100.0);
+        t = parseFloat(document.calc.heavymult.value);
 
         // person car vs heavy
         x = toll / (1 - u - v + u * v + v * e - v * e * u + u * t)
@@ -203,7 +215,11 @@
 
         document.getElementById("emoji").innerHTML = emoj;
 
-        document.result.proposed.value = proposed_toll.toFixed(0)
+        var fixed = 0
+        if (proposed_toll < 50) {
+            fixed = 1
+        }
+        document.result.proposed.value = proposed_toll.toFixed(fixed)
 
         bycar_type(proposed_toll)
 
@@ -214,6 +230,7 @@
         document.calc.totalkost.value = 1.5;
         document.calc.totalkostramme.value = 1.7;
         document.calc.loan.value = 1;
+        document.calc.preloan.value = 0;
         document.calc.payyears.value = 15;
         document.calc.rate.value = 5.5;
         document.calc.aadt.value = 20000;
@@ -223,7 +240,7 @@
         document.calc.heavymult.value = 3;
         document.calc.elratio.value = 0.2;
         document.calc.elrabatt.value = 50;
-        document.info.intoll.value = 14;
+        document.calc.intoll.value = "14";
     }
 
     // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
@@ -231,11 +248,12 @@
         document.calc.buildyears.value = 7;
         document.calc.totalkost.value = 37.7;
         document.calc.totalkostramme.value = "45?"; // gjett
-        document.calc.loan.value = 14;
+        document.calc.loan.value = 13.4;
+        document.calc.preloan.value = 0;
         document.calc.payyears.value = 15;
         document.calc.rate.value = 5.5;
-        document.calc.aadt.value = 5000;
-        document.calc.trafficgrowth.value = 1;
+        document.calc.aadt.value = 5700;
+        document.calc.trafficgrowth.value = 1.5;
         document.calc.bomselskap.value = 15;
         document.calc.heavyratio.value = 15;
         document.calc.heavymult.value = 3;
@@ -249,6 +267,7 @@
         document.calc.totalkost.value = 20.6;
         document.calc.totalkostramme.value = 24.8;
         document.calc.loan.value = 10.66;
+        document.calc.preloan.value = 1.7;
         document.calc.payyears.value = 20;
         document.calc.rate.value = 5.5;
         document.calc.aadt.value = 5980;
@@ -256,10 +275,64 @@
         document.calc.bomselskap.value = 6;
         document.calc.heavyratio.value = 12;
         document.calc.heavymult.value = 3;
-        document.calc.elratio.value = 70;
+        document.calc.elratio.value = 30;
         document.calc.elrabatt.value = 50;
-        document.calc.intoll.value = "409 St.prop. 54 S 2020";
+        document.calc.intoll.value = "409 kr, St.prop. 54 S 2020";
+    }
 
+    // https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf
+    function grime_vesleelva() {
+        document.calc.buildyears.value = 2;
+        document.calc.totalkost.value = 0.193;
+        document.calc.totalkostramme.value = 0.193;
+        document.calc.loan.value = 0.101;
+        document.calc.preloan.value = 0;
+        document.calc.payyears.value = 15;
+        document.calc.rate.value = 8;
+        document.calc.aadt.value = 1500;
+        document.calc.trafficgrowth.value = 1.1;
+        document.calc.bomselskap.value = 3;
+        document.calc.heavyratio.value = 15;
+        document.calc.heavymult.value = 2;
+        document.calc.elratio.value = 0;
+        document.calc.elrabatt.value = 100;
+        document.calc.intoll.value = "24.5 kr, St.prop. 103 S 2010";
+    }
+
+    function kilden_presterudskrysset() {
+        document.calc.buildyears.value = 2;
+        document.calc.totalkost.value = 0.226;
+        document.calc.totalkostramme.value = 0.226;
+        document.calc.loan.value = 0.194;
+        document.calc.preloan.value = 0;
+        document.calc.payyears.value = 4;
+        document.calc.rate.value = 5.5;
+        document.calc.aadt.value = 10800;
+        document.calc.trafficgrowth.value = 1.7;
+        document.calc.bomselskap.value = 3;
+        document.calc.heavyratio.value = 7;
+        document.calc.heavymult.value = 2;
+        document.calc.elratio.value = 0;
+        document.calc.elrabatt.value = 100;
+        document.calc.intoll.value = "13.5 kr, St.prop. 103 S";
+    }
+
+    function foenhus_bagn() {
+        document.calc.buildyears.value = 3;
+        document.calc.totalkost.value = 0.420;
+        document.calc.totalkostramme.value = 0.444;
+        document.calc.loan.value = 0.220;
+        document.calc.preloan.value = 0;
+        document.calc.payyears.value = 15;
+        document.calc.rate.value = 6.5;
+        document.calc.aadt.value = 2200;
+        document.calc.trafficgrowth.value = 1;
+        document.calc.bomselskap.value = 3;
+        document.calc.heavyratio.value = 13;
+        document.calc.heavymult.value = 2;
+        document.calc.elratio.value = 0;
+        document.calc.elrabatt.value = 100;
+        document.calc.intoll.value = "30 kr, St.prop.";
     }
 
 </script>
@@ -386,6 +459,29 @@
             border-radius: 6px;
         }
 
+        div.a {
+            text-align: left;
+            font-size: 12px;
+            font-family: 'Helvetica';
+            text-indent: 70px;
+        }
+
+        div.b {
+            font-size: 16px;
+            font-family: 'Helvetica';
+            color: #A44400;
+
+            text-indent: 70px;
+        }
+
+        ul.a {
+            text-align: left;
+            font-size: 14px;
+            font-family: 'Helvetica';
+            margin-left: 40px;
+            margin-right: 40px;
+        }
+
         /* Red */
     </style>
 </head>
@@ -393,7 +489,14 @@
 <body>
 
     <p>
+
+
         <center>
+            <div class="b">
+                <h3>Instruksjon:
+                    Trykk på en av de lilla knappene under for eksempelinnfylling. Trykk så
+                    på <b>Beregn</b> knappen. Juster tall og se effekt. </h3>
+            </div>
             <br>
             <form name=calc method=POST>
                 <table id="bom">
@@ -402,7 +505,7 @@
                         <th width=30%>Inngangsdata</th>
                     </tr>
                     <tr>
-                        <td>Byggetid (år)</td>
+                        <td>Byggetid (hele år)</td>
                         <td><input type=text name=buildyears size=10></td>
                     </tr>
                     <tr>
@@ -414,8 +517,12 @@
                         <td><input type=text name=totalkostramme size=10></td>
                     </tr>
                     <tr>
-                        <td>Totalt bompengelån (MRD NOK)</td>
+                        <td>Bompengelån for etterskuddsinnkreving (MRD NOK)</td>
                         <td><input type=text name=loan size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Forhåndsinnkreving (sum, for info) (MRD NOK)</td>
+                        <td><input type=text name=preloan size=10></td>
                     </tr>
                     <tr>
                         <td>Nedbetalingstid (år)</td>
@@ -476,10 +583,43 @@
                         </td>
                         <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
                         </td>
+                        <td align=center><input type=button class="button button4" onClick='grime_vesleelva()'
+                                value=Grime-Vesleelva>
+                        <td align=center><input type=button class="button button4" onClick='kilden_presterudskrysset()'
+                                value=Kilden-Presterudkrysset>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='foenhus_bagn()'
+                                value=Fønhus-Bagn>
+                        </td>
                     </tr>
                 </table>
             </form>
             <br>
+            <h3>Beskrivelse</h3>
+            <ul class="a">
+                <li>Generell: Enkelt test eksempel</li>
+                <li>E39 Rogfast: Fra <A
+                        HREF=https://www.regjeringen.no/contentassets/8e5b283f2fd34f7b8559705ad9d2502b/nn-no/pdfs/prp202020210054000dddpdfs.pdf>stortingsproposisjon
+                        2020-2021</A>
+                    Bompengesummesummen er her begrenset til det som kreves etter åpning. Det skal i tillegg være
+                    forhåndsinnkreving i perioden 2013-2030 på fergen (ca 1,7 milliarder i sum). Tilsammen blir
+                    bompenger betalt i 37 år.</li>
+                <li>E39 Hordfast: Kostnadstall og bompengenandel fra <A
+                        HREF=https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf>
+                        innspill til NTP høsten 2020.</A>
+                    Hvordan og hvorfor ÅDT skal øke fra dagens 3100 til 5700 i 2030 selv
+                    med så høye bompenger er ikke lett å forstå!</li>
+                <li>FV. 34 Grime-Vesleelva: Fra <A
+                        HREF=https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf>prop
+                        103 S (2010-2011)</A></li>
+                <li>FV. 311 Kilden-Presterudkrysset: Fra <A
+                        HREF=https://www.regjeringen.no/contentassets/0b1c67e1808d45d29e474abd16125416/no/pdfs/prp201720180103000dddpdfs.pdf>prop
+                        103 S (2017-2018)</A></li>
+                <li>E16 Fønhus-Bagn: Fra <A
+                        HREF=https://www.regjeringen.no/contentassets/262884fcb4ac4a21a69b1b809bc3dae4/no/pdfs/prp201120120101000dddpdfs.pdf>prop.
+                        101 S (2011-2012)</A>
+                </li>
+            </ul>
             <hr>
             <br>
             <br>
@@ -526,8 +666,16 @@
                         <td><input type=text name=proptung size=10 readonly></td>
                     </tr>
                     <tr>
-                        <td>Total kumulativ kostnad (MRD NOK)</td>
+                        <td>Kumulativ kostnad bompengelån med renter (MRD NOK)</td>
                         <td><input type=text name=cumloan size=10 readonly></td>
+                    </tr>
+                    <tr>
+                        <td>Kumulativ kostnad bompengelån med renter og drift bomselskap (MRD NOK)</td>
+                        <td><input type=text name=cumloanall size=10 readonly></td>
+                    </tr>
+                    <tr>
+                        <td>Total kumulativ kostnad bompenger (MRD NOK)</td>
+                        <td><input type=text name=cumloanallplus size=10 readonly></td>
                     </tr>
                     <tr>
                         <td>Statlig bidrag %</td>
