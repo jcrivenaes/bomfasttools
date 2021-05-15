@@ -13,6 +13,7 @@
     var input_styringsramme = 10;
     var input_kostnadsramme = 12;
     var input_bompengelaan = 4;
+    var input_laaneprofil = 0;  // velger mot noen definerte låneprofiler
     var input_forhaandinnkrevet = 0;
     var input_nedbetalingstid = 15;
     var input_laanerente1 = 5.5;
@@ -36,7 +37,6 @@
             cum = cum + Math.pow(1.0 + xrate, year);
         }
         let result = cum * xloan / buildyears;
-
 
         return (result);
     }
