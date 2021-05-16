@@ -4,45 +4,42 @@
 <script language="JavaScript">
     // < !--
 
-    const MAXTRIES = 1000;
-    const MAXYEARS = 200;
-    const MRD = 1000000000.0;
-    const MLL = 1000000.0
-
-    var input_byggetid = 7;
-    var input_styringsramme = 10;
-    var input_kostnadsramme = 12;
-    var input_bompengelaan = 4;
-    var input_laaneprofil = 0;  // velger mot noen definerte låneprofiler
-    var input_forhaandinnkrevet = 0;
-    var input_nedbetalingstid = 15;
-    var input_laanerente1 = 5.5;
-    var input_laanerente2 = 6.5;
-    var input_laanerente_endring = 10;
-    var input_prisstigning = 2;
-    var input_aadtoppstart = 2030;
-    var input_bomselskap = 15;
-    var input_tungandel = 15;
-    var input_tungmult = 3;
-    var input_elbil_andel = 70;
-    var input_offisielt = "vedtak"
+    var MAXTRIES = 1000
+    var MAXYEARS = 200
 
     function compute_sumloan(loan, buildyears, rate) {
-        let cum = 0.0
+        var cum = 0.0
 
-        let xrate = rate / 100.0;
-        let xloan = loan * MRD;
+        // var calcrate = document.calc.rate.value / 100.0
+        // var loan = document.calc.loan.value * 1000000000
 
-        for (let year = 0; year < buildyears; year++) {
-            cum = cum + Math.pow(1.0 + xrate, year);
+        var year;
+        rate = rate / 100;
+        loan = loan * 1000000000;
+
+        for (year = 0; year < buildyears; year++) {
+            cum = cum + Math.pow(1.0 + rate, year);
         }
-        let result = cum * xloan / buildyears;
+        result = cum * loan / buildyears;
+
 
         return (result);
     }
 
     function iterate_toll_value() {
 
+        var buildyears = parseInt(document.calc.buildyears.value);
+        var loan = parseFloat(document.calc.loan.value.replace(",", "."));
+        var cumloan = parseFloat(0.0);
+        var rate = parseFloat(document.calc.rate.value.replace(",", "."));
+        var trg = parseFloat(document.calc.payyears.value);
+        var toll;
+        var total = parseFloat(document.calc.totalkost.value.replace(",", ".") * 1000000000);
+        var xtotal = parseFloat(document.calc.totalkost.value);
+        var aadt = parseFloat(document.calc.aadt.value);
+        var bomselskap = parseFloat(document.calc.bomselskap.value.replace(",", ".") * 1000000);
+        var forhaand = parseFloat(document.calc.preloan.value.replace(",", ".") * 1000000000);
+        var xforhaand = parseFloat(document.calc.preloan.value.replace(",", "."));
 
         console.log("Buildyears:", buildyears)
         console.log("Loan:", loan)
@@ -203,9 +200,6 @@
     }
 
     function main() {
-
-
-
         proposed_toll = iterate_toll_value();
 
         var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
