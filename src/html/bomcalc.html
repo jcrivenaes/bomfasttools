@@ -214,26 +214,27 @@
 
     function main() {
 
-        proposed_toll = iterate_toll_value();
+        iterate_toll_value();
+        proposed_toll = result_initiell_avg_bomsats;
 
-        // var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
-        //     "&#129324;&#128128;"];
+        var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
+            "&#129324;&#128128;"];
 
 
-        // emoj = emojis[0]
-        // if (proposed_toll > 10) emoj = emojis[1];
-        // if (proposed_toll > 50) emoj = emojis[2];
-        // if (proposed_toll > 100) emoj = emojis[3];
-        // if (proposed_toll > 200) emoj = emojis[4];
-        // if (proposed_toll > 500) emoj = emojis[5];
+        emoj = emojis[0]
+        if (proposed_toll > 10) emoj = emojis[1];
+        if (proposed_toll > 50) emoj = emojis[2];
+        if (proposed_toll > 100) emoj = emojis[3];
+        if (proposed_toll > 200) emoj = emojis[4];
+        if (proposed_toll > 500) emoj = emojis[5];
 
-        // document.getElementById("emoji").innerHTML = emoj;
+        document.getElementById("emoji").innerHTML = emoj;
 
-        // var fixed = 0
-        // if (proposed_toll < 50) {
-        //     fixed = 1
-        // }
-        // document.result.proposed.value = proposed_toll.toFixed(fixed)
+        var fixed = 0
+        if (proposed_toll < 50) {
+            fixed = 1
+        }
+        document.result.proposed.value = proposed_toll.toFixed(fixed)
 
         // bycar_type(proposed_toll)
 
