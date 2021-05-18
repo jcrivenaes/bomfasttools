@@ -29,9 +29,11 @@
     let input_offisielt = "vedtak";
 
     // resultater som globale
-    let result_kumulativt_laan = 0.0
-    let result_initiell_avg_bomsats = 0.0
-    let result_bomsatser = []
+    let result_kumulativt_laan = 0.0;
+    let result_initiell_avg_bomsats = 0.0;
+    let result_bomsatser = [];
+    let result_bominntekt = [];
+    let result_restlaan = [];
 
     function iterate_toll_value() {
 
@@ -65,6 +67,10 @@
             cumloan = compute_sumloan0();
         } else if (input_laaneprofil == 1) {
             cumloan = compute_sumloan1();
+        } else if (input_laaneprofil == 2) {
+            cumloan = compute_sumloan2();
+        } else if (input_laaneprofil == 3) {
+            cumloan = compute_sumloan3();
         }
 
         console.log("Kumulativt bompengelån:", cumloan);
@@ -140,13 +146,20 @@
             }
         }
 
+        // run once more with mode=1 to make tables
+        finalyear = yearly_streams(toll, mode = 1);
+
         console.log("Proposed toll is ", toll);
         result_initiell_avg_bomsats = toll;
 
     }
 
     function compute_sumloan0() {
-        // låneprofil 0: alt lån tas opp initielt
+        // låneprofil 0: lån tas opp i like rater per år. Dette er Minkens formel
+        // For eks 10 MRD ved 5.5% rente over byggetid 5 år:
+        // result = (10 / 5) * (1.055^4 + 1.055^3 + ... + 1.055^0) = 11.1622 MRD
+        // Ingen prisstigning her
+
         let cum = 0.0;
 
         let rente = input_laanerente1;
@@ -162,35 +175,37 @@
     }
 
     function compute_sumloan1() {
-        // låneprofil 1: 50% tas opp først, så 50% etter halve byggetiden
-        // Eks 7 år: 50% vil akkumulerer 7 års rente, 50% vil akkumulere 4 års rente
+        // låneprofil 1: lån tas opp i like rater per år. Dette er basert på
+        // Minkens formel. Men prisstigning er med her!
 
         let cum = 0.0;
 
         let rente = input_laanerente1;
+        let aarlig_sum = input_bompengelaan / input_byggetid;
         for (let year = 0; year < input_byggetid; year++) {
             if (year >= input_laanerente_endring) {
                 rente = input_laanerente2;
             }
-            cum = cum + Math.pow(1.0 + rente, year);
+            let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), year);
+            cum = cum + reell_sum * Math.pow(1.0 + rente, year);
         }
-        let result = cum * 0.5 * input_bompengelaan / input_byggetid;
 
-        rente = input_laanerente1;
-        cum = 0.0
-        restbyggetid = Math.ceil(input_byggetid / 2.0);
-        for (let year = 0; year < restbyggetid; year++) {
-            if (year >= input_laanerente_endring) {
-                rente = input_laanerente2;
-            }
-            cum = cum + Math.pow(1.0 + rente, year);
-        }
-        result += cum * 0.5 * input_bompengelaan / restbyggetid;
+        return (cum);
+    }
+
+
+    function compute_sumloan2() {
+        // https://no.wikipedia.org/wiki/Rentes_rente
+        // alt lån på dag 0; hva blir lånet i løpet av byggetid?
+        // Ingen prisstigning her
+
+        let rente = input_laanerente1;
+        let result = input_bompengelaan * Math.pow((1 + rente), input_byggetid);
 
         return (result);
     }
 
-    function yearly_streams(toll) {
+    function yearly_streams(toll, mode = 0) {
 
         let cumincome = [];
         let cumrest = [];
@@ -202,21 +217,29 @@
         let xtoll = toll;
         let xbomselskap = input_bomselskap;
         let rente = input_laanerente1;
-        result_bomsatser = [];
-        for (let year = 1; year <= MAXYEARS; year++) {
+        let aar_renteendring = input_laanerente_endring - input_byggetid;
 
-            if (year >= input_laanerente_endring) {
+        for (let year = 0; year <= MAXYEARS; year++) {
+
+            if (year >= aar_renteendring) {
                 rente = input_laanerente2;
             }
 
-            result_bomsatser[year - 1] = xtoll;
 
-            xtoll = xtoll * (1.0 + input_prisstigning);
-            xbomselskap = xbomselskap * (1.0 + input_prisstigning);
-            let income = 365 * input_aadt_oppstart *
-                Math.pow((1 + input_trafikkvekst), (year - 1)) * xtoll - xbomselskap;
-            rest = (rest - income) * (1.0 + rente)
+            xtoll = toll * Math.pow((1.0 + input_prisstigning), year);
+            xbomselskap = input_bomselskap * Math.pow((1.0 + input_prisstigning), year);
 
+            let income = 0;
+            if (year > 0) {
+                income = 365 * input_aadt_oppstart *
+                    Math.pow((1 + input_trafikkvekst), (year - 1)) * xtoll - xbomselskap;
+                rest = (rest - income) * (1.0 + rente)
+            }
+            if (mode == 1) {
+                result_bomsatser[year] = xtoll;
+                result_bominntekt[year] = income;
+                result_restlaan[year] = rest;
+            }
 
             if (previousrest > 0.0 && rest <= 0.0) {
                 return (year);
@@ -227,6 +250,7 @@
         return (-1);
 
     }
+
 
     function bycar_type(toll) {
         v = parseFloat(document.calc.elratio.value / 100.0);
@@ -258,6 +282,8 @@
 
     }
 
+    let out_table = [];
+
     function main() {
 
         iterate_toll_value();
@@ -278,31 +304,56 @@
 
         var fixed = 0
         if (proposed_toll < 50) {
-            fixed = 1
+            fixed = 1;
         }
-        document.result.proposed.value = proposed_toll.toFixed(fixed)
-        document.result.proposed_end.value = result_bomsatser[input_nedbetalingstid - 1].toFixed(fixed)
-        console.log(result_bomsatser)
+        document.result.proposed.value = proposed_toll.toFixed(fixed);
+        document.result.proposed_end.value = result_bomsatser[input_nedbetalingstid - 1].toFixed(fixed);
+        document.result.result_kumulativt_laan.value = (result_kumulativt_laan / MRD).toFixed(3);
+        // console.log(result_bomsatser);
 
-        // bycar_type(proposed_toll)
+        for (let i = 0; i <= input_nedbetalingstid; i++) {
+            let sats = result_bomsatser[i].toFixed(6);
+            let innt = result_bominntekt[i].toFixed(2);
+            let rest = result_restlaan[i].toFixed(2);
+            out_table[i] = { År: i, Sats: sats, Inntekt: innt, Rest: rest };
+        }
 
-
-        // var cumtotal = cumloan + trg * bomselskap
-
-        // document.result.cumloan.value = (cumloan / 1000000000).toFixed(4);
-        // document.result.cumloanall.value = (cumtotal / 1000000000).toFixed(4);
-
-        // allplus = cumtotal + forhaand;
-        // document.result.cumloanallplus.value = (allplus / 1000000000).toFixed(4);
-
-        // var bompengeinit = loan + xforhaand;
-        // console.log("BOMPENGEINIT =", bompengeinit)
-
-        // document.result.statandel.value = (100 * (xtotal - bompengeinit) / xtotal).toFixed(2);
-
-
+        // document.tabell = result_table();
 
     }
+
+    function result_table() {
+
+        let table = document.querySelector("table");
+        let data = Object.keys(out_table[0]);
+        generateTable(table, out_table); // generate the table first
+        generateTableHead(table, data); // then the head
+
+    }
+
+
+    function generateTableHead(table, data) {
+        let thead = table.createTHead();
+        let row = thead.insertRow();
+        for (let key of data) {
+            let th = document.createElement("th");
+            let text = document.createTextNode(key);
+            th.appendChild(text);
+            row.appendChild(th);
+        }
+    }
+
+    function generateTable(table, data) {
+        for (let element of data) {
+            let row = table.insertRow();
+            for (key in element) {
+                let cell = row.insertCell();
+                let text = document.createTextNode(element[key]);
+                cell.appendChild(text);
+            }
+        }
+    }
+
 
     function testcase() {
         document.calc.byggetid.value = 5;
@@ -331,7 +382,7 @@
         document.calc.styringsramme.value = 20.6;
         document.calc.kostnadsramme.value = 24.8;
         document.calc.bompengelaan.value = 10.66;
-        document.calc.laaneprofil.value = 1;
+        document.calc.laaneprofil.value = 0;
         document.calc.forhaandsinnkrevet.value = 1.7;
         document.calc.nedbetalingstid.value = 20;
         document.calc.laanerente1.value = 5.5;
@@ -794,7 +845,7 @@
                     </tr>
                     <tr>
                         <td>Kumulativ kostnad bompengelån med renter</td>
-                        <td><input type=text name=cumloan size=10 readonly> MRD kr</td>
+                        <td><input type=text name=result_kumulativt_laan size=10 readonly> MRD kr</td>
                     </tr>
                     <tr>
                         <td>Kumulativ kostnad som over + drift bomselskap</td>
@@ -809,6 +860,8 @@
                         <td><input type=text name=statandel size=10 readonly> %</td>
                     </tr>
                 </table>
+            </form>
+            <form name=tabell>
             </form>
 
         </center>
