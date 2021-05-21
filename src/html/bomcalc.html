@@ -115,7 +115,7 @@
                 toll = toll + tollincrement;
             }
             else if (finalyear < input_nedbetalingstid) {
-                toll = toll - tollincrement;
+                toll = toll - tollincrement / 2.0;
             }
             else {
                 break;
@@ -133,7 +133,7 @@
         }
         toll = previoustoll;
         for (let i = 0; i < MAXTRIES; i++) {
-            console.log("Fine tune, toll = ", toll)
+            // console.log("Fine tune, toll = ", toll)
             finalyear = yearly_streams(toll);
             console.log(finalyear)
 
@@ -163,7 +163,7 @@
         // låneprofil 0: lån tas opp i like rater per år. Dette er Minkens formel
         // For eks 10 MRD ved 5.5% rente over byggetid 5 år:
         // result = (10 / 5) * (1.055^4 + 1.055^3 + ... + 1.055^0) = 11.1622 MRD
-        // Ingen prisstigning her
+        // Ingen prisstigning her. For referanse!
 
         let cum = 0.0;
 
@@ -193,7 +193,8 @@
                 rente = input_laanerente2;
             }
             let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), year + dyear);
-            cum = cum + reell_sum * Math.pow(1.0 + rente, year + dyear);
+            console.log("Låneopptak (mill) i år", year + input_byggeoppstart, "er", (reell_sum / MLL).toFixed(4))
+            cum = cum + reell_sum * Math.pow(1.0 + rente, year);
         }
 
         return (cum);
@@ -201,14 +202,73 @@
 
 
     function compute_sumloan2() {
-        // https://no.wikipedia.org/wiki/Rentes_rente
-        // alt lån på dag 0; hva blir lånet i løpet av byggetid?
-        // Ingen prisstigning her
+        // Her er bomselskap tidlig og forholdet mellom stat og bomselskap må beregnes
+        // Etter bomselskap er ferdig å låne så går det noe tid mens stat låner, så
+        // det blir rentes renter... Pessimistisk scenario
+
+        let cum = 0.0;
 
         let rente = input_laanerente1;
-        let result = input_bompengelaan * Math.pow((1 + rente), input_byggetid);
+        let forhold = input_bompengelaan / input_styringsramme;
 
-        return (result);
+        let byggetid_bomlaan = Math.round(forhold * input_byggetid);
+        let byggetid_stat = input_byggetid - byggetid_bomlaan;
+
+        let aarlig_sum = input_bompengelaan / byggetid_bomlaan;
+        let dyear = input_byggeoppstart - input_basisaar;
+        console.log("Byggetid stat:", byggetid_stat);
+        console.log("Byggetid bompengeandel:", byggetid_bomlaan);
+
+        for (let year = 0; year < byggetid_bomlaan; year++) {
+            if (year >= input_laanerente_endring) {
+                rente = input_laanerente2;
+            }
+            let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), year + dyear);
+            console.log("Låneopptak (mill) i år", year + input_byggeoppstart, "er", (reell_sum / MLL).toFixed(4));
+
+            cum = cum + reell_sum * Math.pow(1.0 + rente, year);
+            console.log("Kumulativt lån (mill) i år", year + input_byggeoppstart, "er", (cum / MLL).toFixed(4));
+        }
+
+        for (let year = 0; year < byggetid_stat; year++) {
+            let trueyear = year + byggetid_bomlaan;
+            if (trueyear >= input_laanerente_endring) {
+                rente = input_laanerente2;
+            }
+            cum *= Math.pow(1.0 + rente, year);
+            console.log("*Kumulativt lån (mill) i år", trueyear + input_byggeoppstart, "er", (cum / MLL).toFixed(4));
+        }
+
+        return (cum);
+    }
+
+    function compute_sumloan3() {
+        // Her er bomselskap sent og forholdet mellom stat og bomselskap må beregnes
+        // Staten betaler først... Optimistisk scenario for bilistene
+
+        let cum = 0.0;
+
+        let rente = input_laanerente1;
+        let forhold = input_bompengelaan / input_styringsramme;
+
+        let byggetid_bomlaan = Math.round(forhold * input_byggetid);
+        let byggetid_stat = input_byggetid - byggetid_bomlaan;
+
+        let aarlig_sum = input_bompengelaan / byggetid_bomlaan;
+        let dyear = input_byggeoppstart - input_basisaar;
+        console.log("Byggetid stat:", byggetid_stat);
+        console.log("Byggetid bompengeandel:", byggetid_bomlaan);
+        for (let year = 0; year < byggetid_bomlaan; year++) {
+            let trueyear = year + byggetid_stat
+            if (trueyear >= input_laanerente_endring) {
+                rente = input_laanerente2;
+            }
+            let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), trueyear + dyear);
+            console.log("Låneopptak (mill) i år", year + input_byggeoppstart, "er", (reell_sum / MLL).toFixed(4))
+            cum = cum + reell_sum * Math.pow(1.0 + rente, year);
+        }
+
+        return (cum);
     }
 
     function yearly_streams(toll, mode = 0) {
@@ -816,8 +876,9 @@
                         <td><input type=text name=bompengelaan size=10></td>
                     </tr>
                     <tr>
-                        <td>Bompengelån, velg profil (1: låneopptak jevnt, 2: statlig bidrag tidlig, 3: statlig bidrag
-                            sent)</td>
+                        <td>Bompengelån, velg profil (1: låneopptak jevnt, 2: statlig bidrag på slutten, 3: statlig
+                            bidrag
+                            først)</td>
                         <td><input type=text name=laaneprofil size=10></td>
                     </tr>
                     <tr>
