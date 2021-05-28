@@ -666,44 +666,52 @@
 
     // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
     function hordfast1() {
-        document.calc.byggetid.value = 7;
+        document.calc.byggetid.value = 5;
         document.calc.byggeoppstart.value = 2026;
         document.calc.styringsramme.value = 37.7;
         document.calc.kostnadsramme.value = 44.0;
         document.calc.basisaar.value = 2021;
-        document.calc.bompengelaan.value = 13.4;
-        document.calc.laaneprofil.value = 1;
+        document.calc.bompengelaan.value = 14.4;
+        document.calc.laaneprofil.value = 4;
         document.calc.forhaandsinnkrevet.value = 0;
         document.calc.nedbetalingstid.value = 20;
         document.calc.laanerente1.value = 5.5;
         document.calc.laanerente2.value = 6.5;
         document.calc.laanerente_endring.value = 10;
         document.calc.prisstigning.value = 2;
-        document.calc.aadt_oppstart.value = 4500;
-        document.calc.trafikkvekst.value = 1.0;
+        document.calc.aadt_oppstart.value = 5700;
+        document.calc.trafikkvekst.value = 1.5;
         document.calc.bomselskap.value = 15;
         document.calc.tungandel.value = 13;
         document.calc.tungmult.value = 3;
-        document.calc.offisielt.value = "Noe spekulasjon";
+        document.calc.offisielt.value = "362 pr bil med avtale, BA 2020";
 
+        document.bomaarlig.aar1.value = 7.4; // 2026
+        document.bomaarlig.aar2.value = 6.0;
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar4.value = 1.0;  //
+        document.bomaarlig.aar5.value = 0.0;  //
+        document.bomaarlig.aar6.value = 0.0;  //
+        document.bomaarlig.aar7.value = 0.0;  //
     }
 
 
     // https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf
     function grime_vesleelva() {
         document.calc.byggetid.value = 2;
-        document.calc.byggeoppstart.value = 2012;
+        document.calc.byggeoppstart.value = 2011;
         document.calc.styringsramme.value = 0.193;
         document.calc.kostnadsramme.value = 0.193;
         document.calc.basisaar.value = 2011;
         document.calc.bompengelaan.value = 0.101;
-        document.calc.laaneprofil.value = 1;
+        document.calc.laaneprofil.value = 2;
         document.calc.forhaandsinnkrevet.value = 0;
         document.calc.nedbetalingstid.value = 15;
         document.calc.laanerente1.value = 8;
         document.calc.laanerente2.value = 8;
         document.calc.laanerente_endring.value = 10;
-        document.calc.prisstigning.value = 2;
+        document.calc.prisstigning.value = 2.5;
         document.calc.aadt_oppstart.value = 1500;
         document.calc.trafikkvekst.value = 1.1;
         document.calc.bomselskap.value = 3;
@@ -712,14 +720,14 @@
         document.calc.offisielt.value = "24.5 kr ved åpning, St.prop. 103 S 2010";
     }
 
-    function kilden_presterudskrysset() {
+    function kilden_presterodbakken() {
         document.calc.byggetid.value = 2;
         document.calc.byggeoppstart.value = 2018;
         document.calc.styringsramme.value = 0.226;
         document.calc.kostnadsramme.value = 0.226;
         document.calc.basisaar.value = 2017;
         document.calc.bompengelaan.value = 0.194;
-        document.calc.laaneprofil.value = 1;
+        document.calc.laaneprofil.value = 2;
         document.calc.forhaandsinnkrevet.value = 0;
         document.calc.nedbetalingstid.value = 4;
         document.calc.laanerente1.value = 5.5;
@@ -735,13 +743,13 @@
     }
 
     function foenhus_bagn() {
-        document.calc.byggetid.value = 2;
+        document.calc.byggetid.value = 3;
         document.calc.byggeoppstart.value = 2012;
         document.calc.styringsramme.value = 0.420;
         document.calc.kostnadsramme.value = 0.440;
         document.calc.basisaar.value = 2012;
         document.calc.bompengelaan.value = 0.220;
-        document.calc.laaneprofil.value = 2;
+        document.calc.laaneprofil.value = 4;
         document.calc.forhaandsinnkrevet.value = 0;
         document.calc.nedbetalingstid.value = 15;
         document.calc.laanerente1.value = 6.5;
@@ -754,8 +762,11 @@
         document.calc.tungandel.value = 13;
         document.calc.tungmult.value = 2;
         document.calc.offisielt.value = "30 kr, St.prop.";
-    }
 
+        document.bomaarlig.aar1.value = 0.190;  // 2012
+        document.bomaarlig.aar2.value = 0.030;
+        document.bomaarlig.aar3.value = 0.000;  //
+    }
 </script>
 
 <head>
@@ -1040,8 +1051,8 @@
                     <tr>
                         <td align=center><input type=button class="button button4" onClick='grime_vesleelva()'
                                 value=Grime-Vesleelva>
-                        <td align=center><input type=button class="button button4" onClick='kilden_presterudskrysset()'
-                                value=Kilden-Presterudkrysset>
+                        <td align=center><input type=button class="button button4" onClick='kilden_presterodbakken()'
+                                value=Kilden-Presterødbakken>
                         </td>
                         <td align=center><input type=button class="button button4" onClick='foenhus_bagn()'
                                 value=Fønhus-Bagn>
@@ -1062,21 +1073,27 @@
                         førehandsinnkrevjinga som starta i 2013."</li>
                     <li>E39 Hordfast: Kostnadstall og bompengenandel fra <A
                             HREF=https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf>
-                            innspill til NTP høsten 2020.</A>
+                            innspill til NTP høsten 2020.</A> Se også <A
+                            HREF="https://www.ba.no/veivesenet-med-nye-bompengetall-nesten-100-kroner-dyrere-enn-fergen-per-tur/s/5-8-1447368">
+                            reportasje i BA om bompenger</A>:
                         Hvordan og hvorfor ÅDT skal øke fra dagens 3100 til 5700 i 2030 selv
-                        med så høye bompenger er ikke lett å forstå!</li>
+                        med så høye bompenger er ikke lett å forstå! Heller ikke en årlig trafikkvekst på 1.5%</li>
                     <li>FV. 34 Grime-Vesleelva for validering: Fra <A
                             HREF=https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf>prop
-                            103 S (2010-2011)</A></li>
-                    <li>FV. 311 Kilden-Presterudkrysset for validering: Fra <A
+                            103 S (2010-2011)</A> Reell pris is 2021: Lettbil fullpris 33kr, med avtale 26, tunge biler
+                        54 kroner.
+                        ÅDT i 2019: 1274 ved Grime i sør, mer lengre nord.</li>
+                    <li>FV. 311 Kilden-Presterødbakken for validering: Fra <A
                             HREF=https://www.regjeringen.no/contentassets/0b1c67e1808d45d29e474abd16125416/no/pdfs/prp201720180103000dddpdfs.pdf>prop
-                            103 S (2017-2018)</A></li>
+                            103 S (2017-2018)</A> Bompenger liten bil 2021 er 21 kroner dersom avtale.</li>
                     <li>E16 Fønhus-Bagn for validering: Fra <A
                             HREF=https://www.regjeringen.no/contentassets/262884fcb4ac4a21a69b1b809bc3dae4/no/pdfs/prp201120120101000dddpdfs.pdf>prop.
                             101 S (2011-2012). "</A> Fra info 2021: "Det vil koste 34 kroner per passering for lette
                         kjøretøy og det dobbelte for tunge kjøretøy. Med gyldig AutoPASS-avtale får du ti prosent rabatt
                         og betaler
-                        ikke for mer enn 40 passeringer per måned gjennom bomstasjonen i Sør-Aurdal.
+                        ikke for mer enn 40 passeringer per måned gjennom bomstasjonen i Sør-Aurdal. ÅDT i 2019 var
+                        2598.
+
                     </li>
                 </ul>
                 <hr>
@@ -1283,7 +1300,7 @@
                     <tr>
                         <th width=10%>År</th>
                         <th width=10%>Rentefot</th>
-                        <th width=15%>Bomsats</th>
+                        <th width=15%>Bomsats (gjennomsnitt)</th>
                         <th width=10%>Trafikk ÅDT</th>
                         <th width=20%>Utgift bomselskap (mill. NOK)</th>
                         <th width=20%>Inntekt (mill. NOK)</th>
