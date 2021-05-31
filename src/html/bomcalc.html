@@ -26,8 +26,8 @@
     let input_bomselskap = 15;
     let input_tungandel = 15;
     let input_tungmult = 3;
-    let input_elbil_andel = 0;
-    let input_elbil_rabattpris = 0;  // som % av fossilbil
+    let input_rabattbil_andel = 80;
+    let input_rabattbil_pris = 80;  // som % av lettbil
     let input_offisielt = "vedtak";
     let input_aarlig_laan = [];
 
@@ -70,6 +70,8 @@
         input_bomselskap = parseFloat(document.calc.bomselskap.value.replace(",", ".")) * MLL;
         input_tungandel = parseFloat(document.calc.tungandel.value.replace(",", ".")) / 100.0;
         input_tungmult = parseFloat(document.calc.tungmult.value.replace(",", "."));
+        input_rabattbil_andel = parseFloat(document.calc.rabattbil_andel.value.replace(",", ".") / 100.0);
+        input_rabattbil_pris = parseFloat(document.calc.rabattbil_pris.value.replace(",", ".") / 100.0);
         input_offisielt = document.calc.offisielt.value;
 
         if (input_laaneprofil == 4) {
@@ -81,6 +83,9 @@
         console.log("Byggetid:", input_byggetid);
         console.log("Lån:", input_bompengelaan);
         console.log("Låneprofil:", input_laaneprofil);
+        console.log("Rabattbil andel:", input_rabattbil_andel);
+        console.log("Rbattbil pris:", input_rabattbil_pris);
+
 
         let cumloan = 0.0;
         if (input_laaneprofil == 0) {
@@ -395,7 +400,6 @@
         let xbomselskap_sum = 0.0;
         let rente = input_laanerente1;
         let aar_renteendring = input_laanerente_endring - input_byggetid;
-        console.log("YYYYY", aar_renteendring, input_laanerente_endring, input_byggetid)
 
         for (let year = 0; year <= MAXYEARS; year++) {
 
@@ -436,32 +440,32 @@
 
 
     function bycar_type(toll) {
-        let v = input_elbil_andel;
-        let e = input_elbil_rabattpris;
+        let v = input_rabattbil_andel;
+        let e = input_rabattbil_pris;
         let u = input_tungandel;
         let t = input_tungmult;
 
         // person car vs heavy
         let x = toll / (1 - u - v + u * v + v * e - v * e * u + u * t)
 
-        console.log("Person vs Heavy", x, x * t)
+        console.log("Person vs Tungbil", x, x * t)
 
         if (x > toll && t > 1) {
             x = NaN
-            document.getElementById("umulig").innerHTML = "Umulig regnestykke, juster elbil fraksjon og/eller rabatt!";
+            document.getElementById("umulig").innerHTML = "Umulig regnestykke, juster rabattbil andel og/eller rabatt%!";
         }
         else {
             document.getElementById("umulig").innerHTML = "";
 
         }
 
-        let lettfossil = x
-        let lettelbil = x * e
+        let lettbil = x
+        let lettbilrabatt = x * e
         let tung = x * t
 
-        document.result.propfossil.value = lettfossil.toFixed(1)
-        // document.result.propelbil.value = lettelbil.toFixed(1)
-        document.result.proptung.value = tung.toFixed(1)
+        document.result.proposed_lettbil.value = lettbil.toFixed(1)
+        document.result.proposed_rabattbil.value = lettbilrabatt.toFixed(1)
+        document.result.proposed_tung.value = tung.toFixed(1)
 
     }
 
@@ -470,18 +474,18 @@
         iterate_toll_value();
         proposed_toll = result_initiell_avg_bomsats;
 
-        var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
-            "&#129324;&#128128;"];
+        // var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
+        //     "&#129324;&#128128;"];
 
 
-        emoj = emojis[0]
-        if (proposed_toll > 10) emoj = emojis[1];
-        if (proposed_toll > 50) emoj = emojis[2];
-        if (proposed_toll > 100) emoj = emojis[3];
-        if (proposed_toll > 200) emoj = emojis[4];
-        if (proposed_toll > 500) emoj = emojis[5];
+        // emoj = emojis[0]
+        // if (proposed_toll > 10) emoj = emojis[1];
+        // if (proposed_toll > 50) emoj = emojis[2];
+        // if (proposed_toll > 100) emoj = emojis[3];
+        // if (proposed_toll > 200) emoj = emojis[4];
+        // if (proposed_toll > 500) emoj = emojis[5];
 
-        document.getElementById("emoji").innerHTML = emoj;
+        // document.getElementById("emoji").innerHTML = emoj;
 
         var fixed = 0
         if (proposed_toll < 50) {
@@ -503,16 +507,15 @@
         reset_tabell();
         for (let i = 0; i < input_byggetid; i++) {
             let aar = bygge_aar[i];
-            let rente = (bygge_rentefot[i] * 100);
+            let rente = (bygge_rentefot[i] * 100.0).toFixed(1);
             let opptaklaan = (bygge_laanopptak[i] / MRD).toFixed(4);
             let cumlaan = (bygge_kumulativt_laan[i] / MRD).toFixed(4);
             let cumlaan_proj = (bygge_kumulativt_laan_proj[i] / MRD).toFixed(4);
             bygge_tabell(aar, rente, opptaklaan, cumlaan);
-
         }
 
         for (let i = 0; i <= input_nedbetalingstid; i++) {
-            let xrente = (result_rentefot[i] * 100);
+            let xrente = (result_rentefot[i] * 100.0).toFixed(1);
             let sats = result_bomsatser[i].toFixed(2);
             let innt = (result_bominntekt[i] / MLL).toFixed(4);
             let tilbom = (result_tilbomselskap[i] / MLL).toFixed(4);
@@ -520,7 +523,6 @@
             let aar = i + input_byggeoppstart + input_byggetid;
             let trafikk = Math.round(result_aadt[i]);
             result_tabell(xrente, aar, sats, trafikk, tilbom, innt, rest);
-
         }
 
 
@@ -604,11 +606,35 @@
         document.calc.bomselskap.value = null;
         document.calc.tungandel.value = null;
         document.calc.tungmult.value = null;
+        document.calc.rabattbil_andel.value = null;
+        document.calc.rabattbil_pris.value = null;
         document.calc.offisielt.value = "";
+
+        document.bomaarlig.aar1.value = null;
+        document.bomaarlig.aar2.value = null;
+        document.bomaarlig.aar3.value = null;
+        document.bomaarlig.aar4.value = null;
+        document.bomaarlig.aar5.value = null;
+        document.bomaarlig.aar6.value = null;
+        document.bomaarlig.aar7.value = null;
+        document.bomaarlig.aar8.value = null;
+        document.bomaarlig.aar9.value = null;
+        document.bomaarlig.aar10.value = null;
+
+        document.result.proposed.value = null;
+        document.result.proposed_start_disk.value = null;
+        document.result.proposed_end.value = null;
+        document.result.proposed_lettbil.value = null;
+        document.result.proposed_rabattbil.value = null;
+        document.result.proposed_tung.value = null;
+        document.result.result_kumulativt_laan.value = null;
+        document.result.result_kumulativt_laan_all.value = null;
+
         reset_tabell();
     }
 
     function testcase() {
+        resetcase();
         document.calc.byggeoppstart.value = 2016;
         document.calc.byggetid.value = 5;
         document.calc.styringsramme.value = 10;
@@ -627,11 +653,15 @@
         document.calc.bomselskap.value = 5;
         document.calc.tungandel.value = 15;
         document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 80;
         document.calc.offisielt.value = "12?";
-        reset_tabell();
+
     }
 
     function rogfast1() {
+        resetcase();
+
         document.calc.byggeoppstart.value = 2021;
         document.calc.byggetid.value = 10;
         document.calc.styringsramme.value = 20.6;
@@ -650,6 +680,8 @@
         document.calc.bomselskap.value = 6;
         document.calc.tungandel.value = 12;
         document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 16;
+        document.calc.rabattbil_pris.value = 50;
         document.calc.offisielt.value = "409 (2020) kr, St.prop. 54 S 2020";
 
         document.bomaarlig.aar1.value = 0.0;
@@ -662,10 +694,12 @@
         document.bomaarlig.aar8.value = 2.334;    // 2028  Sum 10.657 MRD
         document.bomaarlig.aar9.value = 0.0;
         document.bomaarlig.aar10.value = 0.0;
+
     }
 
     // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
     function hordfast1() {
+        resetcase();
         document.calc.byggetid.value = 5;
         document.calc.byggeoppstart.value = 2026;
         document.calc.styringsramme.value = 37.7;
@@ -684,6 +718,8 @@
         document.calc.bomselskap.value = 15;
         document.calc.tungandel.value = 13;
         document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 80;
         document.calc.offisielt.value = "362 pr bil med avtale, BA 2020";
 
         document.bomaarlig.aar1.value = 7.4; // 2026
@@ -699,6 +735,7 @@
 
     // https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf
     function grime_vesleelva() {
+        resetcase();
         document.calc.byggetid.value = 2;
         document.calc.byggeoppstart.value = 2011;
         document.calc.styringsramme.value = 0.193;
@@ -717,10 +754,14 @@
         document.calc.bomselskap.value = 3;
         document.calc.tungandel.value = 15;
         document.calc.tungmult.value = 2;
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 80;
         document.calc.offisielt.value = "24.5 kr ved åpning, St.prop. 103 S 2010";
+        reset_tabell();
     }
 
     function kilden_presterodbakken() {
+        resetcase();
         document.calc.byggetid.value = 2;
         document.calc.byggeoppstart.value = 2018;
         document.calc.styringsramme.value = 0.226;
@@ -739,10 +780,14 @@
         document.calc.bomselskap.value = 3;
         document.calc.tungandel.value = 7;
         document.calc.tungmult.value = 2;
+        document.calc.rabattbil_andel.value = 0;
+        document.calc.rabattbil_pris.value = 90;
+
         document.calc.offisielt.value = "13.5 kr, St.prop. 103 S";
     }
 
     function foenhus_bagn() {
+        resetcase();
         document.calc.byggetid.value = 3;
         document.calc.byggeoppstart.value = 2012;
         document.calc.styringsramme.value = 0.420;
@@ -761,7 +806,9 @@
         document.calc.bomselskap.value = 3;
         document.calc.tungandel.value = 13;
         document.calc.tungmult.value = 2;
-        document.calc.offisielt.value = "30 kr, St.prop.";
+        document.calc.rabattbil_andel.value = 80;
+        document.calc.rabattbil_pris.value = 90;
+        document.calc.offisielt.value = "30 kr, St.prop. 101 (2011)";
 
         document.bomaarlig.aar1.value = 0.190;  // 2012
         document.bomaarlig.aar2.value = 0.030;
@@ -1021,6 +1068,33 @@
             margin-right: 40px;
         }
 
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted rgb(197, 197, 197);
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            font-family: 'Times';
+            width: 400px;
+            background-color: rgb(82, 31, 79);
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 5px 0;
+
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            top: -5px;
+            left: 105%;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
         /* Red */
     </style>
 </head>
@@ -1115,15 +1189,28 @@
                         <td><input type=text name=byggetid size=10></td>
                     </tr>
                     <tr>
-                        <td>Total kostnad styringsramme (MRD kr)</td>
+                        <td>
+                            <div class="tooltip">Total kostnad styringsramme (MRD kr)
+                                <span class="tooltiptext">Styringsramme er median prisen, dvs det skal
+                                    være 50% sannsynlighet for at reell pris blir enten høyere eller lavere
+                                    enn denne.</span>
+                            </div>
+                        </td>
                         <td><input type=text name=styringsramme size=10></td>
                     </tr>
                     <tr>
-                        <td>Total kostnad kostnadsramme (MRD kr)</td>
+                        <td>
+                            <div class="tooltip">Total kostnad kostnadsramme (MRD kr)
+                                <span class="tooltiptext">Kostnadsramme er 85% percentil, dvs det skal
+                                    kun være 15% sannsynlighet for at reell pris blir høyere
+                                    enn denne. Dette er en øvre ramme gitt av Stortinget.</span>
+                            </div>
+
+                        </td>
                         <td><input type=text name=kostnadsramme size=10></td>
                     </tr>
                     <tr>
-                        <td>Basisår for styringsramme</td>
+                        <td>Basisår for styringsramme og beregninger</td>
                         <td><input type=text name=basisaar size=10></td>
                     </tr>
                     <tr>
@@ -1183,6 +1270,14 @@
                     <tr>
                         <td>Bompengefaktor (multiplikator) tunge kjøretøy</td>
                         <td><input type=text name=tungmult size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Andel lettbil som vil få rabatt (for eks elbil eller autopass/avtale) i %</td>
+                        <td><input type=text name=rabattbil_andel size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Andel av fullpris (%) som biler med rabatt betaler</td>
+                        <td><input type=text name=rabattbil_pris size=10></td>
                     </tr>
                     <tr>
                         <td style="color: #74178b;" ;">Gjennomsnitt bompenger offisielt fra vedtak eller kjent svar
@@ -1263,12 +1358,17 @@
                     </tr>
                     <tr>
                         <td>Bompenger lett bil (diskontert)</td>
-                        <td><input type=text name=propfossil size=10 readonly> kr</td>
+                        <td><input type=text name=proposed_lettbil size=10 readonly> kr</td>
+
+                    </tr>
+                    <tr>
+                        <td>Bompenger lett bil med rabatt (diskontert)</td>
+                        <td><input type=text name=proposed_rabattbil size=10 readonly> kr</td>
 
                     </tr>
                     <tr>
                         <td>Bompenger tunge kjøretøy (diskontert)</td>
-                        <td><input type=text name=proptung size=10 readonly> kr</td>
+                        <td><input type=text name=proposed_tung size=10 readonly> kr</td>
                     </tr>
                     <tr>
                         <td>Kumulativ kostnad bompengelån med renter</td>
