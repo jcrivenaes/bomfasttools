@@ -9,9 +9,11 @@
     const MRD = 1000000000.0;
     const MLL = 1000000.0
 
+    let input_byggeoppstart = 2020;
     let input_byggetid = 7;
     let input_styringsramme = 10;
     let input_kostnadsramme = 12;
+    let input_basisaar = 2018;
     let input_bompengelaan = 4;
     let input_laaneprofil = 0;  // velger mot noen definerte låneprofiler
     let input_forhaandsinnkrevet = 0;
@@ -24,20 +26,39 @@
     let input_bomselskap = 15;
     let input_tungandel = 15;
     let input_tungmult = 3;
-    let input_elbil_andel = 70;
-    let input_elbil_rabattpris = 70;  // som % av fossilbil
+    let input_rabattbil_andel = 80;
+    let input_rabattbil_pris = 80;  // som % av lettbil
     let input_offisielt = "vedtak";
+    let input_aarlig_laan = [];
 
     // resultater som globale
-    let result_kumulativt_laan = 0.0
-    let result_initiell_avg_bomsats = 0.0
-    let result_bomsatser = []
+    let result_kumulativt_laan = 0.0;
+    let result_initiell_avg_bomsats = 0.0;
+    let result_bomsatser = [];
+    let result_bominntekt = [];
+    let result_restlaan = [];
+    let result_tilbomselskap = [];
+    let result_tilbomselskap_sum = 0.0;
+    let result_renter_aarlig_sum = 0.0;
+    let result_rentefot = [];
+    let result_rente_aarlig = [];
+    let result_aadt = [];
+
+
+    // de neste er her for låneopptak i byggeperioden
+    let bygge_aar = [];
+    let bygge_laanopptak = [];
+    let bygge_kumulativt_laan = [];
+    let bygge_kumulativt_laan_proj = [];
+    let bygge_rentefot = [];
 
     function iterate_toll_value() {
 
+        input_byggeoppstart = parseInt(document.calc.byggeoppstart.value);
         input_byggetid = parseInt(document.calc.byggetid.value);
         input_styringsramme = parseFloat(document.calc.styringsramme.value.replace(",", ".")) * MRD;
         input_kostnadsramme = parseFloat(document.calc.kostnadsramme.value.replace(",", ".")) * MRD;
+        input_basisaar = parseInt(document.calc.basisaar.value);
         input_bompengelaan = parseFloat(document.calc.bompengelaan.value.replace(",", ".")) * MRD;
         input_laaneprofil = parseInt(document.calc.laaneprofil.value);
         input_forhaandsinnkrevet = parseFloat(document.calc.forhaandsinnkrevet.value.replace(",", ".")) * MRD;
@@ -51,20 +72,35 @@
         input_bomselskap = parseFloat(document.calc.bomselskap.value.replace(",", ".")) * MLL;
         input_tungandel = parseFloat(document.calc.tungandel.value.replace(",", ".")) / 100.0;
         input_tungmult = parseFloat(document.calc.tungmult.value.replace(",", "."));
-        input_elbil_andel = parseFloat(document.calc.elbil_andel.value.replace(",", ".")) / 100.0;
-        input_elbil_rabattpris = parseFloat(document.calc.elbil_rabattpris.value.replace(",", ".")) / 100.0;
+        input_rabattbil_andel = parseFloat(document.calc.rabattbil_andel.value.replace(",", ".") / 100.0);
+        input_rabattbil_pris = parseFloat(document.calc.rabattbil_pris.value.replace(",", ".") / 100.0);
         input_offisielt = document.calc.offisielt.value;
+
+        if (input_laaneprofil == 4) {
+            get_aarlig_profile(input_byggetid);
+            console.log("Låneprofil", input_aarlig_laan);
+        }
 
 
         console.log("Byggetid:", input_byggetid);
         console.log("Lån:", input_bompengelaan);
         console.log("Låneprofil:", input_laaneprofil);
+        console.log("Rabattbil andel:", input_rabattbil_andel);
+        console.log("Rbattbil pris:", input_rabattbil_pris);
+
 
         let cumloan = 0.0;
         if (input_laaneprofil == 0) {
+            input_prisstigning = 0.0;  // as test!
             cumloan = compute_sumloan0();
         } else if (input_laaneprofil == 1) {
             cumloan = compute_sumloan1();
+        } else if (input_laaneprofil == 2) {
+            cumloan = compute_sumloan2();
+        } else if (input_laaneprofil == 3) {
+            cumloan = compute_sumloan3();
+        } else if (input_laaneprofil == 4) {
+            cumloan = compute_sumloan1();  // yes, 1
         }
 
         console.log("Kumulativt bompengelån:", cumloan);
@@ -104,7 +140,7 @@
                 toll = toll + tollincrement;
             }
             else if (finalyear < input_nedbetalingstid) {
-                toll = toll - tollincrement;
+                toll = toll - tollincrement / 2.0;
             }
             else {
                 break;
@@ -122,7 +158,7 @@
         }
         toll = previoustoll;
         for (let i = 0; i < MAXTRIES; i++) {
-            console.log("Fine tune, toll = ", toll)
+            // console.log("Fine tune, toll = ", toll)
             finalyear = yearly_streams(toll);
             console.log(finalyear)
 
@@ -140,13 +176,56 @@
             }
         }
 
+        // run once more with mode=1 to make tables
+        finalyear = yearly_streams(toll, mode = 1);
+
         console.log("Proposed toll is ", toll);
         result_initiell_avg_bomsats = toll;
 
     }
 
+    function get_aarlig_profile(yrs) {
+
+        if (document.bomaarlig.aar1.value != null) {
+            input_aarlig_laan[0] = parseFloat(document.bomaarlig.aar1.value) * MRD;
+        }
+        if (document.bomaarlig.aar2.value != null) {
+            input_aarlig_laan[1] = parseFloat(document.bomaarlig.aar2.value) * MRD;
+        }
+        if (document.bomaarlig.aar3.value != null) {
+            input_aarlig_laan[2] = parseFloat(document.bomaarlig.aar3.value) * MRD;
+        }
+        if (document.bomaarlig.aar4.value != null) {
+            input_aarlig_laan[3] = parseFloat(document.bomaarlig.aar4.value) * MRD;
+        }
+        if (document.bomaarlig.aar5.value != null) {
+            input_aarlig_laan[4] = parseFloat(document.bomaarlig.aar5.value) * MRD;
+        }
+        if (document.bomaarlig.aar6.value != null) {
+            input_aarlig_laan[5] = parseFloat(document.bomaarlig.aar6.value) * MRD;
+        }
+        if (document.bomaarlig.aar7.value != null) {
+            input_aarlig_laan[6] = parseFloat(document.bomaarlig.aar7.value) * MRD;
+        }
+        if (document.bomaarlig.aar8.value != null) {
+            input_aarlig_laan[7] = parseFloat(document.bomaarlig.aar8.value) * MRD;
+        }
+        if (document.bomaarlig.aar9.value != null) {
+            input_aarlig_laan[8] = parseFloat(document.bomaarlig.aar9.value) * MRD;
+        }
+        if (document.bomaarlig.aar10.value != null) {
+            input_aarlig_laan[9] = parseFloat(document.bomaarlig.aar10.value) * MRD;
+        }
+
+        console.log(input_aarlig_laan)
+    }
+
     function compute_sumloan0() {
-        // låneprofil 0: alt lån tas opp initielt
+        // låneprofil 0: lån tas opp i like rater per år. Dette er Minkens formel
+        // For eks 10 MRD ved 5.5% rente over byggetid 5 år:
+        // result = (10 / 5) * (1.055^4 + 1.055^3 + ... + 1.055^0) = 11.1622 MRD
+        // Ingen prisstigning her. For referanse!
+
         let cum = 0.0;
 
         let rente = input_laanerente1;
@@ -162,35 +241,154 @@
     }
 
     function compute_sumloan1() {
-        // låneprofil 1: 50% tas opp først, så 50% etter halve byggetiden
-        // Eks 7 år: 50% vil akkumulerer 7 års rente, 50% vil akkumulere 4 års rente
+        // låneprofil 1: lån tas opp i like rater per år eller som vektor!.
+        // Prisstigning er med her!
 
         let cum = 0.0;
+        let cum_projected = 0.0;
 
         let rente = input_laanerente1;
+        let aarlig_sum = input_bompengelaan / input_byggetid;
+        let dyear = input_byggeoppstart - input_basisaar;
         for (let year = 0; year < input_byggetid; year++) {
             if (year >= input_laanerente_endring) {
                 rente = input_laanerente2;
             }
-            cum = cum + Math.pow(1.0 + rente, year);
-        }
-        let result = cum * 0.5 * input_bompengelaan / input_byggetid;
 
-        rente = input_laanerente1;
-        cum = 0.0
-        restbyggetid = Math.ceil(input_byggetid / 2.0);
-        for (let year = 0; year < restbyggetid; year++) {
+            if (input_laaneprofil == 4) {
+                aarlig_sum = input_aarlig_laan[year];
+            }
+
+            let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), year + dyear);
+
+            console.log("Låneopptak (mill) i år", year + input_byggeoppstart, "er", (reell_sum / MLL).toFixed(4))
+            cum = (cum + reell_sum) * (1.0 + rente);
+
+            let part = reell_sum * Math.pow((1.0 + rente), input_byggetid - year);
+            cum_projected += part;
+
+            bygge_aar[year] = input_byggeoppstart + year;
+            bygge_laanopptak[year] = reell_sum;
+            bygge_kumulativt_laan[year] = cum;
+            bygge_kumulativt_laan_proj[year] = part;  // vil bli feil dersom rente endres!
+            bygge_rentefot[year] = rente;
+        }
+
+        return (cum);
+    }
+
+
+    function compute_sumloan2() {
+        // Her er bomselskap tidlig og forholdet mellom stat og bomselskap må beregnes
+        // Etter bomselskap er ferdig å låne så går det noe tid mens stat låner, så
+        // det blir rentes renter... Pessimistisk scenario
+
+        let cum = 0.0;
+        let cum_projected = 0.0;
+
+        let rente = input_laanerente1;
+
+        let aarlig_total_sum = input_styringsramme / input_byggetid;
+        let dyear = input_byggeoppstart - input_basisaar;
+        let laane_andel = input_bompengelaan;
+
+        for (let year = 0; year < input_byggetid; year++) {
             if (year >= input_laanerente_endring) {
                 rente = input_laanerente2;
             }
-            cum = cum + Math.pow(1.0 + rente, year);
-        }
-        result += cum * 0.5 * input_bompengelaan / restbyggetid;
 
-        return (result);
+            let aarlig_sum = 0.0;
+            if (aarlig_total_sum < laane_andel) {
+                aarlig_sum = aarlig_total_sum;
+                laane_andel = laane_andel - aarlig_sum;
+            }
+            else if (aarlig_total_sum > laane_andel && laane_andel > 0.0) {
+                aarlig_sum = laane_andel;
+                laane_andel = 0.0;
+            }
+            else if (laane_andel == 0.0) {
+                aarlig_sum = 0.0;
+            }
+            else {
+                console.error("Unexpected!");
+            }
+
+            let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), year + dyear);
+
+            console.log("Låneopptak (mill) i år", year + input_byggeoppstart, "er", (reell_sum / MLL).toFixed(4))
+            cum = (cum + reell_sum) * (1.0 + rente);
+
+            let part = reell_sum * Math.pow((1.0 + rente), input_byggetid - year);
+            cum_projected += part;
+
+            bygge_aar[year] = input_byggeoppstart + year;
+            bygge_laanopptak[year] = reell_sum;
+            bygge_kumulativt_laan[year] = cum;
+            bygge_kumulativt_laan_proj[year] = part;   // vil bli feil dersom rente endres!
+            bygge_rentefot[year] = rente;
+
+        }
+
+        return (cum);
     }
 
-    function yearly_streams(toll) {
+    function compute_sumloan3() {
+        // Her er bomselskap seint og forholdet mellom stat og bomselskap må beregnes
+        // Optimistisk scenario
+
+        let cum = 0.0;
+        let cum_projected = 0.0;
+
+        let rente = input_laanerente1;
+
+        let aarlig_total_sum = input_styringsramme / input_byggetid;
+        let dyear = input_byggeoppstart - input_basisaar;
+        let stat_andel = input_styringsramme - input_bompengelaan;
+        let laane_andel = 0.0;
+        let aarlig_sum = 0.0;
+        console.log("Stat_andel vs aarlig_total_sum", stat_andel, aarlig_total_sum);
+
+        for (let year = 0; year < input_byggetid; year++) {
+            if (year >= input_laanerente_endring) {
+                rente = input_laanerente2;
+            }
+
+            if (aarlig_total_sum < stat_andel) {
+                aarlig_sum = 0.0;
+                stat_andel = stat_andel - aarlig_total_sum;
+            }
+            else if (aarlig_total_sum > stat_andel && stat_andel > 0.0) {
+                aarlig_sum = aarlig_total_sum - stat_andel;
+                stat_andel = 0.0;
+            }
+            else if (stat_andel == 0.0) {
+                aarlig_sum = aarlig_total_sum;
+            }
+            else {
+                console.error("Unexpected!");
+            }
+
+            let reell_sum = aarlig_sum * Math.pow((1 + input_prisstigning), year + dyear);
+
+            console.log("Låneopptak (mill) i år", year + input_byggeoppstart, "er", (reell_sum / MLL).toFixed(4))
+            cum = (cum + reell_sum) * (1.0 + rente);
+
+            let part = reell_sum * Math.pow((1.0 + rente), input_byggetid - year);
+            cum_projected += part;
+
+            bygge_aar[year] = input_byggeoppstart + year;
+            bygge_laanopptak[year] = reell_sum;
+            bygge_kumulativt_laan[year] = cum;
+            bygge_kumulativt_laan_proj[year] = part;  // vil bli feil dersom rente endres!
+            bygge_rentefot[year] = rente;
+
+        }
+
+        return (cum);
+    }
+
+
+    function yearly_streams(toll, mode = 0) {
 
         let cumincome = [];
         let cumrest = [];
@@ -201,22 +399,42 @@
         // both toll and bomselskap will increase with moneygrowth factor
         let xtoll = toll;
         let xbomselskap = input_bomselskap;
+        let xbomselskap_sum = 0.0;
+        let xrenter_sum = 0.0;
         let rente = input_laanerente1;
-        result_bomsatser = [];
-        for (let year = 1; year <= MAXYEARS; year++) {
+        let aar_renteendring = input_laanerente_endring - input_byggetid;
 
-            if (year >= input_laanerente_endring) {
+        for (let year = 0; year <= MAXYEARS; year++) {
+
+            if (year >= aar_renteendring) {
                 rente = input_laanerente2;
             }
 
-            result_bomsatser[year - 1] = xtoll;
+            xtoll = toll * Math.pow((1.0 + input_prisstigning), year);
+            xbomselskap = input_bomselskap * Math.pow((1.0 + input_prisstigning), year);
+            xbomselskap_sum += xbomselskap;
 
-            xtoll = xtoll * (1.0 + input_prisstigning);
-            xbomselskap = xbomselskap * (1.0 + input_prisstigning);
-            let income = 365 * input_aadt_oppstart *
-                Math.pow((1 + input_trafikkvekst), (year - 1)) * xtoll - xbomselskap;
-            rest = (rest - income) * (1.0 + rente)
+            let income = 0;
+            let trafikk = input_aadt_oppstart;
+            trafikk = input_aadt_oppstart * Math.pow((1 + input_trafikkvekst), (year))  // year - 1 ?
+            income = 365 * trafikk * xtoll - xbomselskap;
 
+            let rest_urente = (rest - income);
+            rest = (rest - income) * (1.0 + rente);
+            let renteutgift = rest - rest_urente;
+            xrenter_sum += renteutgift;
+
+            if (mode == 1) {
+                result_bomsatser[year] = xtoll;
+                result_bominntekt[year] = income;
+                result_restlaan[year] = rest;
+                result_tilbomselskap[year] = xbomselskap;
+                result_rentefot[year] = rente;
+                result_rente_aarlig[year] = renteutgift;
+                result_aadt[year] = trafikk;
+                result_tilbomselskap_sum = xbomselskap_sum;
+                result_renter_aarlig_sum = xrenter_sum;
+            }
 
             if (previousrest > 0.0 && rest <= 0.0) {
                 return (year);
@@ -228,33 +446,34 @@
 
     }
 
+
     function bycar_type(toll) {
-        v = parseFloat(document.calc.elratio.value / 100.0);
-        e = parseFloat(document.calc.elrabatt.value / 100.0);
-        u = parseFloat(document.calc.heavyratio.value / 100.0);
-        t = parseFloat(document.calc.heavymult.value);
+        let v = input_rabattbil_andel;
+        let e = input_rabattbil_pris;
+        let u = input_tungandel;
+        let t = input_tungmult;
 
         // person car vs heavy
-        x = toll / (1 - u - v + u * v + v * e - v * e * u + u * t)
+        let x = toll / (1 - u - v + u * v + v * e - v * e * u + u * t)
 
-        console.log("Person vs Heavy", x, x * t)
+        console.log("Person vs Tungbil", x, x * t)
 
         if (x > toll && t > 1) {
             x = NaN
-            document.getElementById("umulig").innerHTML = "Umulig regnestykke, juster elbil fraksjon og/eller rabatt!";
+            document.getElementById("umulig").innerHTML = "Umulig regnestykke, juster rabattbil andel og/eller rabatt%!";
         }
         else {
             document.getElementById("umulig").innerHTML = "";
 
         }
 
-        lettfossil = x
-        lettelbil = x * e
-        tung = x * t
+        let lettbil = x
+        let lettbilrabatt = x * e
+        let tung = x * t
 
-        document.result.propfossil.value = lettfossil.toFixed(1)
-        document.result.propelbil.value = lettelbil.toFixed(1)
-        document.result.proptung.value = tung.toFixed(1)
+        document.result.proposed_lettbil.value = lettbil.toFixed(1)
+        document.result.proposed_rabattbil.value = lettbilrabatt.toFixed(1)
+        document.result.proposed_tung.value = tung.toFixed(1)
 
     }
 
@@ -263,185 +482,423 @@
         iterate_toll_value();
         proposed_toll = result_initiell_avg_bomsats;
 
-        var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
-            "&#129324;&#128128;"];
+        // var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
+        //     "&#129324;&#128128;"];
 
 
-        emoj = emojis[0]
-        if (proposed_toll > 10) emoj = emojis[1];
-        if (proposed_toll > 50) emoj = emojis[2];
-        if (proposed_toll > 100) emoj = emojis[3];
-        if (proposed_toll > 200) emoj = emojis[4];
-        if (proposed_toll > 500) emoj = emojis[5];
+        // emoj = emojis[0]
+        // if (proposed_toll > 10) emoj = emojis[1];
+        // if (proposed_toll > 50) emoj = emojis[2];
+        // if (proposed_toll > 100) emoj = emojis[3];
+        // if (proposed_toll > 200) emoj = emojis[4];
+        // if (proposed_toll > 500) emoj = emojis[5];
 
-        document.getElementById("emoji").innerHTML = emoj;
+        // document.getElementById("emoji").innerHTML = emoj;
 
         var fixed = 0
         if (proposed_toll < 50) {
-            fixed = 1
+            fixed = 1;
         }
-        document.result.proposed.value = proposed_toll.toFixed(fixed)
-        document.result.proposed_end.value = result_bomsatser[input_nedbetalingstid - 1].toFixed(fixed)
-        console.log(result_bomsatser)
+        document.result.proposed.value = proposed_toll.toFixed(fixed);
+        document.result.proposed_end.value = result_bomsatser[input_nedbetalingstid - 1].toFixed(fixed);
 
-        // bycar_type(proposed_toll)
+        let deltaaar = input_byggetid + (input_byggeoppstart - input_basisaar);
+        console.log("Deltaår:", deltaaar);
+        let diskontert = proposed_toll / Math.pow((1.0 + input_prisstigning), deltaaar);
+        document.result.proposed_start_disk.value = diskontert.toFixed(fixed);
+        document.result.result_kumulativt_laan.value = (result_kumulativt_laan / MRD).toFixed(3);
+        let sum_inkl = ((result_kumulativt_laan + input_forhaandsinnkrevet + result_tilbomselskap_sum + result_renter_aarlig_sum) / MRD).toFixed(3);
+        document.result.result_kumulativt_laan_all.value = sum_inkl;
 
+        bycar_type(diskontert);
 
-        // var cumtotal = cumloan + trg * bomselskap
+        reset_tabell();
+        for (let i = 0; i < input_byggetid; i++) {
+            let aar = bygge_aar[i];
+            let rente = (bygge_rentefot[i] * 100.0).toFixed(1);
+            let opptaklaan = (bygge_laanopptak[i] / MRD).toFixed(4);
+            let cumlaan = (bygge_kumulativt_laan[i] / MRD).toFixed(4);
+            let cumlaan_proj = (bygge_kumulativt_laan_proj[i] / MRD).toFixed(4);
+            bygge_tabell(aar, rente, opptaklaan, cumlaan);
+        }
 
-        // document.result.cumloan.value = (cumloan / 1000000000).toFixed(4);
-        // document.result.cumloanall.value = (cumtotal / 1000000000).toFixed(4);
-
-        // allplus = cumtotal + forhaand;
-        // document.result.cumloanallplus.value = (allplus / 1000000000).toFixed(4);
-
-        // var bompengeinit = loan + xforhaand;
-        // console.log("BOMPENGEINIT =", bompengeinit)
-
-        // document.result.statandel.value = (100 * (xtotal - bompengeinit) / xtotal).toFixed(2);
-
+        for (let i = 0; i <= input_nedbetalingstid; i++) {
+            let xrente = (result_rentefot[i] * 100.0).toFixed(1);
+            let sats = result_bomsatser[i].toFixed(2);
+            let innt = (result_bominntekt[i] / MLL).toFixed(4);
+            let tilbom = (result_tilbomselskap[i] / MLL).toFixed(4);
+            let rest = (result_restlaan[i] / MLL).toFixed(4);
+            let aar = i + input_byggeoppstart + input_byggetid;
+            let trafikk = Math.round(result_aadt[i]);
+            let renter_aar = (result_rente_aarlig[i] / MLL).toFixed(4);
+            result_tabell(xrente, aar, sats, trafikk, tilbom, innt, rest, renter_aar);
+        }
 
 
     }
 
+    function avg_value(arr) {
+        let nlen = arr.length;
+        let sum = 0.0;
+        for (let i = 0; i < nlen; i++) {
+            sum += arr[i]
+        }
+        return (sum / nlen);
+    }
+
+    function reset_tabell() {
+        let table = document.getElementById("restabell");
+        var rowCount = table.rows.length;
+        for (var x = rowCount - 1; x > 0; x--) {
+            table.deleteRow(x);
+        }
+
+        let btable = document.getElementById("byggtabell");
+        var rowCount = btable.rows.length;
+        for (var x = rowCount - 1; x > 0; x--) {
+            btable.deleteRow(x);
+        }
+    }
+    function result_tabell(rente, aar, sats, trafikk, tilbom, innt, rest, rent) {
+        let table = document.getElementById("restabell");
+
+        var row = table.insertRow(-1);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        var cell3 = row.insertCell(2);
+        var cell4 = row.insertCell(3);
+        var cell5 = row.insertCell(4);
+        var cell6 = row.insertCell(5);
+        var cell7 = row.insertCell(6);
+        var cell8 = row.insertCell(7);
+        cell1.innerHTML = aar;
+        cell2.innerHTML = rente;
+        cell3.innerHTML = sats;
+        cell4.innerHTML = trafikk;
+        cell5.innerHTML = tilbom;
+        cell6.innerHTML = innt;
+        cell7.innerHTML = rest;
+        cell8.innerHTML = rent;
+    }
+
+    function bygge_tabell(aar, a, b, c) {
+        let table = document.getElementById("byggtabell");
+
+        var row = table.insertRow(-1);
+        var cell1 = row.insertCell(0);
+        var cell2 = row.insertCell(1);
+        var cell3 = row.insertCell(2);
+        var cell4 = row.insertCell(3);
+        cell1.innerHTML = aar;
+        cell2.innerHTML = a;
+        cell3.innerHTML = b;
+        cell4.innerHTML = c;
+    }
+
+
+
+
+    function resetcase() {
+        document.calc.byggeoppstart.value = null;
+        document.calc.byggetid.value = null;
+        document.calc.styringsramme.value = null;
+        document.calc.kostnadsramme.value = null;
+        document.calc.basisaar.value = null;
+        document.calc.bompengelaan.value = null;
+        document.calc.laaneprofil.value = 1;
+        document.calc.forhaandsinnkrevet.value = null;
+        document.calc.nedbetalingstid.value = null;
+        document.calc.laanerente1.value = null;
+        document.calc.laanerente2.value = null;
+        document.calc.laanerente_endring.value = null;
+        document.calc.prisstigning.value = null;
+        document.calc.aadt_oppstart.value = null;
+        document.calc.trafikkvekst.value = null;
+        document.calc.bomselskap.value = null;
+        document.calc.tungandel.value = null;
+        document.calc.tungmult.value = null;
+        document.calc.rabattbil_andel.value = null;
+        document.calc.rabattbil_pris.value = null;
+        document.calc.offisielt.value = "";
+
+        document.bomaarlig.aar1.value = null;
+        document.bomaarlig.aar2.value = null;
+        document.bomaarlig.aar3.value = null;
+        document.bomaarlig.aar4.value = null;
+        document.bomaarlig.aar5.value = null;
+        document.bomaarlig.aar6.value = null;
+        document.bomaarlig.aar7.value = null;
+        document.bomaarlig.aar8.value = null;
+        document.bomaarlig.aar9.value = null;
+        document.bomaarlig.aar10.value = null;
+
+        document.result.proposed.value = null;
+        document.result.proposed_start_disk.value = null;
+        document.result.proposed_end.value = null;
+        document.result.proposed_lettbil.value = null;
+        document.result.proposed_rabattbil.value = null;
+        document.result.proposed_tung.value = null;
+        document.result.result_kumulativt_laan.value = null;
+        document.result.result_kumulativt_laan_all.value = null;
+
+        reset_tabell();
+    }
+
     function testcase() {
+        resetcase();
+        document.calc.byggeoppstart.value = 2016;
         document.calc.byggetid.value = 5;
-        document.calc.styringsramme.value = 1.5;
-        document.calc.kostnadsramme.value = 1.7;
-        document.calc.bompengelaan.value = 1;
-        document.calc.laaneprofil.value = 0;
+        document.calc.styringsramme.value = 10;
+        document.calc.kostnadsramme.value = 12;
+        document.calc.basisaar.value = 2013;
+        document.calc.bompengelaan.value = 5;
+        document.calc.laaneprofil.value = 1;
         document.calc.forhaandsinnkrevet.value = 0.0;
         document.calc.nedbetalingstid.value = 15;
-        document.calc.laanerente1.value = 5.5;
-        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente1.value = 5;
+        document.calc.laanerente2.value = 6;
         document.calc.laanerente_endring.value = 10;
-        document.calc.prisstigning.value = 2;
+        document.calc.prisstigning.value = 0;
         document.calc.aadt_oppstart.value = 20000
         document.calc.trafikkvekst.value = 1;
         document.calc.bomselskap.value = 5;
         document.calc.tungandel.value = 15;
         document.calc.tungmult.value = 3;
-        document.calc.elbil_andel.value = 60;
-        document.calc.elbil_rabattpris.value = 50;
-        document.calc.offisielt.value = "14";
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 80;
+        document.calc.offisielt.value = "68";
+
     }
 
     function rogfast1() {
+        resetcase();
+
+        document.calc.byggeoppstart.value = 2018;
+        document.calc.byggetid.value = 7;
+        document.calc.styringsramme.value = 16.4;
+        document.calc.kostnadsramme.value = 18.4;
+        document.calc.basisaar.value = 2017;
+        document.calc.bompengelaan.value = 12.01;
+        document.calc.laaneprofil.value = 4;
+        document.calc.forhaandsinnkrevet.value = 1.2;
+        document.calc.nedbetalingstid.value = 20;
+        document.calc.laanerente1.value = 5.5;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2.5;
+        document.calc.aadt_oppstart.value = 5950;
+        document.calc.trafikkvekst.value = 1.5;
+        document.calc.bomselskap.value = 12;
+        document.calc.tungandel.value = 12;
+        document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 16;
+        document.calc.rabattbil_pris.value = 50;
+        document.calc.offisielt.value = "374 (2017) kr, St.prop. 101 S 2017";
+
+        document.bomaarlig.aar1.value = 3.49; // 2018 (0.39 + 10.3 - 1.2 forhånd)
+        document.bomaarlig.aar2.value = 4.0;
+        document.bomaarlig.aar3.value = 2.0;
+        document.bomaarlig.aar4.value = 0.0;
+        document.bomaarlig.aar5.value = 0.0;
+        document.bomaarlig.aar6.value = 0.0;
+        document.bomaarlig.aar7.value = 2.520;
+        document.bomaarlig.aar8.value = 0.0;
+        document.bomaarlig.aar9.value = 0.0;
+        document.bomaarlig.aar10.value = 0.0;
+
+    }
+
+    function rogfast2() {
+        resetcase();
+
+        document.calc.byggeoppstart.value = 2021;
         document.calc.byggetid.value = 10;
         document.calc.styringsramme.value = 20.6;
         document.calc.kostnadsramme.value = 24.8;
+        document.calc.basisaar.value = 2020;
         document.calc.bompengelaan.value = 10.66;
-        document.calc.laaneprofil.value = 1;
+        document.calc.laaneprofil.value = 4;
         document.calc.forhaandsinnkrevet.value = 1.7;
         document.calc.nedbetalingstid.value = 20;
         document.calc.laanerente1.value = 5.5;
-        document.calc.laanerente2.value = 5.5;
-        document.calc.laanerente_endring.value = 10;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 8;
         document.calc.prisstigning.value = 2;
         document.calc.aadt_oppstart.value = 5980;
-        document.calc.trafikkvekst.value = 1.2;
+        document.calc.trafikkvekst.value = 1.3;
         document.calc.bomselskap.value = 6;
         document.calc.tungandel.value = 12;
         document.calc.tungmult.value = 3;
-        document.calc.elbil_andel.value = 70;
-        document.calc.elbil_rabattpris.value = 50;
-        document.calc.offisielt.value = "409 kr, St.prop. 54 S 2020";
+        document.calc.rabattbil_andel.value = 16;
+        document.calc.rabattbil_pris.value = 50;
+        document.calc.offisielt.value = "409 (2020) kr, St.prop. 54 S 2020";
+
+        document.bomaarlig.aar1.value = 0.0;
+        document.bomaarlig.aar2.value = 8.323;  // 2022
+        document.bomaarlig.aar3.value = 0.0;
+        document.bomaarlig.aar4.value = 0.0;
+        document.bomaarlig.aar5.value = 0.0;
+        document.bomaarlig.aar6.value = 0.0;
+        document.bomaarlig.aar7.value = 0.0;
+        document.bomaarlig.aar8.value = 2.334;    // 2028  Sum 10.657 MRD
+        document.bomaarlig.aar9.value = 0.0;
+        document.bomaarlig.aar10.value = 0.0;
+
     }
 
-    // // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
-    // function hordfast1() {
-    //     document.calc.buildyears.value = 7;
-    //     document.calc.totalkost.value = 37.7;
-    //     document.calc.totalkostramme.value = "45?"; // gjett
-    //     document.calc.loan.value = 13.4;
-    //     document.calc.preloan.value = 0;
-    //     document.calc.payyears.value = 15;
-    //     document.calc.rate.value = 5.5;
-    //     document.calc.aadt.value = 5700;
-    //     document.calc.trafficgrowth.value = 1.5;
-    //     document.calc.bomselskap.value = 15;
-    //     document.calc.heavyratio.value = 15;
-    //     document.calc.heavymult.value = 3;
-    //     document.calc.elratio.value = 70;
-    //     document.calc.elrabatt.value = 50;
-    //     document.calc.intoll.value = "352 personbil SVV 2020";
-    // }
+    // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
+    function hordfast1() {
+        resetcase();
+        document.calc.byggetid.value = 5;
+        document.calc.byggeoppstart.value = 2026;
+        document.calc.styringsramme.value = 37.7;
+        document.calc.kostnadsramme.value = 44.0;
+        document.calc.basisaar.value = 2021;
+        document.calc.bompengelaan.value = 14.4;
+        document.calc.laaneprofil.value = 4;
+        document.calc.forhaandsinnkrevet.value = 0;
+        document.calc.nedbetalingstid.value = 20;
+        document.calc.laanerente1.value = 5.5;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2;
+        document.calc.aadt_oppstart.value = 5700;
+        document.calc.trafikkvekst.value = 1.5;
+        document.calc.bomselskap.value = 15;
+        document.calc.tungandel.value = 13;
+        document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 80;
+        document.calc.offisielt.value = "362 pr bil med avtale, BA 2020";
+
+        document.bomaarlig.aar1.value = 7.4; // 2026
+        document.bomaarlig.aar2.value = 6.0;
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar4.value = 1.0;  //
+        document.bomaarlig.aar5.value = 0.0;  //
+        document.bomaarlig.aar6.value = 0.0;  //
+        document.bomaarlig.aar7.value = 0.0;  //
+    }
+
+
+    // Mer realistisk
+    function hordfast2() {
+        resetcase();
+        document.calc.byggetid.value = 7;
+        document.calc.byggeoppstart.value = 2028;
+        document.calc.styringsramme.value = 41.0;
+        document.calc.kostnadsramme.value = 48.0;
+        document.calc.basisaar.value = 2021;
+        document.calc.bompengelaan.value = 14.4;
+        document.calc.laaneprofil.value = 4;
+        document.calc.forhaandsinnkrevet.value = 0;
+        document.calc.nedbetalingstid.value = 25;
+        document.calc.laanerente1.value = 5.5;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2;
+        document.calc.aadt_oppstart.value = 4000;
+        document.calc.trafikkvekst.value = 0.5;
+        document.calc.bomselskap.value = 20;
+        document.calc.tungandel.value = 13;
+        document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 90;
+        document.calc.offisielt.value = "Mer realistisk?";
+
+        document.bomaarlig.aar1.value = 7.4; // 2026
+        document.bomaarlig.aar2.value = 6.0;
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar4.value = 1.0;  //
+        document.bomaarlig.aar5.value = 0.0;  //
+        document.bomaarlig.aar6.value = 0.0;  //
+        document.bomaarlig.aar7.value = 0.0;  //
+    }
 
 
     // https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf
     function grime_vesleelva() {
+        resetcase();
         document.calc.byggetid.value = 2;
+        document.calc.byggeoppstart.value = 2011;
         document.calc.styringsramme.value = 0.193;
         document.calc.kostnadsramme.value = 0.193;
+        document.calc.basisaar.value = 2011;
         document.calc.bompengelaan.value = 0.101;
-        document.calc.laaneprofil.value = 0;
+        document.calc.laaneprofil.value = 2;
         document.calc.forhaandsinnkrevet.value = 0;
         document.calc.nedbetalingstid.value = 15;
         document.calc.laanerente1.value = 8;
         document.calc.laanerente2.value = 8;
         document.calc.laanerente_endring.value = 10;
-        document.calc.prisstigning.value = 2;
+        document.calc.prisstigning.value = 2.5;
         document.calc.aadt_oppstart.value = 1500;
         document.calc.trafikkvekst.value = 1.1;
         document.calc.bomselskap.value = 3;
         document.calc.tungandel.value = 15;
         document.calc.tungmult.value = 2;
-        document.calc.elbil_andel.value = 70;
-        document.calc.elbil_rabattpris.value = 50;
-        document.calc.offisielt.value = "24.5 kr, St.prop. 103 S 2010";
-        //     document.calc.buildyears.value = 2;
-        //     document.calc.totalkost.value = 0.193;
-        //     document.calc.totalkostramme.value = 0.193;
-        //     document.calc.loan.value = 0.101;
-        //     document.calc.preloan.value = 0;
-        //     document.calc.payyears.value = 15;
-        //     document.calc.rate.value = 8;
-        //     document.calc.aadt.value = 1500;
-        //     document.calc.trafficgrowth.value = 1.1;
-        //     document.calc.bomselskap.value = 3;
-        //     document.calc.heavyratio.value = 15;
-        //     document.calc.heavymult.value = 2;
-        //     document.calc.elratio.value = 0;
-        //     document.calc.elrabatt.value = 100;
-        //     document.calc.intoll.value = "24.5 kr, St.prop. 103 S 2010";
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 80;
+        document.calc.offisielt.value = "24.5 kr ved åpning, St.prop. 103 S 2010";
+        reset_tabell();
     }
 
-    // function kilden_presterudskrysset() {
-    //     document.calc.buildyears.value = 2;
-    //     document.calc.totalkost.value = 0.226;
-    //     document.calc.totalkostramme.value = 0.226;
-    //     document.calc.loan.value = 0.194;
-    //     document.calc.preloan.value = 0;
-    //     document.calc.payyears.value = 4;
-    //     document.calc.rate.value = 5.5;
-    //     document.calc.aadt.value = 10800;
-    //     document.calc.trafficgrowth.value = 1.7;
-    //     document.calc.bomselskap.value = 3;
-    //     document.calc.heavyratio.value = 7;
-    //     document.calc.heavymult.value = 2;
-    //     document.calc.elratio.value = 0;
-    //     document.calc.elrabatt.value = 100;
-    //     document.calc.intoll.value = "13.5 kr, St.prop. 103 S";
-    // }
+    function kilden_presterodbakken() {
+        resetcase();
+        document.calc.byggetid.value = 2;
+        document.calc.byggeoppstart.value = 2018;
+        document.calc.styringsramme.value = 0.226;
+        document.calc.kostnadsramme.value = 0.226;
+        document.calc.basisaar.value = 2017;
+        document.calc.bompengelaan.value = 0.194;
+        document.calc.laaneprofil.value = 2;
+        document.calc.forhaandsinnkrevet.value = 0;
+        document.calc.nedbetalingstid.value = 4;
+        document.calc.laanerente1.value = 5.5;
+        document.calc.laanerente2.value = 5.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2.5;
+        document.calc.aadt_oppstart.value = 10800;
+        document.calc.trafikkvekst.value = 1.7;
+        document.calc.bomselskap.value = 3;
+        document.calc.tungandel.value = 7;
+        document.calc.tungmult.value = 2;
+        document.calc.rabattbil_andel.value = 0;
+        document.calc.rabattbil_pris.value = 90;
 
-    // function foenhus_bagn() {
-    //     document.calc.buildyears.value = 3;
-    //     document.calc.totalkost.value = 0.420;
-    //     document.calc.totalkostramme.value = 0.444;
-    //     document.calc.loan.value = 0.220;
-    //     document.calc.preloan.value = 0;
-    //     document.calc.payyears.value = 15;
-    //     document.calc.rate.value = 6.5;
-    //     document.calc.aadt.value = 2200;
-    //     document.calc.trafficgrowth.value = 1;
-    //     document.calc.bomselskap.value = 3;
-    //     document.calc.heavyratio.value = 13;
-    //     document.calc.heavymult.value = 2;
-    //     document.calc.elratio.value = 0;
-    //     document.calc.elrabatt.value = 100;
-    //     document.calc.intoll.value = "30 kr, St.prop.";
-    // }
+        document.calc.offisielt.value = "13.5 kr, St.prop. 103 S";
+    }
 
+    function foenhus_bagn() {
+        resetcase();
+        document.calc.byggetid.value = 3;
+        document.calc.byggeoppstart.value = 2012;
+        document.calc.styringsramme.value = 0.420;
+        document.calc.kostnadsramme.value = 0.440;
+        document.calc.basisaar.value = 2012;
+        document.calc.bompengelaan.value = 0.220;
+        document.calc.laaneprofil.value = 4;
+        document.calc.forhaandsinnkrevet.value = 0;
+        document.calc.nedbetalingstid.value = 15;
+        document.calc.laanerente1.value = 6.5;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2.5;
+        document.calc.aadt_oppstart.value = 2200;
+        document.calc.trafikkvekst.value = 1.0;
+        document.calc.bomselskap.value = 3;
+        document.calc.tungandel.value = 13;
+        document.calc.tungmult.value = 2;
+        document.calc.rabattbil_andel.value = 80;
+        document.calc.rabattbil_pris.value = 90;
+        document.calc.offisielt.value = "30 kr, St.prop. 101 (2011)";
+
+        document.bomaarlig.aar1.value = 0.190;  // 2012
+        document.bomaarlig.aar2.value = 0.030;
+        document.bomaarlig.aar3.value = 0.000;  //
+    }
 </script>
 
 <head>
@@ -505,6 +962,45 @@
         }
 
 
+
+        #bomaar {
+            font-family: 'Courier New', monospace;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #bomaar input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #bomaar td,
+        #bomaar th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #bomaar tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #bomaar tr:hover {
+            background-color: #ddd;
+        }
+
+        #bomaar th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #5b5b5c;
+            color: white;
+        }
+
+
+
+
+
+
         #res {
             border-collapse: collapse;
             width: 95%;
@@ -532,6 +1028,74 @@
         }
 
         #res th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #682288;
+            color: white;
+        }
+
+        #restabell {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #restabell td,
+        #restabell th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+
+        #restabell tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #restabell tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
+
+        #restabell input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #restabell th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #682288;
+            color: white;
+        }
+
+        #byggtabell {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #byggtabell td,
+        #byggtabell th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+
+        #byggtabell tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #byggtabell tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
+
+        #byggtabell input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #byggtabell th {
             padding-top: 12px;
             padding-bottom: 12px;
             text-align: left;
@@ -589,6 +1153,33 @@
             margin-right: 40px;
         }
 
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted rgb(197, 197, 197);
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            font-family: 'Times';
+            width: 400px;
+            background-color: rgb(82, 31, 79);
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 5px 0;
+
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            top: -5px;
+            left: 105%;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
         /* Red */
     </style>
 </head>
@@ -602,8 +1193,81 @@
             <div class="b">
                 <h3>Instruksjon:
                     Trykk på en av de lilla knappene under for eksempelinnfylling. Trykk så
-                    på <b>Beregn</b> knappen. Juster tall og se effekt. </h3>
+                    på <b>Beregn</b> knappen lengre nede. Juster tall og se effekt. </h3>
             </div>
+            <br>
+            <form name=case method=POST>
+                <table id="knapp">
+
+                    <tr>
+                        <td align=center><input type=button class="button button4" onClick='testcase()' value=Generell>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='rogfast1()'
+                                value="Rogfast 2016">
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='rogfast2()'
+                                value="Rogfast 2021">
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align=center><input type=button class="button button4" onClick='hordfast2()'
+                                value="Hordfast (alt)""></td>
+                    <td align=center><input type=button class=" button button4" onClick='grime_vesleelva()'
+                                value=Grime-Vesleelva>
+                        <td align=center><input type=button class="button button4" onClick='kilden_presterodbakken()'
+                                value=Kilden-Presterødbakken>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='foenhus_bagn()'
+                                value=Fønhus-Bagn>
+                        </td>
+
+                    </tr>
+                </table>
+                <h3>Beskrivelse</h3>
+                <ul class="a">
+                    <li>Generell: Enkelt test eksempel</li>
+                    <li>E39 Rogfast: Fra <A
+                            HREF=https://www.regjeringen.no/contentassets/8e5b283f2fd34f7b8559705ad9d2502b/nn-no/pdfs/prp202020210054000dddpdfs.pdf>stortingsproposisjon
+                            2020-2021</A> (og <A
+                            HREF=https://www.regjeringen.no/no/dokumenter/prop.-105-s-20162017/id2548124 />stortingsproposisjon
+                        105 S (2016-2017))</A>
+                        Bompengesummesummen er her begrenset til det som skal innkreves etter åpning. Det er i tillegg
+                        forhåndsinnkreving i perioden 2013-2030 på fergen (ca 1,7 milliarder i sum). Tilsammen blir
+                        bompenger betalt i 37 år! "Med desse føresetnadene er det rekna at brutto
+                        bompengeinntekter vert om lag 19 720 mill. 2020-kroner inkludert inntektene frå
+                        førehandsinnkrevjinga som starta i 2013."</li>
+                    <li>E39 Hordfast: Kostnadstall og bompengenandel fra <A
+                            HREF=https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf>
+                            innspill til NTP høsten 2020.</A> Se også <A
+                            HREF="https://www.ba.no/veivesenet-med-nye-bompengetall-nesten-100-kroner-dyrere-enn-fergen-per-tur/s/5-8-1447368">
+                            reportasje i BA om bompenger</A>:
+                        Hvordan og hvorfor ÅDT skal øke fra dagens 3100 til 5700 i 2030 selv
+                        med så høye bompenger er ikke lett å forstå! Heller ikke en årlig trafikkvekst på 1.5%. En
+                        alternativ versjon er gitt for
+                        Hordfast (Alt)</li>
+                    <li>FV. 34 Grime-Vesleelva for validering: Fra <A
+                            HREF=https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf>prop
+                            103 S (2010-2011)</A> Reell pris is 2021: Lettbil fullpris 33kr, med avtale 26, tunge biler
+                        54 kroner.
+                        ÅDT i 2019: 1274 ved Grime i sør, mer lengre nord.</li>
+                    <li>FV. 311 Kilden-Presterødbakken for validering: Fra <A
+                            HREF=https://www.regjeringen.no/contentassets/0b1c67e1808d45d29e474abd16125416/no/pdfs/prp201720180103000dddpdfs.pdf>prop
+                            103 S (2017-2018)</A> Bompenger liten bil 2021 er 21 kroner dersom avtale.</li>
+                    <li>E16 Fønhus-Bagn for validering: Fra <A
+                            HREF=https://www.regjeringen.no/contentassets/262884fcb4ac4a21a69b1b809bc3dae4/no/pdfs/prp201120120101000dddpdfs.pdf>prop.
+                            101 S (2011-2012). "</A> Fra info 2021: "Det vil koste 34 kroner per passering for lette
+                        kjøretøy og det dobbelte for tunge kjøretøy. Med gyldig AutoPASS-avtale får du ti prosent rabatt
+                        og betaler
+                        ikke for mer enn 40 passeringer per måned gjennom bomstasjonen i Sør-Aurdal. ÅDT i 2019 var
+                        2598.
+
+                    </li>
+                </ul>
+                <hr>
+
+            </form>
             <br>
             <form name=calc method=POST>
                 <table id="bom">
@@ -612,24 +1276,51 @@
                         <th width=30%>Inngangsdata</th>
                     </tr>
                     <tr>
+                        <td>Oppstart bygging (år, for eks. 2021)</td>
+                        <td><input type=text name=byggeoppstart size=10></td>
+                    </tr>
+                    <tr>
                         <td>Byggetid (hele år)</td>
                         <td><input type=text name=byggetid size=10></td>
                     </tr>
                     <tr>
-                        <td>Total kostnad styringsramme (MRD kr)</td>
+                        <td>
+                            <div class="tooltip">Total kostnad styringsramme (MRD kr)
+                                <span class="tooltiptext">Styringsramme er median prisen, dvs det skal
+                                    være 50% sannsynlighet for at reell pris blir enten høyere eller lavere
+                                    enn denne.</span>
+                            </div>
+                        </td>
                         <td><input type=text name=styringsramme size=10></td>
                     </tr>
                     <tr>
-                        <td>Total kostnad kostnadsramme (MRD kr)</td>
+                        <td>
+                            <div class="tooltip">Total kostnad kostnadsramme (MRD kr)
+                                <span class="tooltiptext">Kostnadsramme er 85% percentil, dvs det skal
+                                    kun være 15% sannsynlighet for at reell pris blir høyere
+                                    enn denne. Dette er en øvre ramme gitt av Stortinget.</span>
+                            </div>
+
+                        </td>
                         <td><input type=text name=kostnadsramme size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Basisår for styringsramme og beregninger</td>
+                        <td><input type=text name=basisaar size=10></td>
                     </tr>
                     <tr>
                         <td>Bompengelån for etterskuddsinnkreving (MRD kr)</td>
                         <td><input type=text name=bompengelaan size=10></td>
                     </tr>
                     <tr>
-                        <td>Bompengelån, velg profil</td>
-                        <td><input type=text name=laaneprofil size=10></td>
+                        <td>Bompengelån, velg låneprofil</td>
+                        <td><select id="laaneprofil">
+                                <option value=0>(test)</option>
+                                <option value=1 selected>Jevn fordeling</option>
+                                <option value=2>Bompengeselskap før offentlige</option>
+                                <option value=3>Bompengeselskap etter offentlige</option>
+                                <option value=4>Profil per år</option>
+                            </select></td>
                     </tr>
                     <tr>
                         <td>Forhåndsinnkreving (sum, for info) (MRD kr)</td>
@@ -676,73 +1367,51 @@
                         <td><input type=text name=tungmult size=10></td>
                     </tr>
                     <tr>
-                        <td>Lette kjøretøy, el-bil andel %</td>
-                        <td><input type=text name=elbil_andel size=10></td>
+                        <td>Andel lettbil som vil få rabatt (for eks elbil eller autopass/avtale) i %</td>
+                        <td><input type=text name=rabattbil_andel size=10></td>
                     </tr>
                     <tr>
-                        <td>Elbil pris% av lett fossilbil (typisk 50%) %</td>
-                        <td><input type=text name=elbil_rabattpris size=10></td>
+                        <td>Andel av fullpris (%) som biler med rabatt betaler</td>
+                        <td><input type=text name=rabattbil_pris size=10></td>
                     </tr>
                     <tr>
                         <td style="color: #74178b;" ;">Gjennomsnitt bompenger offisielt fra vedtak eller kjent svar
                         </td>
-                        <td><input type=text name=offisielt size=25 style="background-color:#dd92f0;" readonly></td>
+                        <td><input type=text name=offisielt size=38 style="background-color:#dd92f0;" readonly></td>
                     </tr>
                 </table>
             </form>
             <br>
-            <h3>Fyll inn ved å trykke på en av de lilla knappene</h3>
-            <form name=case method=POST>
-                <table id="knapp">
-
+            <br>
+            <form name=bomaarlig method=POST>
+                Denne blir kun brukt dersom låneprofil er "Profil per år":
+                <br>
+                <table id="bomaar">
                     <tr>
-                        <td align=center><input type=button class="button button4" onClick='testcase()' value=Generell>
-                        </td>
-                        <td align=center><input type=button class="button button4" onClick='rogfast1()' value=Rogfast>
-                        </td>
-                        <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
-                        </td>
+                        <th style="width: 10%; text-align:center;">År 1</th>
+                        <th style="width: 10%; text-align:center;">År 2</th>
+                        <th style="width: 10%; text-align:center;">År 3</th>
+                        <th style="width: 10%; text-align:center;">År 4</th>
+                        <th style="width: 10%; text-align:center;">År 5</th>
+                        <th style="width: 10%; text-align:center;">År 6</th>
+                        <th style="width: 10%; text-align:center;">År 7</th>
+                        <th style="width: 10%; text-align:center;">År 8</th>
+                        <th style="width: 10%; text-align:center;">År 9</th>
+                        <th style="width: 10%; text-align:center;">År 10</th>
                     </tr>
-                    <tr>
-                        <td align=center><input type=button class="button button4" onClick='grime_vesleelva()'
-                                value=Grime-Vesleelva>
-                        <td align=center><input type=button class="button button4" onClick='kilden_presterudskrysset()'
-                                value=Kilden-Presterudkrysset>
-                        </td>
-                        <td align=center><input type=button class="button button4" onClick='foenhus_bagn()'
-                                value=Fønhus-Bagn>
-                        </td>
-
-                    </tr>
+                    <td><input type=text name=aar1 size=8"></td>
+                    <td><input type=text name=aar2 size=8"></td>
+                    <td><input type=text name=aar3 size=8"></td>
+                    <td><input type=text name=aar4 size=8"></td>
+                    <td><input type=text name=aar5 size=8"></td>
+                    <td><input type=text name=aar6 size=8"></td>
+                    <td><input type=text name=aar7 size=8"></td>
+                    <td><input type=text name=aar8 size=8"></td>
+                    <td><input type=text name=aar9 size=8"></td>
+                    <td><input type=text name=aar10 size=8"></td>
                 </table>
             </form>
             <br>
-            <h3>Beskrivelse</h3>
-            <ul class="a">
-                <li>Generell: Enkelt test eksempel</li>
-                <li>E39 Rogfast: Fra <A
-                        HREF=https://www.regjeringen.no/contentassets/8e5b283f2fd34f7b8559705ad9d2502b/nn-no/pdfs/prp202020210054000dddpdfs.pdf>stortingsproposisjon
-                        2020-2021</A>
-                    Bompengesummesummen er her begrenset til det som skal innkreves etter åpning. Det er i tillegg
-                    forhåndsinnkreving i perioden 2013-2030 på fergen (ca 1,7 milliarder i sum). Tilsammen blir
-                    bompenger betalt i 37 år!</li>
-                <li>E39 Hordfast: Kostnadstall og bompengenandel fra <A
-                        HREF=https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf>
-                        innspill til NTP høsten 2020.</A>
-                    Hvordan og hvorfor ÅDT skal øke fra dagens 3100 til 5700 i 2030 selv
-                    med så høye bompenger er ikke lett å forstå!</li>
-                <li>FV. 34 Grime-Vesleelva for validering: Fra <A
-                        HREF=https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf>prop
-                        103 S (2010-2011)</A></li>
-                <li>FV. 311 Kilden-Presterudkrysset for validering: Fra <A
-                        HREF=https://www.regjeringen.no/contentassets/0b1c67e1808d45d29e474abd16125416/no/pdfs/prp201720180103000dddpdfs.pdf>prop
-                        103 S (2017-2018)</A></li>
-                <li>E16 Fønhus-Bagn for validering: Fra <A
-                        HREF=https://www.regjeringen.no/contentassets/262884fcb4ac4a21a69b1b809bc3dae4/no/pdfs/prp201120120101000dddpdfs.pdf>prop.
-                        101 S (2011-2012)</A>
-                </li>
-            </ul>
-            <hr>
             <br>
             <br>
             <form name=knapp method=POST>
@@ -752,7 +1421,7 @@
                         <td align=center width=50%><input type=button class="button" onClick='main()' value="Beregn"
                                 <Input>
                         </td>
-                        <td align=center width=50%><input type=button class="button button3" onClick='testcase()'
+                        <td align=center width=50%><input type=button class="button button3" onClick='resetcase()'
                                 value="Reset" <Input>
                         </td>
                     </tr>
@@ -770,46 +1439,73 @@
                         <th width=30%>Verdi</th>
                     </tr>
                     <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
-                        <td>Estimert gjennomsnitt bomtakst ved oppstart</td>
-                        <td><input type=text name=proposed size=10 readonly
-                                style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"> kr</td>
-                    </tr>
-                    <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
-                        <td>Estimert gjennomsnitt bomtakst ved slutt bompengeperiode</td>
-                        <td><input type=text name=proposed_end size=10 readonly
+                        <td>Estimert gjennomsnitt bomtakst, diskontert til basisår</td>
+                        <td><input type=text name=proposed_start_disk size=10 readonly
                                 style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"> kr</td>
                     </tr>
                     <tr>
-                        <td>Bompenger lett bil fossil</td>
-                        <td><input type=text name=propfossil size=10 readonly> kr</td>
+                        <td>Estimert gjennomsnitt bomtakst ved oppstart bompengeperiode</td>
+                        <td><input type=text name=proposed size=10 readonly> kr</td>
+                    </tr>
+                    <tr>
+                        <td>Estimert gjennomsnitt bomtakst ved slutt bompengeperiode</td>
+                        <td><input type=text name=proposed_end size=10 readonly> kr</td>
+                    </tr>
+                    <tr>
+                        <td>Bompenger lett bil (diskontert)</td>
+                        <td><input type=text name=proposed_lettbil size=10 readonly> kr</td>
 
                     </tr>
                     <tr>
-                        <td>Bompenger lett bil el</td>
-                        <td><input type=text name=propelbil size=10 readonly> kr</td>
+                        <td>Bompenger lett bil med rabatt (diskontert)</td>
+                        <td><input type=text name=proposed_rabattbil size=10 readonly> kr</td>
+
                     </tr>
                     <tr>
-                        <td>Bompenger tunge kjøretøy</td>
-                        <td><input type=text name=proptung size=10 readonly> kr</td>
+                        <td>Bompenger tunge kjøretøy (diskontert)</td>
+                        <td><input type=text name=proposed_tung size=10 readonly> kr</td>
                     </tr>
                     <tr>
                         <td>Kumulativ kostnad bompengelån med renter</td>
-                        <td><input type=text name=cumloan size=10 readonly> MRD kr</td>
+                        <td><input type=text name=result_kumulativt_laan size=10 readonly> MRD kr</td>
                     </tr>
                     <tr>
-                        <td>Kumulativ kostnad som over + drift bomselskap</td>
-                        <td><input type=text name=cumloanall size=10 readonly> MRD kr</td>
-                    </tr>
-                    <tr>
-                        <td>Total kumulativ kostnad bompenger inkl evt forh. innkreving</td>
-                        <td><input type=text name=cumloanallplus size=10 readonly> MRD kr</td>
-                    </tr>
-                    <tr>
-                        <td>Statlig bidrag %</td>
-                        <td><input type=text name=statandel size=10 readonly> %</td>
+                        <td>Kumulativ kostnad bompengelån med renter + forhåndsinnkrevet + bomselskap</td>
+                        <td><input type=text name=result_kumulativt_laan_all size=10 readonly> MRD kr</td>
                     </tr>
                 </table>
             </form>
+            <br>
+            <br>
+            <br>
+            <form name=tabell>
+                <table id=byggtabell>
+                    <tr>
+                        <th width=20%>År</th>
+                        <th width=20%>Rentefot</th>
+                        <th width=20%>Opptak lån 1/1</th>
+                        <th width=20%>Kumulativt lån 31/12</th>
+                    </tr>
+
+                </table>
+            </form>
+            <br>
+            <form name=tabell>
+                <table id=restabell>
+                    <tr>
+                        <th width=8%>År</th>
+                        <th width=7%>Rentefot</th>
+                        <th width=12%>Bomsats (gjennomsnitt)</th>
+                        <th width=10%>Trafikk ÅDT</th>
+                        <th width=20%>Utgift bomselskap (mill. NOK)</th>
+                        <th width=20%>Inntekt (mill. NOK)</th>
+                        <th width=12%>Rest (mill. NOK)</th>
+                        <th width=15%>Herav renter (mill. NOK)</th>
+                    </tr>
+
+                </table>
+            </form>
+            <br>
 
         </center>
     </p>
