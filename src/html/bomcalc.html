@@ -509,6 +509,8 @@
         document.result.result_kumulativt_laan.value = (result_kumulativt_laan / MRD).toFixed(3);
         let sum_inkl = ((result_kumulativt_laan + input_forhaandsinnkrevet + result_tilbomselskap_sum + result_renter_aarlig_sum) / MRD).toFixed(3);
         document.result.result_kumulativt_laan_all.value = sum_inkl;
+        let sum_nesteninkl = ((result_kumulativt_laan + input_forhaandsinnkrevet + result_tilbomselskap_sum) / MRD).toFixed(3);
+        document.result.result_kumulativt_laan_nestenall.value = sum_nesteninkl;
 
         bycar_type(diskontert);
 
@@ -1466,11 +1468,15 @@
                         <td><input type=text name=proposed_tung size=10 readonly> kr</td>
                     </tr>
                     <tr>
-                        <td>Kumulativ kostnad bompengelån med renter</td>
+                        <td>Kumulativ kostnad bompengelån med renter (før åpning)</td>
                         <td><input type=text name=result_kumulativt_laan size=10 readonly> MRD kr</td>
                     </tr>
                     <tr>
-                        <td>Kumulativ kostnad bompengelån med renter + forhåndsinnkrevet + bomselskap</td>
+                        <td>Kumulativ kostnad bompengelån med renter (før åpning) + forhåndsinnkrevet + bomselskap</td>
+                        <td><input type=text name=result_kumulativt_laan_nestenall size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Kumulativ kostnad bompengelån med alle renter + forhåndsinnkrevet + bomselskap</td>
                         <td><input type=text name=result_kumulativt_laan_all size=10 readonly> MRD kr</td>
                     </tr>
                 </table>
@@ -1498,7 +1504,7 @@
                         <th width=12%>Bomsats (gjennomsnitt)</th>
                         <th width=10%>Trafikk ÅDT</th>
                         <th width=20%>Utgift bomselskap (mill. NOK)</th>
-                        <th width=20%>Inntekt (mill. NOK)</th>
+                        <th width=15%>Inntekt (mill. NOK)</th>
                         <th width=12%>Rest (mill. NOK)</th>
                         <th width=15%>Herav renter (mill. NOK)</th>
                     </tr>
