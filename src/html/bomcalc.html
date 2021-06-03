@@ -39,7 +39,9 @@
     let result_restlaan = [];
     let result_tilbomselskap = [];
     let result_tilbomselskap_sum = 0.0;
+    let result_renter_aarlig_sum = 0.0;
     let result_rentefot = [];
+    let result_rente_aarlig = [];
     let result_aadt = [];
 
 
@@ -398,6 +400,7 @@
         let xtoll = toll;
         let xbomselskap = input_bomselskap;
         let xbomselskap_sum = 0.0;
+        let xrenter_sum = 0.0;
         let rente = input_laanerente1;
         let aar_renteendring = input_laanerente_endring - input_byggetid;
 
@@ -413,19 +416,24 @@
 
             let income = 0;
             let trafikk = input_aadt_oppstart;
-            if (year > 0) {
-                trafikk = input_aadt_oppstart * Math.pow((1 + input_trafikkvekst), (year))  // year - 1 ?
-                income = 365 * trafikk * xtoll - xbomselskap;
-                rest = (rest - income) * (1.0 + rente)
-            }
+            trafikk = input_aadt_oppstart * Math.pow((1 + input_trafikkvekst), (year))  // year - 1 ?
+            income = 365 * trafikk * xtoll - xbomselskap;
+
+            let rest_urente = (rest - income);
+            rest = (rest - income) * (1.0 + rente);
+            let renteutgift = rest - rest_urente;
+            xrenter_sum += renteutgift;
+
             if (mode == 1) {
                 result_bomsatser[year] = xtoll;
                 result_bominntekt[year] = income;
                 result_restlaan[year] = rest;
                 result_tilbomselskap[year] = xbomselskap;
                 result_rentefot[year] = rente;
+                result_rente_aarlig[year] = renteutgift;
                 result_aadt[year] = trafikk;
                 result_tilbomselskap_sum = xbomselskap_sum;
+                result_renter_aarlig_sum = xrenter_sum;
             }
 
             if (previousrest > 0.0 && rest <= 0.0) {
@@ -499,7 +507,7 @@
         let diskontert = proposed_toll / Math.pow((1.0 + input_prisstigning), deltaaar);
         document.result.proposed_start_disk.value = diskontert.toFixed(fixed);
         document.result.result_kumulativt_laan.value = (result_kumulativt_laan / MRD).toFixed(3);
-        let sum_inkl = ((result_kumulativt_laan + input_forhaandsinnkrevet + result_tilbomselskap_sum) / MRD).toFixed(3);
+        let sum_inkl = ((result_kumulativt_laan + input_forhaandsinnkrevet + result_tilbomselskap_sum + result_renter_aarlig_sum) / MRD).toFixed(3);
         document.result.result_kumulativt_laan_all.value = sum_inkl;
 
         bycar_type(diskontert);
@@ -522,7 +530,8 @@
             let rest = (result_restlaan[i] / MLL).toFixed(4);
             let aar = i + input_byggeoppstart + input_byggetid;
             let trafikk = Math.round(result_aadt[i]);
-            result_tabell(xrente, aar, sats, trafikk, tilbom, innt, rest);
+            let renter_aar = (result_rente_aarlig[i] / MLL).toFixed(4);
+            result_tabell(xrente, aar, sats, trafikk, tilbom, innt, rest, renter_aar);
         }
 
 
@@ -550,7 +559,7 @@
             btable.deleteRow(x);
         }
     }
-    function result_tabell(rente, aar, sats, trafikk, tilbom, innt, rest) {
+    function result_tabell(rente, aar, sats, trafikk, tilbom, innt, rest, rent) {
         let table = document.getElementById("restabell");
 
         var row = table.insertRow(-1);
@@ -561,6 +570,7 @@
         var cell5 = row.insertCell(4);
         var cell6 = row.insertCell(5);
         var cell7 = row.insertCell(6);
+        var cell8 = row.insertCell(7);
         cell1.innerHTML = aar;
         cell2.innerHTML = rente;
         cell3.innerHTML = sats;
@@ -568,6 +578,7 @@
         cell5.innerHTML = tilbom;
         cell6.innerHTML = innt;
         cell7.innerHTML = rest;
+        cell8.innerHTML = rent;
     }
 
     function bygge_tabell(aar, a, b, c) {
@@ -655,11 +666,49 @@
         document.calc.tungmult.value = 3;
         document.calc.rabattbil_andel.value = 70;
         document.calc.rabattbil_pris.value = 80;
-        document.calc.offisielt.value = "12?";
+        document.calc.offisielt.value = "68";
 
     }
 
     function rogfast1() {
+        resetcase();
+
+        document.calc.byggeoppstart.value = 2018;
+        document.calc.byggetid.value = 7;
+        document.calc.styringsramme.value = 16.4;
+        document.calc.kostnadsramme.value = 18.4;
+        document.calc.basisaar.value = 2017;
+        document.calc.bompengelaan.value = 12.01;
+        document.calc.laaneprofil.value = 4;
+        document.calc.forhaandsinnkrevet.value = 1.2;
+        document.calc.nedbetalingstid.value = 20;
+        document.calc.laanerente1.value = 5.5;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2.5;
+        document.calc.aadt_oppstart.value = 5950;
+        document.calc.trafikkvekst.value = 1.5;
+        document.calc.bomselskap.value = 12;
+        document.calc.tungandel.value = 12;
+        document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 16;
+        document.calc.rabattbil_pris.value = 50;
+        document.calc.offisielt.value = "374 (2017) kr, St.prop. 101 S 2017";
+
+        document.bomaarlig.aar1.value = 3.49; // 2018 (0.39 + 10.3 - 1.2 forhånd)
+        document.bomaarlig.aar2.value = 4.0;
+        document.bomaarlig.aar3.value = 2.0;
+        document.bomaarlig.aar4.value = 0.0;
+        document.bomaarlig.aar5.value = 0.0;
+        document.bomaarlig.aar6.value = 0.0;
+        document.bomaarlig.aar7.value = 2.520;
+        document.bomaarlig.aar8.value = 0.0;
+        document.bomaarlig.aar9.value = 0.0;
+        document.bomaarlig.aar10.value = 0.0;
+
+    }
+
+    function rogfast2() {
         resetcase();
 
         document.calc.byggeoppstart.value = 2021;
@@ -676,7 +725,7 @@
         document.calc.laanerente_endring.value = 8;
         document.calc.prisstigning.value = 2;
         document.calc.aadt_oppstart.value = 5980;
-        document.calc.trafikkvekst.value = 1.5;
+        document.calc.trafikkvekst.value = 1.3;
         document.calc.bomselskap.value = 6;
         document.calc.tungandel.value = 12;
         document.calc.tungmult.value = 3;
@@ -721,6 +770,42 @@
         document.calc.rabattbil_andel.value = 70;
         document.calc.rabattbil_pris.value = 80;
         document.calc.offisielt.value = "362 pr bil med avtale, BA 2020";
+
+        document.bomaarlig.aar1.value = 7.4; // 2026
+        document.bomaarlig.aar2.value = 6.0;
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar3.value = 0.0;  //
+        document.bomaarlig.aar4.value = 1.0;  //
+        document.bomaarlig.aar5.value = 0.0;  //
+        document.bomaarlig.aar6.value = 0.0;  //
+        document.bomaarlig.aar7.value = 0.0;  //
+    }
+
+
+    // Mer realistisk
+    function hordfast2() {
+        resetcase();
+        document.calc.byggetid.value = 7;
+        document.calc.byggeoppstart.value = 2028;
+        document.calc.styringsramme.value = 41.0;
+        document.calc.kostnadsramme.value = 48.0;
+        document.calc.basisaar.value = 2021;
+        document.calc.bompengelaan.value = 14.4;
+        document.calc.laaneprofil.value = 4;
+        document.calc.forhaandsinnkrevet.value = 0;
+        document.calc.nedbetalingstid.value = 25;
+        document.calc.laanerente1.value = 5.5;
+        document.calc.laanerente2.value = 6.5;
+        document.calc.laanerente_endring.value = 10;
+        document.calc.prisstigning.value = 2;
+        document.calc.aadt_oppstart.value = 4000;
+        document.calc.trafikkvekst.value = 0.5;
+        document.calc.bomselskap.value = 20;
+        document.calc.tungandel.value = 13;
+        document.calc.tungmult.value = 3;
+        document.calc.rabattbil_andel.value = 70;
+        document.calc.rabattbil_pris.value = 90;
+        document.calc.offisielt.value = "Mer realistisk?";
 
         document.bomaarlig.aar1.value = 7.4; // 2026
         document.bomaarlig.aar2.value = 6.0;
@@ -1117,13 +1202,19 @@
                     <tr>
                         <td align=center><input type=button class="button button4" onClick='testcase()' value=Generell>
                         </td>
-                        <td align=center><input type=button class="button button4" onClick='rogfast1()' value=Rogfast>
+                        <td align=center><input type=button class="button button4" onClick='rogfast1()'
+                                value="Rogfast 2016">
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='rogfast2()'
+                                value="Rogfast 2021">
                         </td>
                         <td align=center><input type=button class="button button4" onClick='hordfast1()' value=Hordfast>
                         </td>
                     </tr>
                     <tr>
-                        <td align=center><input type=button class="button button4" onClick='grime_vesleelva()'
+                        <td align=center><input type=button class="button button4" onClick='hordfast2()'
+                                value="Hordfast (alt)""></td>
+                    <td align=center><input type=button class=" button button4" onClick='grime_vesleelva()'
                                 value=Grime-Vesleelva>
                         <td align=center><input type=button class="button button4" onClick='kilden_presterodbakken()'
                                 value=Kilden-Presterødbakken>
@@ -1139,7 +1230,9 @@
                     <li>Generell: Enkelt test eksempel</li>
                     <li>E39 Rogfast: Fra <A
                             HREF=https://www.regjeringen.no/contentassets/8e5b283f2fd34f7b8559705ad9d2502b/nn-no/pdfs/prp202020210054000dddpdfs.pdf>stortingsproposisjon
-                            2020-2021</A>
+                            2020-2021</A> (og <A
+                            HREF=https://www.regjeringen.no/no/dokumenter/prop.-105-s-20162017/id2548124 />stortingsproposisjon
+                        105 S (2016-2017))</A>
                         Bompengesummesummen er her begrenset til det som skal innkreves etter åpning. Det er i tillegg
                         forhåndsinnkreving i perioden 2013-2030 på fergen (ca 1,7 milliarder i sum). Tilsammen blir
                         bompenger betalt i 37 år! "Med desse føresetnadene er det rekna at brutto
@@ -1151,7 +1244,9 @@
                             HREF="https://www.ba.no/veivesenet-med-nye-bompengetall-nesten-100-kroner-dyrere-enn-fergen-per-tur/s/5-8-1447368">
                             reportasje i BA om bompenger</A>:
                         Hvordan og hvorfor ÅDT skal øke fra dagens 3100 til 5700 i 2030 selv
-                        med så høye bompenger er ikke lett å forstå! Heller ikke en årlig trafikkvekst på 1.5%</li>
+                        med så høye bompenger er ikke lett å forstå! Heller ikke en årlig trafikkvekst på 1.5%. En
+                        alternativ versjon er gitt for
+                        Hordfast (Alt)</li>
                     <li>FV. 34 Grime-Vesleelva for validering: Fra <A
                             HREF=https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf>prop
                             103 S (2010-2011)</A> Reell pris is 2021: Lettbil fullpris 33kr, med avtale 26, tunge biler
@@ -1398,13 +1493,14 @@
             <form name=tabell>
                 <table id=restabell>
                     <tr>
-                        <th width=10%>År</th>
-                        <th width=10%>Rentefot</th>
-                        <th width=15%>Bomsats (gjennomsnitt)</th>
+                        <th width=8%>År</th>
+                        <th width=7%>Rentefot</th>
+                        <th width=12%>Bomsats (gjennomsnitt)</th>
                         <th width=10%>Trafikk ÅDT</th>
                         <th width=20%>Utgift bomselskap (mill. NOK)</th>
                         <th width=20%>Inntekt (mill. NOK)</th>
-                        <th width=20%>Rest (mill. NOK)</th>
+                        <th width=12%>Rest (mill. NOK)</th>
+                        <th width=15%>Herav renter (mill. NOK)</th>
                     </tr>
 
                 </table>
