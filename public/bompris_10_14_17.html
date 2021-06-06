@@ -14,44 +14,27 @@
 
         var aadt = [];
         var index = 0;
-        for (i = 3000; i < 10000; i += 1000) {
+        for (i = 3000; i < 8000; i += 1000) {
             aadt[index++] = i;
         }
 
-        // 14 MRD investment
-        case14 = [
-            1301,
-            976,
-            780,
-            651,
-            558,
-            488,
-            436,
-            390,
+        // 14,4 MRD investment, 1.5% trafikkvekst, 20 år
+        case14a = [
+            923,
+            693,
+            554,
+            462,
+            396,
         ]
 
-        case10 = [
-            933,
-            700,
-            560,
-            466,
-            400,
-            350,
-            311,
-            280,
+        // 14,4 MRD investment, 0.5% trafikkvekst
+        case14b = [
+            1008,
+            756,
+            605,
+            504,
+            432,
         ]
-
-        case17 = [
-            1577,
-            1183,
-            946,
-            789,
-            676,
-            592,
-            526,
-            473,
-        ]
-
 
 
         Chart.defaults.global.defaultFontSize = 14;
@@ -61,21 +44,16 @@
             data: {
                 labels: aadt,
                 datasets: [{
-                    data: case10,
-                    label: "10 MRD",
+                    data: case14a,
+                    label: "14,4 MRD, 1.5% årlig økning ÅDT",
                     borderColor: "green",
                     fill: false
                 }, {
-                    data: case14,
-                    label: "14 MRD",
+                    data: case14b,
+                    label: "14,4 MRD, 0.5% årlig økning ÅDT",
                     borderColor: "blue",
                     fill: false
-                }, {
-                    data: case17,
-                    label: "17 MRD",
-                    borderColor: "red",
-                    fill: false
-                }
+                },
                 ],
             },
             options: {
