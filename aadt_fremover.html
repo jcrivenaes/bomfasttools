@@ -8,9 +8,11 @@
 
         var year = [];
         var index = 0;
-        for (i = 2008; i < 2060; i++) {
+        for (i = 2008; i <= 2060; i++) {
             year[index++] = i;
         }
+
+        var xlen = year.length / 2;
 
         bjfj = [
             2727,
@@ -35,7 +37,7 @@
             hf0[i] = NaN
             hf0x[i] = NaN
             if (year[i] >= 2021 && year[i] <= 2031) {
-                hf0[i] = (3300 * Math.pow(1.01, yr)).toFixed(0);
+                hf0[i] = (3300 * Math.pow(1.005, yr)).toFixed(0);
                 yr += 1;
             }
             if (year[i] == 2050) {
@@ -72,33 +74,33 @@
                 labels: year,
                 datasets: [{
                     data: bjfj,
-                    label: "Historiske tall",
+                    label: "Historisk",
                     borderColor: "green",
                     borderWidth: 5,
                     fill: false
                 }, {
                     data: hf0,
-                    label: "Ferge, ekstrapolert",
+                    label: "Ferge, trend?",
                     borderColor: "grey",
                     borderDash: [10, 5],
                     borderWidth: 3,
                     fill: false
                 }, {
                     data: hf0x,
-                    label: "Ferge i 2050 iflg SVV",
+                    label: "Ferge 2050 iflg SVV",
                     borderColor: "blue",
                     pointStyle: "star",
                     fill: true,
                     pointRadius: 10,
                 }, {
                     data: hf1,
-                    label: "Bro med bompenger iflg SVV",
+                    label: "Bro + bom iflg SVV",
                     borderColor: "magenta",
                     borderWidth: 3,
                     fill: false,
                 }, {
                     data: hf2,
-                    label: "Bro etter/uten bompenger iflg SVV",
+                    label: "Bro etter/uten bom iflg SVV",
                     borderColor: "red",
                     borderWidth: 3,
                     fill: false
@@ -113,6 +115,22 @@
                     fontSize: 20,
                     fontColor: 'black',
                 },
+                scales: {
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            beginAtZero: true,
+                            suggestedMin: 0
+                        }
+                    }],
+                    xAxes: [{
+                        display: true,
+                        ticks: {
+                            beginAtZero: false,
+                            maxTicksLimit: xlen,
+                        },
+                    }],
+                }
             }
         });
 
