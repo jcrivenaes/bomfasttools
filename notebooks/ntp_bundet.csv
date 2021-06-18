@@ -1,0 +1,52 @@
+Sektor,Korr.,Fylke,Tiltak,Kategori,Stat 22–27,Stat 28–33,Bom/andre 22–33
+Jbane,0,Viken,Plattform- og stasjonstiltak Ski–Stabekk og Spikkestad–Lillestrøm,Tiltak for referanse2,946,,
+Jbane,0,Flere,Banestrømstiltak på Østlandet,Tiltak for referanse2,971,,
+Jbane,1,Viken,Follobanen,Binding,4 720,,
+Jbane,1,Viken,Dobbeltspor Sandbukta–Moss–Såstad,Binding,8 724,,
+Jbane,1,Viken,Togparkering sør for Moss,Tiltak for referanse2,186,1 000,
+Vei,2,Viken,E16 Eggemoen–Jevnaker–Olum,Binding,139,,409
+Jbane,3,Rogaland,Jærbanen trinn 1: Fire tog/t Stavanger–Ganddal,Binding,278,,
+Jbane,3,Vestfold og Telemark,Togparkering Vestfoldbanen,Tiltak for referanse2,2 068,,
+Jbane,3,Vestfold og Telemark og Viken,Dobbeltspor Nykirke–Barkåker og Drammen–Kobbervikdalen,Binding,11 320,,
+Vei,3,Vestfold og Telemark,E18 Bommestad–Sky,Binding,10,,
+Vei,3,Agder,E18 Grimstad–Kristiansand,Binding (OPS),1 922,1 480,
+Vei,3,Agder,E39 Lyngdal–Flekkefjord,Binding (OPS),941,632,
+Vei,3,Viken,E18 Lysaker–Ramstadsletta,Binding,2 700,1 235,10 700
+Vei,3,Rogaland,Rv. 509 Sør-Tjora–Kontinentalvegen,Binding,,,606
+Vei,4,Møre og Romsdal,E39 Ørskogfjellet,Binding,14,,
+Vei,4,Vestland,"Rv. 13 Hardangerbrua, alt. bruk av ferjetilskudd",Binding,30,10,
+Vei,4,Trøndelag,E39 Klett–Bårdhaug,Binding (OPS),817,262,
+Vei,4,Rogaland,E39 Rogfast,Binding,5 650,2 470,10 955
+Vei,4,Vestland,E39 Svegatjørn–Rådal,Binding,574,,37
+Vei,4,Vestland,Rv. 555 Sotrasambandet,Binding (OPS),5 889,650,2 150
+Vei,4,Møre og Romsdal,E39 Lønset–Hjelset,Binding,511,,305
+Vei,4,Trøndelag,E39 Betna–Vinjeøra–Stormyra,Binding,1 528,,
+Vei,4,Vestland,E39 Myrmel–Lunde,Binding,404,,
+Jbane,5,Vestland,Ulriken tunnel (dobbeltspor Arna–Fløen),Binding,774,,
+Vei,5,Viken,E134 Damåsen–Saggrenda,Binding,107,,8
+Vei,5,Vestfold og Telemark,Rv. 36 Bø–Seljord,Binding,,,84
+Vei,5,Viken,E16 Bjørum–Skaret,Binding,1 500,291,1 790
+Vei,5,Innlandet,E16 Kvamskleiva,Binding,332,,
+Vei,5,Vestland,Rv. 5 Kjøsnesfjorden,Binding,347,,
+Jbane,6,Innlandet,Tilbudsforbedringer på Gjøvikbanen,Binding,317,,
+Jbane,6,Innlandet,Togparkering Dovrebanen,Binding,504,,
+Jbane,6,Viken,Dobbeltspor Venjar–Eidsvoll–Langset,Binding,2 670,,
+Jbane,6,Innlandet,Dobbeltspor Kleverud–Sørli,Binding,6 334,370,
+Vei,6,Trøndelag,E6 Vindåsliene–Korporalsbrua,Binding,210,,
+Vei,6,Trøndelag,"Rv. 706 Nydalsbrua med tilknytninger, refusjon",Binding,,787,
+Vei,6,Innlandet,Rv. 3/rv. 25 Ommangsvollen–Grundset/Basthjørnet,Binding (OPS),341,180,1 290
+Vei,6,Viken,Rv. 4 Roa–Gran grense inkl. Jaren–Amundrud/Almenningsdelet–Lygnebakken,Binding,328,,1 270
+Vei,6,Trøndelag,Rv. 706 Nydalsbrua med tilknytninger,Binding,113,,465
+Jbane,7,Trøndelag,"Trønder- og Meråkerbanen: Elektrifisering, togparkering og plattformer",Binding,1 853,,
+Vei,7,Nordland,E6 Helgeland sør (uten opsjonsstrekninger),Binding,1 363,,
+Vei,8,Nordland,E6 Hålogalandsbrua,Binding,17,,
+Vei,8,"Nordland, Troms og Finnmark",Hålogalandsveien (E10/rv. 85 Tjeldsund–Gullesfjordbotn–Langv.bukt) – forberedende arbeider,Binding (OPS),210,380,
+Vei,8,Nordland,E6 Ballangen sentrum,Binding,25,,
+Vei,8,Troms og Finnmark,E69 Skarvbergtunnelen,Binding,230,,
+Jbane,U3,Flere,Ferdigstille diverse godstiltak,Binding,493,,
+Jbane,U3,Flere,Infrastruktur for nytt togmateriell,Tiltak for referanse2,1 105,,
+Kollek.,U3,Oslo og Viken,Tilskudd Fornebubanen,50/50-prosjekt,6 618,,
+Kollek.,U3,Trøndelag,Tilskudd Metrobuss,50/50-prosjekt,990,191,
+Kollek.,U3,Rogaland,Tilskudd Bussveien,50/50-prosjekt,4 071,,
+Kollek.,U3,Vestland,Tilskudd Bybanen til Fyllingsdalen,50/50-prosjekt,334,,
+Sum,,,,,81 528,9 939,30 069
