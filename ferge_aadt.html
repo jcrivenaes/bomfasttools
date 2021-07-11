@@ -44,11 +44,14 @@
             3806,
         ]
 
-        var rogfast = []
+        var rogfast = [];
+        var hordfast = [];
         for (i = 0; i < year.length; i++) {
             rogfast[i] = NaN
+            hordfast[i] = NaN
             if (year[i] == 2031) {
                 rogfast[i] = 5980
+                hordfast[i] = 5700
             }
         }
         console.log(rogfast)
@@ -61,17 +64,24 @@
                 datasets: [{
                     data: bjfj,
                     label: "Bjørnafjorden",
-                    borderColor: "#682288",
+                    borderColor: "green",
                     fill: false
                 }, {
                     data: bofj,
                     label: "Boknafjorden",
-                    borderColor: "grey",
+                    borderColor: "purple",
                     fill: false
                 }, {
                     data: rogfast,
                     label: "Rogfast estimert ÅDT oppstart",
                     borderColor: "red",
+                    fill: true,
+                    pointStyle: "star",
+                    pointRadius: 10,
+                }, {
+                    data: hordfast,
+                    label: "Hordfast estimert ÅDT oppstart",
+                    borderColor: "cyan",
                     fill: true,
                     pointStyle: "star",
                     pointRadius: 10,
