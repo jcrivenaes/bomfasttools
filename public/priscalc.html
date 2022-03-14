@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+
+<script language="JavaScript">
+    // < !--
+
+    const MRD = 1000000000.0;
+    const MLL = 1000000.0
+
+    let input_vegdagen = 230000;
+    let input_tunnlemult = 4;
+    let input_tunnelmult_undersjø = 8;
+
+    function main() {
+
+        let kmdag = parseFloat(document.vcalc.vegkm.value.replace(",", "."));
+        let kmutunnel = parseFloat(document.vcalc.utunnelkm.value.replace(",", "."));
+        let kmfv = parseFloat(document.vcalc.fvkm.value.replace(",", "."));
+        let kmtunnel = parseFloat(document.vcalc.tunnelkm.value.replace(",", "."));
+        let kmabroer = parseFloat(document.vcalc.abroerkm.value.replace(",", "."));
+        let kmbjfj = parseFloat(document.vcalc.bjfjkm.value.replace(",", ".")) || 0;
+        let kmlang = parseFloat(document.vcalc.langkm.value.replace(",", ".")) || 0;
+        let kmannet = parseFloat(document.vcalc.annetkm.value.replace(",", "."));
+
+        let sumkm = kmdag + kmutunnel + kmtunnel + kmabroer + kmbjfj + kmlang;
+
+        document.result.sumkm.value = sumkm.toFixed(1);
+
+
+        let vegpris = parseFloat(document.vcalc.vegpris.value.replace(",", "."));
+        let vegsprekk = parseFloat(document.vcalc.vegsprekk.value.replace(",", "."));
+        let vegbasis = vegpris * 1000 / MRD;
+        vegsprekk = 1.0 + (vegsprekk / 100.0);
+        vegpris = vegbasis * kmdag * vegsprekk;
+
+        let fvfaktor = parseFloat(document.vcalc.fvfaktor.value.replace(",", "."));
+        let fvsprekk = parseFloat(document.vcalc.fvsprekk.value.replace(",", "."));
+        fvsprekk = 1.0 + (fvsprekk / 100.0);
+        fvpris = vegbasis * fvfaktor * kmfv * fvsprekk;
+
+        let utunnelfaktor = parseFloat(document.vcalc.utunnelfaktor.value.replace(",", "."));
+        let utunnelsprekk = parseFloat(document.vcalc.utunnelsprekk.value.replace(",", "."));
+        utunnelsprekk = 1.0 + (utunnelsprekk / 100.0);
+        utunnelpris = vegbasis * utunnelfaktor * kmutunnel * utunnelsprekk;
+
+        let tunnelfaktor = parseFloat(document.vcalc.tunnelfaktor.value.replace(",", "."));
+        let tunnelsprekk = parseFloat(document.vcalc.tunnelsprekk.value.replace(",", "."));
+        tunnelsprekk = 1.0 + (tunnelsprekk / 100.0);
+        tunnelpris = vegbasis * tunnelfaktor * kmtunnel * tunnelsprekk;
+
+        let abroerfaktor = parseFloat(document.vcalc.abroerfaktor.value.replace(",", "."));
+        let abroersprekk = parseFloat(document.vcalc.abroersprekk.value.replace(",", "."));
+        abroersprekk = 1.0 + (abroersprekk / 100.0);
+        abroerpris = vegbasis * abroerfaktor * kmabroer * abroersprekk;
+
+        let bjfjpris = parseFloat(document.vcalc.bjfjpris.value.replace(",", ".")) || 0;
+        let bjfjsprekk = parseFloat(document.vcalc.bjfjsprekk.value.replace(",", ".")) || 0;
+        bjfjsprekk = 1.0 + (bjfjsprekk / 100.0);
+        bjfjpris = bjfjpris * bjfjsprekk;
+
+
+        let langpris = parseFloat(document.vcalc.langpris.value.replace(",", ".")) || 0;
+        let langsprekk = parseFloat(document.vcalc.langsprekk.value.replace(",", ".")) || 0;
+        langsprekk = 1.0 + (langsprekk / 100.0);
+        langpris = langpris * langsprekk;
+
+        let annetpris = parseFloat(document.vcalc.annetpris.value.replace(",", "."));
+        let annetsprekk = parseFloat(document.vcalc.annetsprekk.value.replace(",", "."));
+        annetsprekk = 1.0 + (annetsprekk / 100.0);
+        annetpris = annetpris * annetsprekk;
+
+
+        let sumpris = vegpris + fvpris + utunnelpris + tunnelpris + abroerpris + bjfjpris + langpris + annetpris;
+        document.result.sumpris.value = sumpris.toFixed(2);
+
+    }
+
+    function resetcase() {
+        document.vcalc.vegkm.value = null;
+        document.vcalc.vegpris.value = null;
+        document.vcalc.vegsprekk.value = null;
+
+        document.vcalc.fvkm.value = null;
+        document.vcalc.fvfaktor.value = null;
+        document.vcalc.fvsprekk.value = null;
+
+        document.vcalc.utunnelkm.value = null;
+        document.vcalc.utunnelfaktor.value = null;
+        document.vcalc.utunnelsprekk.value = null;
+
+        document.vcalc.tunnelkm.value = null;
+        document.vcalc.tunnelfaktor.value = null;
+        document.vcalc.tunnelsprekk.value = null;
+
+        document.vcalc.abroerkm.value = null;
+        document.vcalc.abroerfaktor.value = null;
+        document.vcalc.abroersprekk.value = null;
+
+        document.vcalc.bjfjkm.value = null;
+        document.vcalc.bjfjpris.value = null;
+        document.vcalc.bjfjsprekk.value = null;
+
+        document.vcalc.langkm.value = null;
+        document.vcalc.langpris.value = null;
+        document.vcalc.langsprekk.value = null;
+
+        document.vcalc.annetkm.value = null;
+        document.vcalc.annetpris.value = null;
+        document.vcalc.annetsprekk.value = null;
+
+    }
+
+    function hordfast1() {
+        resetcase();
+        document.vcalc.vegkm.value = 27.6;
+        document.vcalc.vegpris.value = 101000;
+        document.vcalc.vegsprekk.value = 0;
+
+        document.vcalc.fvkm.value = 0;
+        document.vcalc.fvfaktor.value = 0.1;
+        document.vcalc.fvsprekk.value = 0;
+
+        document.vcalc.utunnelkm.value = 7.6;
+        document.vcalc.utunnelfaktor.value = 8;
+        document.vcalc.utunnelsprekk.value = 0;
+
+        document.vcalc.tunnelkm.value = 10.1;
+        document.vcalc.tunnelfaktor.value = 4;
+        document.vcalc.tunnelsprekk.value = 0;
+
+        document.vcalc.abroerkm.value = 1.28;
+        document.vcalc.abroerfaktor.value = 10;
+        document.vcalc.abroersprekk.value = 0;
+
+        document.vcalc.bjfjkm.value = 5.5;
+        document.vcalc.bjfjpris.value = 17, 0;
+        document.vcalc.bjfjsprekk.value = 0;
+
+        document.vcalc.langkm.value = 1.78;
+        document.vcalc.langpris.value = 7;
+        document.vcalc.langsprekk.value = 0;
+
+        document.vcalc.annetkm.value = 0;
+        document.vcalc.annetpris.value = 0;
+        document.vcalc.annetsprekk.value = 0;
+    }
+
+    function arna_klauvaneset() {
+        resetcase();
+        document.vcalc.vegkm.value = 6.62;
+        document.vcalc.vegpris.value = 235000;
+        document.vcalc.vegsprekk.value = 0;
+
+        document.vcalc.fvkm.value = 0;
+        document.vcalc.fvfaktor.value = 0.1;
+        document.vcalc.fvsprekk.value = 0;
+
+        document.vcalc.utunnelkm.value = 0;
+        document.vcalc.utunnelfaktor.value = 7;
+        document.vcalc.utunnelsprekk.value = 0;
+
+        document.vcalc.tunnelkm.value = 10.29;
+        document.vcalc.tunnelfaktor.value = 4;
+        document.vcalc.tunnelsprekk.value = 0;
+
+        document.vcalc.abroerkm.value = 0.04;
+        document.vcalc.abroerfaktor.value = 10;
+        document.vcalc.abroersprekk.value = 0;
+
+        document.vcalc.bjfjkm.value = null;
+        document.vcalc.bjfjpris.value = null;
+        document.vcalc.bjfjsprekk.value = 0;
+
+        document.vcalc.langkm.value = null;
+        document.vcalc.langpris.value = null;
+        document.vcalc.langsprekk.value = 0;
+
+        document.vcalc.annetkm.value = 0;
+        document.vcalc.annetpris.value = 0;
+        document.vcalc.annetsprekk.value = 0;
+    }
+
+</script>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+        }
+
+        input[type="text"] {
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        #knapp {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #knapp td,
+        #knapp th {
+            border: 0px solid #ddd;
+            padding: 8px;
+        }
+
+        /* #knapp tr:nth-child(even) {
+            background-color: #f2f2f2;
+        } */
+
+        #priser {
+            font-family: 'Courier New', monospace;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #priser input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #priser td,
+        #priser th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #priser tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #priser tr:hover {
+            background-color: #ddd;
+        }
+
+        #priser th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #5b5b5c;
+            color: white;
+        }
+
+
+
+        #bomaar {
+            font-family: 'Courier New', monospace;
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #bomaar input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #bomaar td,
+        #bomaar th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #bomaar tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #bomaar tr:hover {
+            background-color: #ddd;
+        }
+
+        #bomaar th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #5b5b5c;
+            color: white;
+        }
+
+        #res {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #res td,
+        #res th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+
+        #res tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #res tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
+
+        #res input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #res th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #682288;
+            color: white;
+        }
+
+        #restabell {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #restabell td,
+        #restabell th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+
+        #restabell tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #restabell tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
+
+        #restabell input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #restabell th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #682288;
+            color: white;
+        }
+
+        #byggtabell {
+            border-collapse: collapse;
+            width: 95%;
+        }
+
+        #byggtabell td,
+        #byggtabell th {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+
+        #byggtabell tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #byggtabell tr:nth-child(1) {
+            background-color: #c58080;
+        }
+
+
+        #byggtabell input {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        #byggtabell th {
+            padding-top: 12px;
+            padding-bottom: 12px;
+            text-align: left;
+            background-color: #682288;
+            color: white;
+        }
+
+        .button {
+            background-color: #616909;
+            font-family: 'Courier New', monospace;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 22px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 6px;
+        }
+
+        .button3 {
+            background-color: #A44400;
+        }
+
+        .button4 {
+            background-color: #e597f0;
+            padding: 10px 32px;
+            font-size: 13px;
+            color: black;
+            border-radius: 6px;
+        }
+
+        div.a {
+            text-align: left;
+            font-size: 12px;
+            font-family: 'Helvetica';
+            text-indent: 70px;
+        }
+
+        div.b {
+            font-size: 16px;
+            font-family: 'Helvetica';
+            color: #A44400;
+
+            text-indent: 70px;
+        }
+
+        ul.a {
+            text-align: left;
+            font-size: 14px;
+            font-family: 'Helvetica';
+            margin-left: 40px;
+            margin-right: 40px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            border-bottom: 1px dotted rgb(197, 197, 197);
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            font-family: 'Times';
+            width: 400px;
+            background-color: rgb(82, 31, 79);
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 5px 0;
+
+            /* Position the tooltip */
+            position: absolute;
+            z-index: 1;
+            top: -5px;
+            left: 105%;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+
+        /* Red */
+    </style>
+</head>
+
+<body>
+
+    <p>
+
+        <center>
+            <div class="b">
+                <h3>Instruksjon:
+                    Trykk på en av de lilla knappene under for eksempelinnfylling. Trykk så
+                    på <b>Beregn</b> knappen lengre nede. Juster tall og se effekt.
+                    Foreløpig noe eksperimentell, så "no warranty".</h3>
+            </div>
+            <br>
+            <form name=case method=POST>
+                <table id="knapp">
+                    <tr>
+                        <td align=center><input type=button class="button button4" onClick='arna_klauvaneset()'
+                                value='E39 Arna-Klauvaneset S1AN1'>
+                        </td>
+                        <td align=center><input type=button class="button button4" onClick='hordfast1()'
+                                value='E39 Hordfast'>
+                        </td>
+                    </tr>
+                </table>
+                <h3>Beskrivelse</h3>
+                <ul class=" a">
+                    <li>E39 Arna Klauvaneset (ringvei øst) variant S1A-N1. Pris P50 i 2022 er 11.3 mrd,
+                        mens P85 pris er 13.8 mrd</li>
+                    <li>E39 Hordfast per 2021 etter NTP. Styringsmål P50 i 2022 38.4 mrd som krever,
+                        en uvanlig lav meterpris for å kunne oppnå denne prisen</li>
+                </ul>
+                <hr>
+
+            </form>
+            <br>
+
+
+
+            <center>
+                <br>
+                <form name=vcalc method=POST>
+                    <table id="priser">
+                        <tr>
+                            <th width=40%>Beskrivelse</th>
+                            <th width=15%>Antall km</th>
+                            <th width=30%>Inngangsdata</th>
+                            <th width=15%>Sprekkefaktor %</th>
+                        </tr>
+                        <tr>
+                            <td>Motorveg i dagen, pris per meter</td>
+                            <td><input type=text name=vegkm size=7></td>
+                            <td><input type=text name=vegpris size=7 style="background-color:yellow;"> NOK pr meter
+                            </td>
+                            <td><input type=text name=vegsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Fylkesveier i tillegg</td>
+                            <td><input type=text name=fvkm size=7></td>
+                            <td><input type=text name=fvfaktor size=7> mult. faktor motorveg</td>
+                            <td><input type=text name=fvsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Undersjøisk tunnel</td>
+                            <td><input type=text name=utunnelkm size=7></td>
+                            <td><input type=text name=utunnelfaktor size=7> mult. faktor motorveg</td>
+                            <td><input type=text name=utunnelsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Tunneler</td>
+                            <td><input type=text name=tunnelkm size=7></td>
+                            <td><input type=text name=tunnelfaktor size=7> mult. faktor motorveg</td>
+                            <td><input type=text name=tunnelsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Større bruer</td>
+                            <td><input type=text name=abroerkm size=7></td>
+                            <td><input type=text name=abroerfaktor size=7> mult. faktor motorveg</td>
+                            <td><input type=text name=abroersprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Bru Bjørnafjorden, enhetspris</td>
+                            <td><input type=text name=bjfjkm size=7></td>
+                            <td><input type=text name=bjfjpris size=7> mrd </td>
+                            <td><input type=text name=bjfjsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Bru Langenuen, enhetspris</td>
+                            <td><input type=text name=langkm size=7></td>
+                            <td><input type=text name=langpris size=7> mrd </td>
+                            <td><input type=text name=langsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Annet (økologisk komp. etc)</td>
+                            <td><input type=text name=annetkm size=7readonly></td>
+                            <td><input type=text name=annetpris size=7> mrd </td>
+                            <td><input type=text name=annetsprekk size=7> %</td>
+                        </tr>
+                    </table>
+                </form>
+                <br>
+                <br>
+
+                <br>
+                <form name=knapp method=POST>
+                    <table id=" knapp">
+
+                        <tr>
+                            <td align=center width=50%><input type=button class="button" onClick='main()' value="Beregn"
+                                    <Input>
+                            </td>
+                            <td align=center width=50%><input type=button class="button button3" onClick='resetcase()'
+                                    value="Reset" <Input>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+                <br>
+                <form name=result method=POST>
+                    <span style="font-size: 250%" id="emoji"></span>
+                    <br>
+                    <span style="font-size: 120%" id="umulig"></span>
+                    <table id="res">
+                        <tr>
+                            <th width=50%>Sum lengde motorveg (km)</th>
+                            <th width=50%>Total pris (mrd NOK)</th>
+                        </tr>
+                        <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
+                            <td><input type=text name=sumkm size=10 readonly
+                                    style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
+                            <td><input type=text name=sumpris size=10 readonly
+                                    style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
+                        </tr>
+            </center>
+    </p>
+</body>
+
+</html>

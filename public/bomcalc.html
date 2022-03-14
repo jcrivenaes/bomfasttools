@@ -216,6 +216,18 @@
         if (document.bomaarlig.aar10.value != null) {
             input_aarlig_laan[9] = parseFloat(document.bomaarlig.aar10.value) * MRD;
         }
+        if (document.bomaarlig.aar11.value != null) {
+            input_aarlig_laan[10] = parseFloat(document.bomaarlig.aar11.value) * MRD;
+        }
+        if (document.bomaarlig.aar12.value != null) {
+            input_aarlig_laan[11] = parseFloat(document.bomaarlig.aar12.value) * MRD;
+        }
+        if (document.bomaarlig.aar13.value != null) {
+            input_aarlig_laan[12] = parseFloat(document.bomaarlig.aar13.value) * MRD;
+        }
+        if (document.bomaarlig.aar14.value != null) {
+            input_aarlig_laan[13] = parseFloat(document.bomaarlig.aar14.value) * MRD;
+        }
 
         console.log(input_aarlig_laan)
     }
@@ -631,6 +643,10 @@
         document.bomaarlig.aar8.value = null;
         document.bomaarlig.aar9.value = null;
         document.bomaarlig.aar10.value = null;
+        document.bomaarlig.aar11.value = null;
+        document.bomaarlig.aar12.value = null;
+        document.bomaarlig.aar13.value = null;
+        document.bomaarlig.aar14.value = null;
 
         document.result.proposed.value = null;
         document.result.proposed_start_disk.value = null;
@@ -705,6 +721,10 @@
         document.bomaarlig.aar8.value = 0.0;
         document.bomaarlig.aar9.value = 0.0;
         document.bomaarlig.aar10.value = 0.0;
+        document.bomaarlig.aar11.value = 0.0;
+        document.bomaarlig.aar12.value = 0.0;
+        document.bomaarlig.aar13.value = 0.0;
+        document.bomaarlig.aar14.value = 0.0;
 
     }
 
@@ -743,15 +763,19 @@
         document.bomaarlig.aar8.value = 2.334;    // 2028  Sum 10.657 MRD
         document.bomaarlig.aar9.value = 0.0;
         document.bomaarlig.aar10.value = 0.0;
+        document.bomaarlig.aar11.value = 0.0;
+        document.bomaarlig.aar12.value = 0.0;
+        document.bomaarlig.aar13.value = 0.0;
+        document.bomaarlig.aar14.value = 0.0;
 
     }
 
     // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
     function hordfast1() {
         resetcase();
-        document.calc.byggetid.value = 5;
-        document.calc.byggeoppstart.value = 2026;
-        document.calc.styringsramme.value = 37.7;
+        document.calc.byggetid.value = 7;
+        document.calc.byggeoppstart.value = 2027;
+        document.calc.styringsramme.value = 38.5;
         document.calc.kostnadsramme.value = 44.0;
         document.calc.basisaar.value = 2021;
         document.calc.bompengelaan.value = 14.4;
@@ -779,14 +803,22 @@
         document.bomaarlig.aar5.value = 0.0;  //
         document.bomaarlig.aar6.value = 0.0;  //
         document.bomaarlig.aar7.value = 0.0;  //
+        document.bomaarlig.aar8.value = 0.0;
+        document.bomaarlig.aar9.value = 0.0;
+        document.bomaarlig.aar10.value = 0.0;
+        document.bomaarlig.aar11.value = 0.0;
+        document.bomaarlig.aar12.value = 0.0;
+        document.bomaarlig.aar13.value = 0.0;
+        document.bomaarlig.aar14.value = 0.0;
+
     }
 
 
     // Mer realistisk
     function hordfast2() {
         resetcase();
-        document.calc.byggetid.value = 7;
-        document.calc.byggeoppstart.value = 2028;
+        document.calc.byggetid.value = 10;
+        document.calc.byggeoppstart.value = 2029;
         document.calc.styringsramme.value = 41.0;
         document.calc.kostnadsramme.value = 48.0;
         document.calc.basisaar.value = 2021;
@@ -815,6 +847,13 @@
         document.bomaarlig.aar5.value = 0.0;  //
         document.bomaarlig.aar6.value = 0.0;  //
         document.bomaarlig.aar7.value = 0.0;  //
+        document.bomaarlig.aar8.value = 0.0;  //
+        document.bomaarlig.aar9.value = 0.0;  //
+        document.bomaarlig.aar10.value = 0.0;  //
+        document.bomaarlig.aar11.value = 0.0;  //
+        document.bomaarlig.aar12.value = 0.0;  //
+        document.bomaarlig.aar13.value = 0.0;  //
+        document.bomaarlig.aar14.value = 0.0;  //
     }
 
 
@@ -996,9 +1035,9 @@
             color: white;
         }
 
-
-
-
+        #bomaarlig td {
+            font-size: 9px;
+        }
 
 
         #res {
@@ -1240,7 +1279,7 @@
                         førehandsinnkrevjinga som starta i 2013."</li>
                     <li>E39 Hordfast: Kostnadstall og bompengenandel fra <A
                             HREF=https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf>
-                            innspill til NTP høsten 2020.</A> Se også <A
+                            innspill til NTP høsten 2020</A>, oppdatert 2022 med nye tall fra SVV. Se også <A
                             HREF="https://www.ba.no/veivesenet-med-nye-bompengetall-nesten-100-kroner-dyrere-enn-fergen-per-tur/s/5-8-1447368">
                             reportasje i BA om bompenger</A>:
                         Hvordan og hvorfor ÅDT skal øke fra dagens 3100 til 5700 i 2030 selv
@@ -1388,27 +1427,35 @@
                 <br>
                 <table id="bomaar">
                     <tr>
-                        <th style="width: 10%; text-align:center;">År 1</th>
-                        <th style="width: 10%; text-align:center;">År 2</th>
-                        <th style="width: 10%; text-align:center;">År 3</th>
-                        <th style="width: 10%; text-align:center;">År 4</th>
-                        <th style="width: 10%; text-align:center;">År 5</th>
-                        <th style="width: 10%; text-align:center;">År 6</th>
-                        <th style="width: 10%; text-align:center;">År 7</th>
-                        <th style="width: 10%; text-align:center;">År 8</th>
-                        <th style="width: 10%; text-align:center;">År 9</th>
-                        <th style="width: 10%; text-align:center;">År 10</th>
+                        <th style="width: 7.14%; text-align:center;">År 1</th>
+                        <th style="width: 7.14%; text-align:center;">År 2</th>
+                        <th style="width: 7.14%; text-align:center;">År 3</th>
+                        <th style="width: 7.14%; text-align:center;">År 4</th>
+                        <th style="width: 7.14%; text-align:center;">År 5</th>
+                        <th style="width: 7.14%; text-align:center;">År 6</th>
+                        <th style="width: 7.14%; text-align:center;">År 7</th>
+                        <th style="width: 7.14%; text-align:center;">År 8</th>
+                        <th style="width: 7.14%; text-align:center;">År 9</th>
+                        <th style="width: 7.14%; text-align:center;">År 10</th>
+                        <th style="width: 7.14%; text-align:center;">År 11</th>
+                        <th style="width: 7.14%; text-align:center;">År 12</th>
+                        <th style="width: 7.14%; text-align:center;">År 13</th>
+                        <th style="width: 7.14%; text-align:center;">År 14</th>
                     </tr>
-                    <td><input type=text name=aar1 size=8"></td>
-                    <td><input type=text name=aar2 size=8"></td>
-                    <td><input type=text name=aar3 size=8"></td>
-                    <td><input type=text name=aar4 size=8"></td>
-                    <td><input type=text name=aar5 size=8"></td>
-                    <td><input type=text name=aar6 size=8"></td>
-                    <td><input type=text name=aar7 size=8"></td>
-                    <td><input type=text name=aar8 size=8"></td>
-                    <td><input type=text name=aar9 size=8"></td>
-                    <td><input type=text name=aar10 size=8"></td>
+                    <td><input type=text name=aar1 size=5"></td>
+                    <td><input type=text name=aar2 size=5"></td>
+                    <td><input type=text name=aar3 size=5"></td>
+                    <td><input type=text name=aar4 size=5"></td>
+                    <td><input type=text name=aar5 size=5"></td>
+                    <td><input type=text name=aar6 size=5"></td>
+                    <td><input type=text name=aar7 size=5"></td>
+                    <td><input type=text name=aar8 size=5"></td>
+                    <td><input type=text name=aar9 size=5"></td>
+                    <td><input type=text name=aar10 size=5"></td>
+                    <td><input type=text name=aar11 size=5"></td>
+                    <td><input type=text name=aar12 size=5"></td>
+                    <td><input type=text name=aar13 size=5"></td>
+                    <td><input type=text name=aar14 size=5"></td>
                 </table>
             </form>
             <br>
