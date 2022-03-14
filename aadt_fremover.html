@@ -62,7 +62,7 @@
         for (i = 0; i < year.length; i++) {
             hf2[i] = NaN
             if (year[i] >= 2050) {
-                hf2[i] = (13230 * Math.pow(1.01, yr)).toFixed(0);
+                hf2[i] = (13230 * Math.pow(1.003, yr)).toFixed(0);
                 yr += 1;
             }
         }
