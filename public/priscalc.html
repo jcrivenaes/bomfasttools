@@ -7,22 +7,22 @@
     const MRD = 1000000000.0;
     const MLL = 1000000.0
 
-    let input_vegdagen = 230000;
-    let input_tunnlemult = 4;
-    let input_tunnelmult_undersjø = 8;
-
     function main() {
 
         let kmdag = parseFloat(document.vcalc.vegkm.value.replace(",", "."));
-        let kmutunnel = parseFloat(document.vcalc.utunnelkm.value.replace(",", "."));
-        let kmfv = parseFloat(document.vcalc.fvkm.value.replace(",", "."));
-        let kmtunnel = parseFloat(document.vcalc.tunnelkm.value.replace(",", "."));
-        let kmabroer = parseFloat(document.vcalc.abroerkm.value.replace(",", "."));
+        let kmutunnel = parseFloat(document.vcalc.utunnelkm.value.replace(",", ".")) || 0;
+        let kmfv = parseFloat(document.vcalc.fvkm.value.replace(",", ".")) || 0;
+        let kmtunnel = parseFloat(document.vcalc.tunnelkm.value.replace(",", ".")) || 0;
+        let kmmbroer = parseFloat(document.vcalc.mbroerkm.value.replace(",", ".")) || 0;
+        let kmabroer = parseFloat(document.vcalc.abroerkm.value.replace(",", ".")) || 0;
         let kmbjfj = parseFloat(document.vcalc.bjfjkm.value.replace(",", ".")) || 0;
         let kmlang = parseFloat(document.vcalc.langkm.value.replace(",", ".")) || 0;
-        let kmannet = parseFloat(document.vcalc.annetkm.value.replace(",", "."));
+        let kmannet = parseFloat(document.vcalc.annetkm.value.replace(",", ".")) || 0;
 
-        let sumkm = kmdag + kmutunnel + kmtunnel + kmabroer + kmbjfj + kmlang;
+        let kmkryss = parseInt(document.vcalc.kryssantall.value) * 0.4;
+
+        let sumkm = kmdag + kmutunnel + kmtunnel + kmmbroer + kmabroer + kmbjfj
+            + kmlang + kmkryss;
 
         document.result.sumkm.value = sumkm.toFixed(1);
 
@@ -33,23 +33,28 @@
         vegsprekk = 1.0 + (vegsprekk / 100.0);
         vegpris = vegbasis * kmdag * vegsprekk;
 
-        let fvfaktor = parseFloat(document.vcalc.fvfaktor.value.replace(",", "."));
-        let fvsprekk = parseFloat(document.vcalc.fvsprekk.value.replace(",", "."));
+        let fvfaktor = parseFloat(document.vcalc.fvfaktor.value.replace(",", ".")) || 0;
+        let fvsprekk = parseFloat(document.vcalc.fvsprekk.value.replace(",", ".")) || 0;
         fvsprekk = 1.0 + (fvsprekk / 100.0);
         fvpris = vegbasis * fvfaktor * kmfv * fvsprekk;
 
-        let utunnelfaktor = parseFloat(document.vcalc.utunnelfaktor.value.replace(",", "."));
-        let utunnelsprekk = parseFloat(document.vcalc.utunnelsprekk.value.replace(",", "."));
+        let utunnelfaktor = parseFloat(document.vcalc.utunnelfaktor.value.replace(",", ".")) || 0;
+        let utunnelsprekk = parseFloat(document.vcalc.utunnelsprekk.value.replace(",", ".")) || 0;
         utunnelsprekk = 1.0 + (utunnelsprekk / 100.0);
         utunnelpris = vegbasis * utunnelfaktor * kmutunnel * utunnelsprekk;
 
-        let tunnelfaktor = parseFloat(document.vcalc.tunnelfaktor.value.replace(",", "."));
-        let tunnelsprekk = parseFloat(document.vcalc.tunnelsprekk.value.replace(",", "."));
+        let tunnelfaktor = parseFloat(document.vcalc.tunnelfaktor.value.replace(",", ".")) || 0;
+        let tunnelsprekk = parseFloat(document.vcalc.tunnelsprekk.value.replace(",", ".")) || 0;
         tunnelsprekk = 1.0 + (tunnelsprekk / 100.0);
         tunnelpris = vegbasis * tunnelfaktor * kmtunnel * tunnelsprekk;
 
-        let abroerfaktor = parseFloat(document.vcalc.abroerfaktor.value.replace(",", "."));
-        let abroersprekk = parseFloat(document.vcalc.abroersprekk.value.replace(",", "."));
+        let mbroerfaktor = parseFloat(document.vcalc.mbroerfaktor.value.replace(",", ".")) || 0;
+        let mbroersprekk = parseFloat(document.vcalc.mbroersprekk.value.replace(",", ".")) || 0;
+        mbroersprekk = 1.0 + (mbroersprekk / 100.0);
+        mbroerpris = vegbasis * mbroerfaktor * kmmbroer * mbroersprekk;
+
+        let abroerfaktor = parseFloat(document.vcalc.abroerfaktor.value.replace(",", ".")) || 0;
+        let abroersprekk = parseFloat(document.vcalc.abroersprekk.value.replace(",", ".")) || 0;
         abroersprekk = 1.0 + (abroersprekk / 100.0);
         abroerpris = vegbasis * abroerfaktor * kmabroer * abroersprekk;
 
@@ -64,14 +69,18 @@
         langsprekk = 1.0 + (langsprekk / 100.0);
         langpris = langpris * langsprekk;
 
-        let annetpris = parseFloat(document.vcalc.annetpris.value.replace(",", "."));
-        let annetsprekk = parseFloat(document.vcalc.annetsprekk.value.replace(",", "."));
+        let annetpris = parseFloat(document.vcalc.annetpris.value.replace(",", ".")) || 0;
+        let annetsprekk = parseFloat(document.vcalc.annetsprekk.value.replace(",", ".")) || 0;
         annetsprekk = 1.0 + (annetsprekk / 100.0);
         annetpris = annetpris * annetsprekk;
 
 
-        let sumpris = vegpris + fvpris + utunnelpris + tunnelpris + abroerpris + bjfjpris + langpris + annetpris;
+        let sumpris = vegpris + fvpris + utunnelpris + tunnelpris + abroerpris +
+            mbroerpris + bjfjpris + langpris + annetpris;
         document.result.sumpris.value = sumpris.toFixed(2);
+
+        let gjsnitt = (sumpris * MRD) / (sumkm * 1000)
+        document.result.gjsnitt.value = gjsnitt.toFixed(0);
 
     }
 
@@ -79,6 +88,10 @@
         document.vcalc.vegkm.value = null;
         document.vcalc.vegpris.value = null;
         document.vcalc.vegsprekk.value = null;
+
+        document.vcalc.kryssantall.value = null;
+        document.vcalc.krysspris.value = null;
+        document.vcalc.krysssprekk.value = null;
 
         document.vcalc.fvkm.value = null;
         document.vcalc.fvfaktor.value = null;
@@ -91,6 +104,10 @@
         document.vcalc.tunnelkm.value = null;
         document.vcalc.tunnelfaktor.value = null;
         document.vcalc.tunnelsprekk.value = null;
+
+        document.vcalc.mbroerkm.value = null;
+        document.vcalc.mbroerfaktor.value = null;
+        document.vcalc.mbroersprekk.value = null;
 
         document.vcalc.abroerkm.value = null;
         document.vcalc.abroerfaktor.value = null;
@@ -112,9 +129,13 @@
 
     function hordfast1() {
         resetcase();
-        document.vcalc.vegkm.value = 27.6;
-        document.vcalc.vegpris.value = 101000;
+        document.vcalc.vegkm.value = 25.5;
+        document.vcalc.vegpris.value = 110000;
         document.vcalc.vegsprekk.value = 0;
+
+        document.vcalc.kryssantall.value = 5;
+        document.vcalc.krysspris.value = 0.3;
+        document.vcalc.krysssprekk.value = 0;
 
         document.vcalc.fvkm.value = 0;
         document.vcalc.fvfaktor.value = 0.1;
@@ -128,8 +149,12 @@
         document.vcalc.tunnelfaktor.value = 4;
         document.vcalc.tunnelsprekk.value = 0;
 
+        document.vcalc.mbroerkm.value = 1;
+        document.vcalc.mbroerfaktor.value = 7;
+        document.vcalc.mbroersprekk.value = 0;
+
         document.vcalc.abroerkm.value = 1.28;
-        document.vcalc.abroerfaktor.value = 10;
+        document.vcalc.abroerfaktor.value = 12;
         document.vcalc.abroersprekk.value = 0;
 
         document.vcalc.bjfjkm.value = 5.5;
@@ -137,7 +162,7 @@
         document.vcalc.bjfjsprekk.value = 0;
 
         document.vcalc.langkm.value = 1.78;
-        document.vcalc.langpris.value = 7;
+        document.vcalc.langpris.value = 5;
         document.vcalc.langsprekk.value = 0;
 
         document.vcalc.annetkm.value = 0;
@@ -151,6 +176,10 @@
         document.vcalc.vegpris.value = 235000;
         document.vcalc.vegsprekk.value = 0;
 
+        document.vcalc.kryssantall.value = 3;
+        document.vcalc.krysspris.value = 0.3;
+        document.vcalc.krysssprekk.value = 0;
+
         document.vcalc.fvkm.value = 0;
         document.vcalc.fvfaktor.value = 0.1;
         document.vcalc.fvsprekk.value = 0;
@@ -163,8 +192,12 @@
         document.vcalc.tunnelfaktor.value = 4;
         document.vcalc.tunnelsprekk.value = 0;
 
-        document.vcalc.abroerkm.value = 0.04;
-        document.vcalc.abroerfaktor.value = 10;
+        document.vcalc.mbroerkm.value = 0.04;
+        document.vcalc.mbroerfaktor.value = 10;
+        document.vcalc.mbroersprekk.value = 0;
+
+        document.vcalc.abroerkm.value = 0.0;
+        document.vcalc.abroerfaktor.value = 0;
         document.vcalc.abroersprekk.value = 0;
 
         document.vcalc.bjfjkm.value = null;
@@ -211,6 +244,7 @@
 
         #priser {
             font-family: 'Courier New', monospace;
+            font-size: 12px;
             border-collapse: collapse;
             width: 95%;
         }
@@ -235,41 +269,6 @@
         }
 
         #priser th {
-            padding-top: 12px;
-            padding-bottom: 12px;
-            text-align: left;
-            background-color: #5b5b5c;
-            color: white;
-        }
-
-
-
-        #bomaar {
-            font-family: 'Courier New', monospace;
-            border-collapse: collapse;
-            width: 95%;
-        }
-
-        #bomaar input {
-            border: 1px solid #ddd;
-            padding: 6px;
-        }
-
-        #bomaar td,
-        #bomaar th {
-            border: 1px solid #ddd;
-            padding: 6px;
-        }
-
-        #bomaar tr:nth-child(even) {
-            background-color: #f2f2f2;
-        }
-
-        #bomaar tr:hover {
-            background-color: #ddd;
-        }
-
-        #bomaar th {
             padding-top: 12px;
             padding-bottom: 12px;
             text-align: left;
@@ -476,7 +475,7 @@
                 <table id="knapp">
                     <tr>
                         <td align=center><input type=button class="button button4" onClick='arna_klauvaneset()'
-                                value='E39 Arna-Klauvaneset S1AN1'>
+                                value='E39 Arna-Klauvaneset S1A-N1'>
                         </td>
                         <td align=center><input type=button class="button button4" onClick='hordfast1()'
                                 value='E39 Hordfast'>
@@ -485,10 +484,14 @@
                 </table>
                 <h3>Beskrivelse</h3>
                 <ul class=" a">
-                    <li>E39 Arna Klauvaneset (ringvei øst) variant S1A-N1. Pris P50 i 2022 er 11.3 mrd,
-                        mens P85 pris er 13.8 mrd</li>
-                    <li>E39 Hordfast per 2021 etter NTP. Styringsmål P50 i 2022 38.4 mrd som krever,
-                        en uvanlig lav meterpris for å kunne oppnå denne prisen</li>
+                    <li>E39 Arna Klauvaneset (ringvei øst) variant S1A-N1. Pris P50 i 2022 er
+                        <font style="color:red">11.3 mrd</font>,
+                        mens P85 pris er 13.8 mrd
+                    </li>
+                    <li>E39 Hordfast per 2021 etter NTP. Styringsmål P50 i 2022
+                        <font style="color:red">38.4 mrd</font>,
+                        som krever en uvanlig lav meterpris for å kunne oppnå denne prisen
+                    </li>
                 </ul>
                 <hr>
 
@@ -503,16 +506,23 @@
                     <table id="priser">
                         <tr>
                             <th width=40%>Beskrivelse</th>
-                            <th width=15%>Antall km</th>
+                            <th width=15%>Antall km/kryss</th>
                             <th width=35%>Inngangsdata</th>
                             <th width=10%>Sprekkefaktor %</th>
                         </tr>
                         <tr>
-                            <td>Motorveg i dagen, pris per meter</td>
+                            <td>Motorveg i dagen, eksl. kryss og broer</td>
                             <td><input type=text name=vegkm size=7></td>
                             <td><input type=text name=vegpris size=7 style="background-color:yellow;"> NOK pr meter
                             </td>
                             <td><input type=text name=vegsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Motorveikryss, antall (400m pr)</td>
+                            <td><input type=text name=kryssantall size=7></td>
+                            <td><input type=text name=krysspris size=7> mrd pr kryss
+                            </td>
+                            <td><input type=text name=krysssprekk size=7> %</td>
                         </tr>
                         <tr>
                             <td>Fylkesveier i tillegg</td>
@@ -533,7 +543,13 @@
                             <td><input type=text name=tunnelsprekk size=7> %</td>
                         </tr>
                         <tr>
-                            <td>Større bruer</td>
+                            <td>Mindre bruer (20-100m) </td>
+                            <td><input type=text name=mbroerkm size=7></td>
+                            <td><input type=text name=mbroerfaktor size=7> mult. faktor mveg</td>
+                            <td><input type=text name=mbroersprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Mellomstore bruer (100-600m) </td>
                             <td><input type=text name=abroerkm size=7></td>
                             <td><input type=text name=abroerfaktor size=7> mult. faktor mveg</td>
                             <td><input type=text name=abroersprekk size=7> %</td>
@@ -545,7 +561,7 @@
                             <td><input type=text name=bjfjsprekk size=7> %</td>
                         </tr>
                         <tr>
-                            <td>Bru Langenuen, enhetspris</td>
+                            <td>Stor bro annen (Langenuen for eks), enhetspris</td>
                             <td><input type=text name=langkm size=7></td>
                             <td><input type=text name=langpris size=7> mrd </td>
                             <td><input type=text name=langsprekk size=7> %</td>
@@ -582,11 +598,14 @@
                     <span style="font-size: 120%" id="umulig"></span>
                     <table id="res">
                         <tr>
-                            <th width=50%>Sum lengde motorveg (km)</th>
-                            <th width=50%>Total pris (mrd NOK)</th>
+                            <th width=40%>Sum lengde motorveg (km)</th>
+                            <th width=40%>Gjennomsnittspris (NOK/m)</th>
+                            <th width=20%>Total pris (mrd NOK)</th>
                         </tr>
                         <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
                             <td><input type=text name=sumkm size=10 readonly
+                                    style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
+                            <td><input type=text name=gjsnitt size=10 readonly
                                     style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
                             <td><input type=text name=sumpris size=10 readonly
                                     style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"></td>
