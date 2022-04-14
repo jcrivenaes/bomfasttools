@@ -9,7 +9,7 @@
 
     function main() {
 
-        let kmdag = parseFloat(document.vcalc.vegkm.value.replace(",", "."));
+        let kmdag = parseFloat(document.vcalc.vegkm.value.replace(",", ".")) || 0;
         let kmutunnel = parseFloat(document.vcalc.utunnelkm.value.replace(",", ".")) || 0;
         let kmfv = parseFloat(document.vcalc.fvkm.value.replace(",", ".")) || 0;
         let kmtunnel = parseFloat(document.vcalc.tunnelkm.value.replace(",", ".")) || 0;
@@ -125,6 +125,58 @@
         document.vcalc.annetpris.value = null;
         document.vcalc.annetsprekk.value = null;
 
+        document.vcalc.status.value = null;
+        document.vcalc.beskriv.value = null;
+
+        // dokument.result.sumkm.value = null;
+        // dokument.result.sumpris.value = null;
+        // dokument.result.gjsnitt.value = null;
+    }
+
+    function arendal_tvedestrand() {
+        resetcase();
+        document.vcalc.vegkm.value = 18.6;
+        document.vcalc.vegpris.value = 146000;
+        document.vcalc.vegsprekk.value = 0;
+
+        document.vcalc.kryssantall.value = 2;
+        document.vcalc.krysspris.value = 0.3;
+        document.vcalc.krysssprekk.value = 0;
+
+        document.vcalc.fvkm.value = 14;
+        document.vcalc.fvfaktor.value = 0.2;
+        document.vcalc.fvsprekk.value = 0;
+
+        document.vcalc.utunnelkm.value = null;
+        document.vcalc.utunnelfaktor.value = null;
+        document.vcalc.utunnelsprekk.value = null;
+
+        document.vcalc.tunnelkm.value = 1.977;
+        document.vcalc.tunnelfaktor.value = 4;
+        document.vcalc.tunnelsprekk.value = 0;
+
+        document.vcalc.mbroerkm.value = 0.2;
+        document.vcalc.mbroerfaktor.value = 10;
+        document.vcalc.mbroersprekk.value = 0;
+
+        document.vcalc.abroerkm.value = 0.6;
+        document.vcalc.abroerfaktor.value = 12;
+        document.vcalc.abroersprekk.value = 0;
+
+        document.vcalc.bjfjkm.value = null;
+        document.vcalc.bjfjpris.value = null;
+        document.vcalc.bjfjsprekk.value = null;
+
+        document.vcalc.langkm.value = null;
+        document.vcalc.langpris.value = null;
+        document.vcalc.langsprekk.value = null;
+
+        document.vcalc.annetkm.value = null;
+        document.vcalc.annetpris.value = null;
+        document.vcalc.annetsprekk.value = null;
+
+        document.vcalc.status.value = "Ferdig 2019";
+        document.vcalc.beskriv.value = "4 felt, 110 km/t";
     }
 
     function hordfast1() {
@@ -165,9 +217,58 @@
         document.vcalc.langpris.value = 5;
         document.vcalc.langsprekk.value = 0;
 
-        document.vcalc.annetkm.value = 0;
+        document.vcalc.annetkm.value = null;
         document.vcalc.annetpris.value = 0;
         document.vcalc.annetsprekk.value = 0;
+
+        document.vcalc.status.value = "Før regplan";
+        document.vcalc.beskriv.value = "Smal 4 felt, 110 km/t";
+    }
+
+    function hordfast2() {
+        resetcase();
+        document.vcalc.vegkm.value = 25.5;
+        document.vcalc.vegpris.value = 190000;
+        document.vcalc.vegsprekk.value = 0;
+
+        document.vcalc.kryssantall.value = 5;
+        document.vcalc.krysspris.value = 0.4;
+        document.vcalc.krysssprekk.value = 0;
+
+        document.vcalc.fvkm.value = 2;
+        document.vcalc.fvfaktor.value = 0.1;
+        document.vcalc.fvsprekk.value = 0;
+
+        document.vcalc.utunnelkm.value = 7.6;
+        document.vcalc.utunnelfaktor.value = 10;
+        document.vcalc.utunnelsprekk.value = 0;
+
+        document.vcalc.tunnelkm.value = 10.1;
+        document.vcalc.tunnelfaktor.value = 4;
+        document.vcalc.tunnelsprekk.value = 0;
+
+        document.vcalc.mbroerkm.value = 1;
+        document.vcalc.mbroerfaktor.value = 8;
+        document.vcalc.mbroersprekk.value = 0;
+
+        document.vcalc.abroerkm.value = 1.28;
+        document.vcalc.abroerfaktor.value = 12;
+        document.vcalc.abroersprekk.value = 0;
+
+        document.vcalc.bjfjkm.value = 5.5;
+        document.vcalc.bjfjpris.value = 24.0;
+        document.vcalc.bjfjsprekk.value = 0;
+
+        document.vcalc.langkm.value = 1.78;
+        document.vcalc.langpris.value = 8;
+        document.vcalc.langsprekk.value = 0;
+
+        document.vcalc.annetkm.value = null;
+        document.vcalc.annetpris.value = 1;
+        document.vcalc.annetsprekk.value = 0;
+
+        document.vcalc.status.value = "Vårt estimat";
+        document.vcalc.beskriv.value = "Smal 4 felt, 110 km/t";
     }
 
     function arna_klauvaneset() {
@@ -208,9 +309,12 @@
         document.vcalc.langpris.value = null;
         document.vcalc.langsprekk.value = 0;
 
-        document.vcalc.annetkm.value = 0;
+        document.vcalc.annetkm.value = null;
         document.vcalc.annetpris.value = 0;
         document.vcalc.annetsprekk.value = 0;
+
+        document.vcalc.status.value = "Før reg. plan";
+        document.vcalc.beskriv.value = "4 felt, 100 km/t?";
     }
 
 </script>
@@ -405,6 +509,14 @@
             border-radius: 6px;
         }
 
+        .button5 {
+            background-color: #97ccf0;
+            padding: 10px 32px;
+            font-size: 13px;
+            color: black;
+            border-radius: 6px;
+        }
+
         div.a {
             text-align: left;
             font-size: 12px;
@@ -466,13 +578,18 @@
         <center>
             <div class="b">
                 <h3>Instruksjon:
-                    Trykk på en av de lilla knappene under for eksempelinnfylling. Trykk så
+                    Trykk på en av de blå (ferdige prosjekt) eller lilla (planlagte prosjekt)
+                    knappene under for eksempelinnfylling. Trykk så
                     på <b>Beregn</b> knappen lengre nede. Juster tall og se effekt.
-                    Foreløpig noe eksperimentell, så "no warranty".</h3>
+                    Foreløpig noe eksperimentell, så "no warranty"!</h3>
             </div>
             <br>
             <form name=case method=POST>
                 <table id="knapp">
+                    <tr>
+                        <td align=center><input type=button class="button button5" onClick='arendal_tvedestrand()'
+                                value='E18 Tvedestrand Arendal'>
+                        </td>
                     <tr>
                         <td align=center><input type=button class="button button4" onClick='arna_klauvaneset()'
                                 value='E39 Arna-Klauvaneset S1A-N1'>
@@ -480,17 +597,26 @@
                         <td align=center><input type=button class="button button4" onClick='hordfast1()'
                                 value='E39 Hordfast'>
                         </td>
+                        <td align=center><input type=button class="button button4" onClick='hordfast2()'
+                                value='E39 Hordfast alt.'>
+                        </td>
                     </tr>
                 </table>
                 <h3>Beskrivelse</h3>
                 <ul class=" a">
+                    <li>E18 Tvedestrand-Arendal (NV). Pris pr 2021 ca.
+                        <font style="color:red">5,63 mrd</font>,
+                        vegen går i moderat enkelt terreng (ingen større broer og tunneler)
+                    </li>
                     <li>E39 Arna Klauvaneset (ringvei øst) variant S1A-N1. Pris P50 i 2022 er
                         <font style="color:red">11.3 mrd</font>,
                         mens P85 pris er 13.8 mrd
                     </li>
-                    <li>E39 Hordfast per 2021 etter NTP. Styringsmål P50 i 2022
+                    <li>E39 Hordfast per 2021 etter NTP. Styringsmål P50 i 2021
                         <font style="color:red">38.4 mrd</font>,
-                        som krever en uvanlig lav meterpris for å kunne oppnå denne prisen
+                        som krever en uvanlig lav meterpris for å kunne oppnå denne prisen!
+                        "Alt" versjonen er mer realistisk etter vårt syn basert på meterpriser
+                        i krevende terreng og sammenligning med store prosjekter internasjonalt.
                     </li>
                 </ul>
                 <hr>
@@ -511,66 +637,74 @@
                             <th width=10%>Sprekkefaktor %</th>
                         </tr>
                         <tr>
-                            <td>Motorveg i dagen, eksl. kryss og broer</td>
-                            <td><input type=text name=vegkm size=7></td>
+                            <td>Hovedveg (hveg) i dagen, eksl. kryss og broer</td>
+                            <td><input type=text name=vegkm size=7> km</td>
                             <td><input type=text name=vegpris size=7 style="background-color:yellow;"> NOK pr meter
                             </td>
                             <td><input type=text name=vegsprekk size=7> %</td>
                         </tr>
                         <tr>
-                            <td>Motorveikryss, antall (400m pr)</td>
-                            <td><input type=text name=kryssantall size=7></td>
+                            <td>Hovedveikryss, antall (antar 400m pr)</td>
+                            <td><input type=text name=kryssantall size=7> antall</td>
                             <td><input type=text name=krysspris size=7> mrd pr kryss
                             </td>
                             <td><input type=text name=krysssprekk size=7> %</td>
                         </tr>
                         <tr>
-                            <td>Fylkesveier i tillegg</td>
-                            <td><input type=text name=fvkm size=7></td>
-                            <td><input type=text name=fvfaktor size=7> mult. faktor mveg</td>
+                            <td>Sideveier i tillegg</td>
+                            <td><input type=text name=fvkm size=7> km</td>
+                            <td><input type=text name=fvfaktor size=7> mult. faktor hveg</td>
                             <td><input type=text name=fvsprekk size=7> %</td>
                         </tr>
                         <tr>
                             <td>Undersjøisk tunnel</td>
-                            <td><input type=text name=utunnelkm size=7></td>
-                            <td><input type=text name=utunnelfaktor size=7> mult. faktor mveg</td>
+                            <td><input type=text name=utunnelkm size=7> km</td>
+                            <td><input type=text name=utunnelfaktor size=7> mult. faktor hveg</td>
                             <td><input type=text name=utunnelsprekk size=7> %</td>
                         </tr>
                         <tr>
                             <td>Tunneler</td>
-                            <td><input type=text name=tunnelkm size=7></td>
-                            <td><input type=text name=tunnelfaktor size=7> mult. faktor mveg</td>
+                            <td><input type=text name=tunnelkm size=7> km</td>
+                            <td><input type=text name=tunnelfaktor size=7> mult. faktor hveg</td>
                             <td><input type=text name=tunnelsprekk size=7> %</td>
                         </tr>
                         <tr>
                             <td>Mindre bruer (20-100m) </td>
-                            <td><input type=text name=mbroerkm size=7></td>
-                            <td><input type=text name=mbroerfaktor size=7> mult. faktor mveg</td>
+                            <td><input type=text name=mbroerkm size=7> km</td>
+                            <td><input type=text name=mbroerfaktor size=7> mult. faktor hveg</td>
                             <td><input type=text name=mbroersprekk size=7> %</td>
                         </tr>
                         <tr>
                             <td>Mellomstore bruer (100-600m) </td>
-                            <td><input type=text name=abroerkm size=7></td>
-                            <td><input type=text name=abroerfaktor size=7> mult. faktor mveg</td>
+                            <td><input type=text name=abroerkm size=7> km</td>
+                            <td><input type=text name=abroerfaktor size=7> mult. faktor hveg</td>
                             <td><input type=text name=abroersprekk size=7> %</td>
                         </tr>
                         <tr>
-                            <td>Bru Bjørnafjorden, enhetspris</td>
-                            <td><input type=text name=bjfjkm size=7></td>
-                            <td><input type=text name=bjfjpris size=7> mrd </td>
+                            <td>Stor bro (Bjørnafjorden for eks.), enhetspris!</td>
+                            <td><input type=text name=bjfjkm size=7> km</td>
+                            <td><input type=text name=bjfjpris size=7> mrd pr bro</td>
                             <td><input type=text name=bjfjsprekk size=7> %</td>
                         </tr>
                         <tr>
-                            <td>Stor bro annen (Langenuen for eks), enhetspris</td>
-                            <td><input type=text name=langkm size=7></td>
-                            <td><input type=text name=langpris size=7> mrd </td>
+                            <td>Stor bro annen (Langenuen for eks), enhetspris!</td>
+                            <td><input type=text name=langkm size=7> km</td>
+                            <td><input type=text name=langpris size=7> mrd pr bro</td>
                             <td><input type=text name=langsprekk size=7> %</td>
                         </tr>
                         <tr>
                             <td>Annet (økologisk komp. etc)</td>
-                            <td><input type=text name=annetkm size=7readonly></td>
+                            <td><input type=text name=annetkm size=7 readonly
+                                    style="background-color:rgb(217, 217, 217);"> (tom)</td>
                             <td><input type=text name=annetpris size=7> mrd </td>
                             <td><input type=text name=annetsprekk size=7> %</td>
+                        </tr>
+                        <tr>
+                            <td>Status og beskrivelse veitype</td>
+                            <td><input type=text name=status size=14></td>
+                            <td><input type=text name=beskriv size=32></td>
+                            <td><input type=text name=dummy2 size=7 readonly
+                                    style="background-color:rgb(217, 217, 217);"></td>
                         </tr>
                     </table>
                 </form>
@@ -593,12 +727,10 @@
                 </form>
                 <br>
                 <form name=result method=POST>
-                    <span style="font-size: 250%" id="emoji"></span>
-                    <br>
-                    <span style="font-size: 120%" id="umulig"></span>
+
                     <table id="res">
                         <tr>
-                            <th width=40%>Sum lengde motorveg (km)</th>
+                            <th width=40%>Sum lengde hovedveg (km)</th>
                             <th width=40%>Gjennomsnittspris (NOK/m)</th>
                             <th width=20%>Total pris (mrd NOK)</th>
                         </tr>
