@@ -631,80 +631,98 @@
                 <form name=vcalc method=POST>
                     <table id="priser">
                         <tr>
-                            <th width=40%>Beskrivelse</th>
-                            <th width=15%>Antall km/kryss</th>
-                            <th width=35%>Inngangsdata</th>
-                            <th width=10%>Sprekkefaktor %</th>
+                            <th width=36%>Beskrivelse</th>
+                            <th width=14%>Bredde/antall</th>
+                            <th width=14%>Lengde / kryss</th>
+                            <th width=16%>Pris NOK/enhet</th>
+                            <th width=10%>Sfaktor</th>
+                            <th width=10%>Sum mrd</th>
                         </tr>
                         <tr>
-                            <td>Hovedveg (hveg) i dagen, eksl. kryss og broer</td>
-                            <td><input type=text name=vegkm size=7> km</td>
-                            <td><input type=text name=vegpris size=7 style="background-color:yellow;"> NOK pr meter
+                            <td>Hovedveg dag, eksl. kryss og broer</td>
+                            <td></td>
+                            <td><input type=text name=veglengde size=7> m</td>
+                            <td><input type=text name=vegpris size=7> NOK/m.
                             </td>
-                            <td><input type=text name=vegsprekk size=7> %</td>
+                            <td><input type=text name=vegsprekk size=7></td>
+                            <td><input type=text name=vegsum size=5 readonly></td>
                         </tr>
                         <tr>
-                            <td>Hovedveikryss, antall (antar 400m pr)</td>
+                            <td>Hovedveikryss, antall</td>
                             <td><input type=text name=kryssantall size=7> antall</td>
-                            <td><input type=text name=krysspris size=7> mrd pr kryss
-                            </td>
-                            <td><input type=text name=krysssprekk size=7> %</td>
+                            <td><input type=text name=krysslengde size=7> m/kryss</td>
+                            <td><input type=text name=krysspris size=7> NOK/kryss</td>
+                            <td><input type=text name=krysssprekk size=7></td>
+                            <td><input type=text name=krysssum size=7 readonly></td>
                         </tr>
                         <tr>
                             <td>Sideveier i tillegg</td>
-                            <td><input type=text name=fvkm size=7> km</td>
-                            <td><input type=text name=fvfaktor size=7> mult. faktor hveg</td>
-                            <td><input type=text name=fvsprekk size=7> %</td>
+                            <td></td>
+                            <td><input type=text name=sidelengde size=7> m</td>
+                            <td><input type=text name=sidepris size=7> NOK/m</td>
+                            <td><input type=text name=sidesprekk size=7></td>
+                            <td><input type=text name=sidesum size=7></td>
                         </tr>
                         <tr>
-                            <td>Undersjøisk tunnel</td>
-                            <td><input type=text name=utunnelkm size=7> km</td>
-                            <td><input type=text name=utunnelfaktor size=7> mult. faktor hveg</td>
-                            <td><input type=text name=utunnelsprekk size=7> %</td>
-                        </tr>
+                            <td>Tunnel (vanlig)</td>
+                            <td></td>
+                            <td><input type=text name=tunnlengde size=7> m</td>
+                            <td><input type=text name=tunnpris size=7> NOK/m</td>
+                            <td><input type=text name=tunnsprekk size=7></td>
+                            <td><input type=text name=tunnsum size=5 readonly></td>
                         <tr>
-                            <td>Tunneler</td>
-                            <td><input type=text name=tunnelkm size=7> km</td>
-                            <td><input type=text name=tunnelfaktor size=7> mult. faktor hveg</td>
-                            <td><input type=text name=tunnelsprekk size=7> %</td>
-                        </tr>
-                        <tr>
-                            <td>Mindre bruer (20-100m) </td>
-                            <td><input type=text name=mbroerkm size=7> km</td>
-                            <td><input type=text name=mbroerfaktor size=7> mult. faktor hveg</td>
-                            <td><input type=text name=mbroersprekk size=7> %</td>
+                            <td>Tunnel (undersjøisk)</td>
+                            <td></td>
+                            <td><input type=text name=utunnlengde size=7> m</td>
+                            <td><input type=text name=utunnpris size=7> NOK/m</td>
+                            <td><input type=text name=utunnsprekk size=7></td>
+                            <td><input type=text name=utunnsum size=5 readonly></td>
                         </tr>
                         <tr>
                             <td>Mellomstore bruer (100-600m) </td>
-                            <td><input type=text name=abroerkm size=7> km</td>
-                            <td><input type=text name=abroerfaktor size=7> mult. faktor hveg</td>
-                            <td><input type=text name=abroersprekk size=7> %</td>
+                            <td><input type=text name=abrobredde size=7> m</td>
+                            <td><input type=text name=abrolengde size=7> m</td>
+                            <td><input type=text name=abropris size=7> NOK/m2</td>
+                            <td><input type=text name=abrosprekk size=7></td>
+                            <td><input type=text name=abrosum size=7></td>
                         </tr>
                         <tr>
-                            <td>Stor bro (Bjørnafjorden for eks.), enhetspris!</td>
-                            <td><input type=text name=bjfjkm size=7> km</td>
-                            <td><input type=text name=bjfjpris size=7> mrd pr bro</td>
-                            <td><input type=text name=bjfjsprekk size=7> %</td>
+                            <td>Stor bro 1 (Bjørnafjorden for eks.)</td>
+                            <td><input type=text name=bro1bredde size=7> m</td>
+                            <td><input type=text name=bro1lengde size=7> m</td>
+                            <td><input type=text name=bro1pris size=7> NOK/m2</td>
+                            <td><input type=text name=bro1sprekk size=7></td>
+                            <td><input type=text name=bro1sum size=7 readonly></td>
                         </tr>
                         <tr>
-                            <td>Stor bro annen (Langenuen for eks), enhetspris!</td>
-                            <td><input type=text name=langkm size=7> km</td>
-                            <td><input type=text name=langpris size=7> mrd pr bro</td>
-                            <td><input type=text name=langsprekk size=7> %</td>
+                            <td>Stor bro 2 (Langenuen for eks.)</td>
+                            <td><input type=text name=bro2bredde size=7> m</td>
+                            <td><input type=text name=bro2lengde size=7> m</td>
+                            <td><input type=text name=bro2pris size=7> NOK/m2</td>
+                            <td><input type=text name=bro2sprekk size=7></td>
+                            <td><input type=text name=bro2sum size=7 readonly></td>
                         </tr>
                         <tr>
                             <td>Annet (økologisk komp. etc)</td>
-                            <td><input type=text name=annetkm size=7 readonly
-                                    style="background-color:rgb(217, 217, 217);"> (tom)</td>
+                            <td></td>
+                            <td></td>
                             <td><input type=text name=annetpris size=7> mrd </td>
-                            <td><input type=text name=annetsprekk size=7> %</td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </form>
+                <br>
+                <form name=descr method=POST>
+                    <table id="priser">
+                        <tr>
+                            <th width=20%>Beskrivelse</th>
+                            <th width=30%>Status</th>
+                            <th width=50%>Kommentarer</th>
                         </tr>
                         <tr>
                             <td>Status og beskrivelse veitype</td>
-                            <td><input type=text name=status size=14></td>
-                            <td><input type=text name=beskriv size=32></td>
-                            <td><input type=text name=dummy2 size=7 readonly
-                                    style="background-color:rgb(217, 217, 217);"></td>
+                            <td><input type=text name=status size=25></td>
+                            <td><input type=text name=beskriv size=53></td>
                         </tr>
                     </table>
                 </form>
