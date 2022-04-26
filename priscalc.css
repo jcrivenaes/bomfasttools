@@ -1,0 +1,294 @@
+body {
+    font-family: 'Courier New', monospace;
+}
+
+input[type="text"] {
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+}
+
+#knapp {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#knapp td,
+#knapp th {
+    border: 0px solid #ddd;
+    padding: 8px;
+}
+
+/* #knapp tr:nth-child(even) {
+    background-color: #f2f2f2;
+} */
+
+#priser {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#priser input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#priser td,
+#priser th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#priser tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#priser tr:hover {
+    background-color: #ddd;
+}
+
+#priser th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #5b5b5c;
+    color: white;
+}
+
+#descri {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#descri input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#descri td,
+#descri th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#descri tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#descri tr:hover {
+    background-color: #ddd;
+}
+
+#descri th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #5b5b5c;
+    color: white;
+}
+
+#res {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#res td,
+#res th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#res tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#res tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#res input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#res th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+#restabell {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#restabell td,
+#restabell th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#restabell tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#restabell tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#restabell input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#restabell th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+#byggtabell {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#byggtabell td,
+#byggtabell th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#byggtabell tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#byggtabell tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#byggtabell input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#byggtabell th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+.button {
+    background-color: #616909;
+    font-family: 'Courier New', monospace;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 22px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.button3 {
+    background-color: #A44400;
+}
+
+.button4 {
+    background-color: #e597f0;
+    padding: 10px 32px;
+    font-size: 13px;
+    color: black;
+    border-radius: 6px;
+}
+
+.button5 {
+    background-color: #97ccf0;
+    padding: 10px 32px;
+    font-size: 13px;
+    color: black;
+    border-radius: 6px;
+}
+
+.reado {
+    background-color: #d9e9b5;
+}
+
+div.a {
+    text-align: left;
+    font-size: 12px;
+    font-family: 'Helvetica';
+    text-indent: 70px;
+}
+
+div.b {
+    font-size: 16px;
+    font-family: 'Helvetica';
+    color: #A44400;
+
+    text-indent: 70px;
+}
+
+ul.a {
+    text-align: left;
+    font-size: 14px;
+    font-family: 'Helvetica';
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 290px;
+    background-color: rgb(78, 38, 38);
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgb(85, 41, 41) transparent transparent transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
