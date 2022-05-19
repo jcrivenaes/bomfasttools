@@ -79,7 +79,13 @@ function processRows2(json) {
             }
             if (key == "Lenke" && row[key] != null) {
                 let url = row[key];
-                tittel = "".concat("<A HREF=", url, " class=lenke>", tittel, "</A>. ");
+                tittel = "".concat(
+                    "<A HREF=",
+                    url,
+                    " target='_blank' class=lenke>",
+                    tittel,
+                    "</A>. "
+                );
             }
 
             if (key == "Media" && row[key] != null) {
@@ -99,7 +105,13 @@ function processRows2(json) {
             }
             if (key == "Alt" && row[key] != null) {
                 let url2 = wixstatic.concat(row[key]);
-                dot = "".concat("<A HREF=", url2, " class=ilenke>", ".", "</A>");
+                dot = "".concat(
+                    "<A HREF=",
+                    url2,
+                    " class=ilenke target='_blank'>",
+                    ".",
+                    "</A>"
+                );
             } else {
                 dot = ".";
             }
