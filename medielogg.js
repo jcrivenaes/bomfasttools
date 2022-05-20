@@ -45,6 +45,7 @@ function processRows2(json) {
     var alltext = "";
     let xx = document.getElementById("output");
     let wixstatic = "https://static.wixstatic.com/media/";
+    let wixpdf = "https://www.bomfast.info/_files/ugd/";
 
     json.forEach((row) => {
         const keys = Object.keys(row);
@@ -104,14 +105,28 @@ function processRows2(json) {
                 kommentar = row[key];
             }
             if (key == "Alt" && row[key] != null) {
-                let url2 = wixstatic.concat(row[key]);
-                dot = "".concat(
-                    "<A HREF=",
-                    url2,
-                    " class=ilenke target='_blank'>",
-                    ".",
-                    "</A>"
-                );
+                let is_jpg = false;
+                is_jpg = row[key].toLowerCase().endsWith("jpg");
+                let is_pdf = false;
+                is_pdf = row[key].toLowerCase().endsWith("pdf");
+                let url2 = "";
+                if (is_pdf) {
+                    url2 = wixpdf.concat(row[key]);
+                }
+                if (is_jpg) {
+                    url2 = wixstatic.concat(row[key]);
+                }
+                if (is_pdf || is_jpg) {
+                    dot = "".concat(
+                        "<A HREF=",
+                        url2,
+                        " class=ilenke target='_blank'>",
+                        ".",
+                        "</A>"
+                    );
+                } else {
+                    dot = ".";
+                }
             } else {
                 dot = ".";
             }
