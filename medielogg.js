@@ -57,6 +57,14 @@ function processRows2(json) {
         let abo = "";
         let dot = "";
 
+        let urlpattern = "<A HREF=xxx TARGET='_BLANK'> ttt </A>";
+        const lenke1pattern = /{LENKE1:.*?}/;
+        let lenke1url = "";
+        let lenke1txt = "";
+        const lenke2pattern = /{LENKE2:.*?}/;
+        let lenke2url = "";
+        let lenke2txt = "";
+
         let rowtext = "";
         let anchor = document.createElement("a");
         let tnode;
@@ -103,6 +111,16 @@ function processRows2(json) {
             }
             if (key == "Kommentar" && row[key] != null) {
                 kommentar = row[key];
+                kommentar = kommentar.replace(/\n/g, " ");
+
+                lenke1txt = kommentar.match(lenke1pattern);
+                if (lenke1txt != null) {
+                    lenke1txt = lenke1txt[0].replace("{LENKE1:", "").replace("}", "");
+                }
+                lenke2txt = kommentar.match(lenke2pattern);
+                if (lenke2txt != null) {
+                    lenke2txt = lenke2txt[0].replace("{LENKE2:", "").replace("}", "");
+                }
             }
             if (key == "Alt" && row[key] != null) {
                 let is_jpg = false;
@@ -130,10 +148,22 @@ function processRows2(json) {
             } else {
                 dot = ".";
             }
+
+            if (key == "LENKE1" && row[key] != null) {
+                lenke1url = row[key];
+            }
+            if (key == "LENKE2" && row[key] != null) {
+                lenke2url = row[key];
+            }
         });
         if (headerdato != null) {
             rowtext = rowtext.concat(headerdato);
         } else {
+            let url1 = urlpattern.replace("xxx", lenke1url).replace("ttt", lenke1txt);
+            kommentar = kommentar.replace(lenke1pattern, url1);
+            let url2 = urlpattern.replace("xxx", lenke2url).replace("ttt", lenke2txt);
+            kommentar = kommentar.replace(lenke2pattern, url2);
+
             rowtext = rowtext.concat(
                 dato.concat(tittel, media, abo, dot, " ", kommentar)
             );
