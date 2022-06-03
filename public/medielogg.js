@@ -15,7 +15,7 @@ function init() {
         .then((rep) => {
             //Remove additional text and extract only JSON:
             const jsonData = JSON.parse(rep.substring(47).slice(0, -2));
-            console.log(rep);
+            //console.log(rep);
 
             const colz = [];
             const tr = document.createElement("tr");
@@ -32,7 +32,7 @@ function init() {
                 const row = {};
                 colz.forEach((ele, ind) => {
                     row[ele] = rowData.c[ind] != null ? rowData.c[ind].v : "";
-                    console.log(row[ele]);
+                    //console.log(row[ele]);
                 });
 
                 data.push(row);
@@ -55,7 +55,7 @@ function processRows2(json) {
         let kommentar = "";
         let media = "";
         let abo = "";
-        let dot = "";
+        let dot = ".";
 
         let urlpattern = "<A HREF=xxx TARGET='_BLANK'> ttt </A>";
         const lenke1pattern = /{LENKE1:.*?}/;
@@ -103,7 +103,7 @@ function processRows2(json) {
 
             if (key == "Abo" && row[key] != null) {
                 if (row[key] == "Ja") {
-                    console.log("AboBAO");
+                    //console.log("AboBAO");
                     abo = " [Abo])</span>";
                 } else {
                     abo = ")</span>";
@@ -145,8 +145,6 @@ function processRows2(json) {
                 } else {
                     dot = ".";
                 }
-            } else {
-                dot = ".";
             }
 
             if (key == "LENKE1" && row[key] != null) {
