@@ -127,14 +127,18 @@ function processRows2(json) {
                 is_jpg = row[key].toLowerCase().endsWith("jpg");
                 let is_pdf = false;
                 is_pdf = row[key].toLowerCase().endsWith("pdf");
+                let is_tiny = row[key].toLowerCase().startsWith("https://tiny");
                 let url2 = "";
                 if (is_pdf) {
                     url2 = wixpdf.concat(row[key]);
                 }
+                if (is_tiny) {
+                    url2 = row[key];
+                }
                 if (is_jpg) {
                     url2 = wixstatic.concat(row[key]);
                 }
-                if (is_pdf || is_jpg) {
+                if (is_pdf || is_jpg || is_tiny) {
                     dot = "".concat(
                         "<A HREF=",
                         url2,
