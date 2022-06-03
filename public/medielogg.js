@@ -139,7 +139,7 @@ function processRows2(json) {
                         "<A HREF=",
                         url2,
                         " class=ilenke target='_blank'>",
-                        ".",
+                        ";",
                         "</A>"
                     );
                 } else {
