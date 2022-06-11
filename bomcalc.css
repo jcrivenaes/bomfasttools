@@ -1,0 +1,275 @@
+body {
+    font-family: 'Courier New', monospace;
+}
+
+input[type="text"] {
+    font-size: 14px;
+    font-family: 'Courier New', monospace;
+}
+
+#knapp {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#knapp td,
+#knapp th {
+    border: 0px solid #ddd;
+    padding: 8px;
+}
+
+/* #knapp tr:nth-child(even) {
+    background-color: #f2f2f2;
+} */
+
+#bom {
+    font-family: 'Courier New', monospace;
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#bom input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#bom td,
+#bom th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#bom tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#bom tr:hover {
+    background-color: #ddd;
+}
+
+#bom th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #5b5b5c;
+    color: white;
+}
+
+
+
+#bomaar {
+    font-family: 'Courier New', monospace;
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#bomaar input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#bomaar td,
+#bomaar th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#bomaar tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#bomaar tr:hover {
+    background-color: #ddd;
+}
+
+#bomaar th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #5b5b5c;
+    color: white;
+}
+
+#bomaarlig td {
+    font-size: 9px;
+}
+
+
+#res {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#res td,
+#res th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#res tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#res tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#res input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#res th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+#restabell {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#restabell td,
+#restabell th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#restabell tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#restabell tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#restabell input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#restabell th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+#byggtabell {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#byggtabell td,
+#byggtabell th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#byggtabell tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#byggtabell tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#byggtabell input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#byggtabell th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+.button {
+    background-color: #616909;
+    font-family: 'Courier New', monospace;
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 22px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.button3 {
+    background-color: #A44400;
+}
+
+.button4 {
+    background-color: #e597f0;
+    padding: 10px 32px;
+    font-size: 13px;
+    color: black;
+    border-radius: 6px;
+}
+
+div.a {
+    text-align: left;
+    font-size: 12px;
+    font-family: 'Helvetica';
+    text-indent: 70px;
+}
+
+div.b {
+    font-size: 16px;
+    font-family: 'Helvetica';
+    color: #A44400;
+
+    text-indent: 70px;
+}
+
+ul.a {
+    text-align: left;
+    font-size: 14px;
+    font-family: 'Helvetica';
+    margin-left: 40px;
+    margin-right: 40px;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted rgb(197, 197, 197);
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    font-family: 'Times';
+    width: 400px;
+    background-color: rgb(82, 31, 79);
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 5px 0;
+
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    top: -5px;
+    left: 105%;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
