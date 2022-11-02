@@ -256,10 +256,14 @@
                         <th width=70%>Beregnede verdier</th>
                         <th width=30%>Verdi</th>
                     </tr>
+                    <tr>
+                        <td>Basisår / oppstart / slutt bompenger</td>
+                        <td><input type=text name=diverse_aar size=22 readonly></td>
+                    </tr>
                     <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
                         <td>Estimert gjennomsnitt bomtakst, diskontert til basisår</td>
                         <td><input type=text name=proposed_start_disk size=10 readonly
-                                style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;"> kr</td>
+                                style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;">kr</td>
                     </tr>
                     <tr>
                         <td>Estimert gjennomsnitt bomtakst ved oppstart bompengeperiode</td>
@@ -284,12 +288,19 @@
                         <td><input type=text name=proposed_tung size=10 readonly> kr</td>
                     </tr>
                     <tr>
-                        <td>Kumulativ kostnad bompengelån med renter</td>
+                        <td>Akkumulert bompengelån ved åpning (nominelt)</td>
                         <td><input type=text name=result_kumulativt_laan size=10 readonly> MRD kr</td>
+                    <tr>
+                        <td>Akkumulert bompengelån ved åpning (diskontert)</td>
+                        <td><input type=text name=result_kumulativt_laan_disk size=10 readonly> MRD kr</td>
                     </tr>
                     <tr>
-                        <td>Kumulativ kostnad bompengelån med renter + forhåndsinnkrevet + bomselskap</td>
-                        <td><input type=text name=result_kumulativt_laan_all size=10 readonly> MRD kr</td>
+                        <td>Total ekstrakostnad bompengelån + forhåndsinnkrevet + bomselskap (diskontert)</td>
+                        <td><input type=text name=result_kumulativt_laan_all_disk size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
+                        <td>Reell kostnad av prosjektet (byggepris forrige post, diskontert til basisår)</td>
+                        <td><input type=text name=result_sann_kostnad size=10 readonly style="background-color:#f1cffc; font-size: 20px; font-weight: 800;"> MRD kr</td>
                     </tr>
                 </table>
             </form>
