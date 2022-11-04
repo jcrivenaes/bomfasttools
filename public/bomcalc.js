@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 const MAXTRIES = 1000;
 const MAXYEARS = 200;
 const MRD = 1000000000.0;
@@ -26,6 +28,9 @@ let input_offisielt = "vedtak";
 let input_aarlig_laan = [];
 
 // resultater som globale
+let result_styringsramme_ved_oppstart = 0.0;
+let result_bompengelaan_oppstart = 0.0;
+let result_bomselskap_aapning = 0.0; // bomselskapet skal betjene lån og drifte fra denne datoen
 let result_kumulativt_laan = 0.0;
 let result_initiell_avg_bomsats = 0.0;
 let result_sluttaar = 2099;
@@ -46,7 +51,14 @@ let bygge_kumulativt_laan = [];
 let bygge_kumulativt_laan_proj = [];
 let bygge_rentefot = [];
 
-function iterate_toll_value() {
+function pris_ved_aar(innpris, aar) {
+    // beregn pris som følgende av prisstigning etter et antall aar
+    let nypris = innpris * Math.pow(1.0 + input_prisstigning, aar);
+    return nypris;
+}
+
+function parse_input() {
+    // les input fra HTML, og la tall være i kroner, mens prosent er i fraksjon
     input_byggeoppstart = parseInt(document.calc.byggeoppstart.value);
     input_byggetid = parseInt(document.calc.byggetid.value);
     input_styringsramme =
@@ -84,17 +96,14 @@ function iterate_toll_value() {
     input_offisielt = document.calc.offisielt.value;
 
     result_sluttaar = input_byggeoppstart + input_byggetid + input_nedbetalingstid;
+}
 
+function iterate_toll_value() {
+    // iterer verdier
     if (input_laaneprofil == 4) {
         get_aarlig_profile(input_byggetid);
         console.log("Låneprofil", input_aarlig_laan);
     }
-
-    console.log("Byggetid:", input_byggetid);
-    console.log("Lån:", input_bompengelaan);
-    console.log("Låneprofil:", input_laaneprofil);
-    console.log("Rabattbil andel:", input_rabattbil_andel);
-    console.log("Rbattbil pris:", input_rabattbil_pris);
 
     let cumloan = 0.0;
     if (input_laaneprofil == 0) {
@@ -110,7 +119,7 @@ function iterate_toll_value() {
         cumloan = compute_sumloan1(); // yes, 1
     }
 
-    console.log("Kumulativt bompengelån:", cumloan);
+    console.log("Kumulativt bompengelån ved åpning:", cumloan);
     result_kumulativt_laan = cumloan;
 
     // rough estimate of toll as start value...
@@ -413,7 +422,7 @@ function yearly_streams(toll, mode = 0) {
 
     // both toll and bomselskap will increase with moneygrowth factor
     let xtoll = toll;
-    let xbomselskap = input_bomselskap;
+    let xbomselskap = result_bomselskap_aapning;
     let xbomselskap_sum = 0.0;
     let xrenter_sum = 0.0;
     let rente = input_laanerente1;
@@ -425,7 +434,8 @@ function yearly_streams(toll, mode = 0) {
         }
 
         xtoll = toll * Math.pow(1.0 + input_prisstigning, year);
-        xbomselskap = input_bomselskap * Math.pow(1.0 + input_prisstigning, year);
+        xbomselskap =
+            result_bomselskap_aapning * Math.pow(1.0 + input_prisstigning, year);
         xbomselskap_sum += xbomselskap;
 
         let income = 0;
@@ -459,6 +469,23 @@ function yearly_streams(toll, mode = 0) {
     return -1;
 }
 
+function renter_diskontert() {
+    // finner sum av renter etter åpning, diskontert til basisår
+
+    let sumrente_disk = 0.0;
+    let sumrente = 0.0;
+    for (let i = 0; i <= input_nedbetalingstid; i++) {
+        rente = result_rente_aarlig[i];
+        if (rente > 0.0) {
+            sumrente += rente;
+            diffaar = input_byggeoppstart + input_byggetid + i - input_basisaar;
+            rente = rente / Math.pow(1.0 + input_prisstigning, diffaar);
+            sumrente_disk += rente;
+        }
+    }
+    return [sumrente, sumrente_disk];
+}
+
 function bycar_type(toll) {
     let v = input_rabattbil_andel;
     let e = input_rabattbil_pris;
@@ -482,31 +509,64 @@ function bycar_type(toll) {
     let lettbilrabatt = x * e;
     let tung = x * t;
 
-    document.result.proposed_lettbil.value = lettbil.toFixed(1);
-    document.result.proposed_rabattbil.value = lettbilrabatt.toFixed(1);
-    document.result.proposed_tung.value = tung.toFixed(1);
+    document.resultbom.proposed_lettbil.value = lettbil.toFixed(1);
+    document.resultbom.proposed_rabattbil.value = lettbilrabatt.toFixed(1);
+    document.resultbom.proposed_tung.value = tung.toFixed(1);
 }
 
 function main() {
+    parse_input();
+
+    //==================================================================================
+    // styringsramme og lån ved oppstart bygging
+    //==================================================================================
+
+    result_styringsramme_ved_oppstart = pris_ved_aar(
+        input_styringsramme,
+        input_byggeoppstart - input_basisaar
+    );
+
+    document.result.styringsramme_oppstart.value = (
+        result_styringsramme_ved_oppstart / MRD
+    ).toFixed(1);
+
+    result_bompengelaan_oppstart = pris_ved_aar(
+        input_bompengelaan,
+        input_byggeoppstart - input_basisaar
+    );
+
+    document.result.bompengelaan_oppstart.value = (
+        result_bompengelaan_oppstart / MRD
+    ).toFixed(1);
+
+    //==================================================================================
+    // bomselskap sats ved åpning som følge av prisstigning
+    // ser her bort ifra ta bomselskap også vil ta betalt for å ta opp lån under bygging
+    //==================================================================================
+
+    result_bomselskap_aapning = pris_ved_aar(
+        input_bomselskap,
+        input_byggeoppstart + input_byggetid - input_basisaar
+    );
+
+    //==================================================================================
+    // iterer frem til gjennomsnitt sats
+    //==================================================================================
+
     iterate_toll_value();
+
     proposed_toll = result_initiell_avg_bomsats;
 
-    // var emojis = ["&#128516;", "&#128528;", "&#128577;", "&#128555;", "&#128545; &#129322",
-    //     "&#129324;&#128128;"];
-
-    // emoj = emojis[0]
-    // if (proposed_toll > 10) emoj = emojis[1];
-    // if (proposed_toll > 50) emoj = emojis[2];
-    // if (proposed_toll > 100) emoj = emojis[3];
-    // if (proposed_toll > 200) emoj = emojis[4];
-    // if (proposed_toll > 500) emoj = emojis[5];
-
-    // document.getElementById("emoji").innerHTML = emoj;
+    //==================================================================================
+    // info om år, akkumulert lån, etc
+    //==================================================================================
 
     aapning = input_byggeoppstart + input_byggetid;
     diverse_aar =
         input_basisaar.toString() +
         " / " +
+        input_byggeoppstart.toString() +
+        "  / " +
         aapning.toString() +
         " / " +
         result_sluttaar.toString();
@@ -516,14 +576,14 @@ function main() {
     if (proposed_toll < 50) {
         fixed = 1;
     }
-    document.result.proposed.value = proposed_toll.toFixed(fixed);
-    document.result.proposed_end.value =
+    document.resultbom.proposed.value = proposed_toll.toFixed(fixed);
+    document.resultbom.proposed_end.value =
         result_bomsatser[input_nedbetalingstid - 1].toFixed(fixed);
 
     let deltaaar = input_byggetid + (input_byggeoppstart - input_basisaar);
     console.log("Deltaår:", deltaaar);
     let diskontert = proposed_toll / Math.pow(1.0 + input_prisstigning, deltaaar);
-    document.result.proposed_start_disk.value = diskontert.toFixed(fixed);
+    document.resultbom.proposed_start_disk.value = diskontert.toFixed(fixed);
     document.result.result_kumulativt_laan.value = (
         result_kumulativt_laan / MRD
     ).toFixed(3);
@@ -535,23 +595,37 @@ function main() {
         result_kumulativt_laan_disk / MRD
     ).toFixed(3);
 
-    let sum_inkl =
-        result_kumulativt_laan +
-        input_forhaandsinnkrevet +
-        result_tilbomselskap_sum +
-        result_renter_aarlig_sum;
-    // document.result.result_kumulativt_laan_all.value = sum_inkl;
+    // herav renter ved åpning, diskontert til basisår
+    let renter_u_bygging_diskontert = result_kumulativt_laan_disk - input_bompengelaan;
+    document.result.result_rentekostnad_bygging_disk.value = (
+        renter_u_bygging_diskontert / MRD
+    ).toFixed(3);
 
-    // diskontere dette til basisår:
-    dyear = result_sluttaar - input_basisaar;
-    sum_inkl_disk = sum_inkl / Math.pow(1.0 + input_prisstigning, dyear);
-    console.log(dyear);
-    console.log(sum_inkl_disk);
-    diff = sum_inkl_disk - input_bompengelaan;
-    document.result.result_kumulativt_laan_all_disk.value = (diff / MRD).toFixed(3);
+    // så renter under bompengeperioden, nominelt og diskontert til basisår
+    kum_renter = renter_diskontert();
+    document.result.result_rentekostnad_drift.value = (kum_renter[0] / MRD).toFixed(3);
+    document.result.result_rentekostnad_drift_disk.value = (
+        kum_renter[1] / MRD
+    ).toFixed(3);
+
+    // så bomselskap under bompengeperioden, diskontert til basisår
+    let akkumulert_bomselskap_disk = input_bomselskap * input_nedbetalingstid;
+    document.result.result_bomselskap_drift_disk.value = (
+        akkumulert_bomselskap_disk / MRD
+    ).toFixed(3);
+
+    let sum_inkl_disk =
+        input_forhaandsinnkrevet +
+        renter_u_bygging_diskontert +
+        kum_renter[1] +
+        akkumulert_bomselskap_disk;
+
+    document.result.result_kumulativt_laan_all_disk.value = (
+        sum_inkl_disk / MRD
+    ).toFixed(3);
 
     // reell diskontert av prosjektet er da
-    let kostnad_reell = input_styringsramme + sum_inkl_disk - input_bompengelaan;
+    let kostnad_reell = input_styringsramme + sum_inkl_disk;
     document.result.result_sann_kostnad.value = (kostnad_reell / MRD).toFixed(3);
 
     bycar_type(diskontert);
@@ -675,12 +749,12 @@ function resetcase() {
     document.bomaarlig.aar13.value = null;
     document.bomaarlig.aar14.value = null;
 
-    document.result.proposed.value = null;
-    document.result.proposed_start_disk.value = null;
-    document.result.proposed_end.value = null;
-    document.result.proposed_lettbil.value = null;
-    document.result.proposed_rabattbil.value = null;
-    document.result.proposed_tung.value = null;
+    document.resultbom.proposed.value = null;
+    document.resultbom.proposed_start_disk.value = null;
+    document.resultbom.proposed_end.value = null;
+    document.resultbom.proposed_lettbil.value = null;
+    document.resultbom.proposed_rabattbil.value = null;
+    document.resultbom.proposed_tung.value = null;
     document.result.result_kumulativt_laan.value = null;
     document.result.result_kumulativt_laan_disk.value = null;
     document.result.result_kumulativt_laan_all_disk.value = null;
