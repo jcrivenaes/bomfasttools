@@ -9,7 +9,6 @@
 
 <body>
     <p>
-
         <center>
             <div class="b">
                 <h3>Instruksjon:
@@ -36,7 +35,7 @@
                         105 S (2016-2017))</A>
                     </li>
                     <br>
-                    <li><a href="#" onClick="rogfast2();">&#9193 E39 Rogfast 20201</a>: Fra <A
+                    <li><a href="#" onClick="rogfast2();">&#9193 E39 Rogfast 2021</a>: Fra <A
                         HREF=https://www.regjeringen.no/contentassets/8e5b283f2fd34f7b8559705ad9d2502b/nn-no/pdfs/prp202020210054000dddpdfs.pdf>stortingsproposisjon
                         2020-2021</A> Bompengesummesummen er her begrenset til det som skal innkreves etter åpning. Det er i tillegg
                         forhåndsinnkreving i perioden 2013-2030 på fergen (ca 1,7 milliarder i sum). Tilsammen blir
@@ -86,7 +85,11 @@
                         <th width=30%>Inngangsdata</th>
                     </tr>
                     <tr>
-                        <td>Oppstart bygging (år, for eks. 2021)</td>
+                        <td>Basisår for styringsramme og beregninger (for eks 2021)</td>
+                        <td><input type=text name=basisaar size=10></td>
+                    </tr>
+                    <tr>
+                        <td>Oppstart bygging (år, for eks. 2028)</td>
                         <td><input type=text name=byggeoppstart size=10></td>
                     </tr>
                     <tr>
@@ -95,17 +98,17 @@
                     </tr>
                     <tr>
                         <td>
-                            <div class="tooltip">Total kostnad styringsramme (MRD kr)
+                            <div class="tooltip">Total kostnad styringsramme (MRD kr) ved basisår
                                 <span class="tooltiptext">Styringsramme er median prisen, dvs det skal
                                     være 50% sannsynlighet for at reell pris blir enten høyere eller lavere
-                                    enn denne.</span>
+                                    enn denne. Fra NTP 2025- skal styringsramme være forventningsverdi, ikke P50.</span>
                             </div>
                         </td>
                         <td><input type=text name=styringsramme size=10></td>
                     </tr>
                     <tr>
                         <td>
-                            <div class="tooltip">Total kostnad kostnadsramme (MRD kr)
+                            <div class="tooltip">Total kostnad kostnadsramme (MRD kr) ved basisår
                                 <span class="tooltiptext">Kostnadsramme er 85% percentil, dvs det skal
                                     kun være 15% sannsynlighet for at reell pris blir høyere
                                     enn denne. Dette er en øvre ramme gitt av Stortinget.</span>
@@ -113,10 +116,6 @@
 
                         </td>
                         <td><input type=text name=kostnadsramme size=10></td>
-                    </tr>
-                    <tr>
-                        <td>Basisår for styringsramme og beregninger</td>
-                        <td><input type=text name=basisaar size=10></td>
                     </tr>
                     <tr>
                         <td>Bompengelån for etterskuddsinnkreving (MRD kr)</td>
@@ -141,15 +140,15 @@
                         <td><input type=text name=nedbetalingstid size=10></td>
                     </tr>
                     <tr>
-                        <td>Lånerente i % (første X år)</td>
+                        <td>Lånerente i % (første X år fra oppstart)</td>
                         <td><input type=text name=laanerente1 size=10></td>
                     </tr>
                     <tr>
-                        <td>Lånerente i % (etter X år)</td>
+                        <td>Lånerente i % (etter X år etter oppstart)</td>
                         <td><input type=text name=laanerente2 size=10></td>
                     </tr>
                     <tr>
-                        <td>Antall år (X) for lånerente</td>
+                        <td>Antall år (X) for lånerente endring</td>
                         <td><input type=text name=laanerente_endring size=10></td>
                     </tr>
                     <tr>
@@ -157,15 +156,15 @@
                         <td><input type=text name=prisstigning size=10></td>
                     </tr>
                     <tr>
-                        <td>ÅDT oppstart</td>
+                        <td>ÅDT ved åpning</td>
                         <td><input type=text name=aadt_oppstart size=10></td>
                     </tr>
                     <tr>
-                        <td>Forventet trafikkvekst per år %</td>
+                        <td>Forventet trafikkvekst % per år etter åpning</td>
                         <td><input type=text name=trafikkvekst size=10></td>
                     </tr>
                     <tr>
-                        <td>Årlig betaling til bomselskap (mill. kr)</td>
+                        <td>Årlig betaling til bomselskap (mill. kr ved basisår)</td>
                         <td><input type=text name=bomselskap size=10></td>
                     </tr>
                     <tr>
@@ -247,26 +246,22 @@
             </form>
             <br>
             <br>
-            <form name=result method=POST>
+            <form name=resultbom method=POST>
                 <span style="font-size: 250%" id="emoji"></span>
                 <br>
                 <span style="font-size: 120%" id="umulig"></span>
                 <table id="res">
                     <tr>
-                        <th width=70%>Beregnede verdier</th>
+                        <th width=70%>Beregnede verdier, bompenger</th>
                         <th width=30%>Verdi</th>
-                    </tr>
-                    <tr>
-                        <td>Basisår / oppstart / slutt bompenger</td>
-                        <td><input type=text name=diverse_aar size=22 readonly></td>
                     </tr>
                     <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
                         <td>Estimert gjennomsnitt bomtakst, diskontert til basisår</td>
                         <td><input type=text name=proposed_start_disk size=10 readonly
-                                style="background-color:#fbe5ba; font-size: 20px; font-weight: 800;">kr</td>
+                                style="background-color: yellow; font-size: 20px; font-weight: 800;"> kr</td>
                     </tr>
                     <tr>
-                        <td>Estimert gjennomsnitt bomtakst ved oppstart bompengeperiode</td>
+                        <td>Estimert gjennomsnitt bomtakst ved åpning av veg</td>
                         <td><input type=text name=proposed size=10 readonly> kr</td>
                     </tr>
                     <tr>
@@ -287,20 +282,60 @@
                         <td>Bompenger tunge kjøretøy (diskontert)</td>
                         <td><input type=text name=proposed_tung size=10 readonly> kr</td>
                     </tr>
+                </table>
+            </form>
+            <br>
+            <br>
+            <br>
+            <form name=result method=POST>
+                <table id="resx">
+                    <tr>
+                        <th width=70%>Beregnede verdier, kapital</th>
+                        <th width=30%>Verdi</th>
+                    </tr>
+                    <tr>
+                        <td>Basisår / byggestart/ åpning / slutt bompenger</td>
+                    <td><input type=text name=diverse_aar size=25 readonly></td>
+                    </tr>
+                    <tr>
+                        <td>Estimert styringsramme ved byggestart</td>
+                        <td><input type=text name=styringsramme_oppstart size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Estimert bompengelån ved byggestart</td>
+                        <td><input type=text name=bompengelaan_oppstart size=10 readonly> MRD kr</td>
+                    </tr>
                     <tr>
                         <td>Akkumulert bompengelån ved åpning (nominelt)</td>
                         <td><input type=text name=result_kumulativt_laan size=10 readonly> MRD kr</td>
+                    </tr>
                     <tr>
                         <td>Akkumulert bompengelån ved åpning (diskontert)</td>
                         <td><input type=text name=result_kumulativt_laan_disk size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Herav akkumulerte renter under bygging (diskontert)</td>
+                        <td><input type=text name=result_rentekostnad_bygging_disk size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Herav akkumulerte renter under bombengeperiode (nominelt)</td>
+                        <td><input type=text name=result_rentekostnad_drift size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Herav akkumulerte renter under bombengeperiode (diskontert)</td>
+                        <td><input type=text name=result_rentekostnad_drift_disk size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Herav akkumulert utgift bomselskap (diskontert)</td>
+                        <td><input type=text name=result_bomselskap_drift_disk size=10 readonly> MRD kr</td>
                     </tr>
                     <tr>
                         <td>Total ekstrakostnad bompengelån + forhåndsinnkrevet + bomselskap (diskontert)</td>
                         <td><input type=text name=result_kumulativt_laan_all_disk size=10 readonly> MRD kr</td>
                     </tr>
                     <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
-                        <td>Reell kostnad av prosjektet (byggepris forrige post, diskontert til basisår)</td>
-                        <td><input type=text name=result_sann_kostnad size=10 readonly style="background-color:#f1cffc; font-size: 20px; font-weight: 800;"> MRD kr</td>
+                        <td>Reell kostnad av prosjektet (inkl. kapitalkostnader, diskontert til basisår)</td>
+                        <td><input type=text name=result_sann_kostnad size=10 readonly style="background-color:yellow; font-size: 20px; font-weight: 800;"> MRD kr</td>
                     </tr>
                 </table>
             </form>

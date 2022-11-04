@@ -137,6 +137,47 @@ input[type="text"] {
     color: white;
 }
 
+#resx {
+    border-collapse: collapse;
+    width: 95%;
+}
+
+#resx td,
+#resx th {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+
+#resx tr:nth-child(odd) {
+    background-color: #faf9fa;
+    color: rgb(1, 1, 143);
+}
+
+#resx tr:nth-child(even) {
+    background-color: #ffe4ff;
+    color: rgb(1, 1, 146);
+}
+
+#resx tr:nth-child(1) {
+    background-color: #c58080;
+}
+
+
+#resx input {
+    border: 1px solid #ddd;
+    padding: 6px;
+}
+
+#resx th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: left;
+    background-color: #682288;
+    color: white;
+}
+
+
 #restabell {
     border-collapse: collapse;
     width: 95%;
