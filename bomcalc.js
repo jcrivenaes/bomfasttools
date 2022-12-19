@@ -1,11 +1,11 @@
 /*jshint esversion: 6 */
 
-const MAXTRIES = 1000;
-const MAXYEARS = 200;
+const MAXTRIES = 100;
+const MAXYEARS = 100;
 const MRD = 1000000000.0;
 const MLL = 1000000.0;
 
-let input_byggeoppstart = 2020;
+let input_byggstart = 2020;
 let input_byggetid = 7;
 let input_styringsramme = 10;
 let input_kostnadsramme = 12;
@@ -18,6 +18,7 @@ let input_laanerente1 = 5.5;
 let input_laanerente2 = 6.5;
 let input_laanerente_endring = 10;
 let input_prisstigning = 2;
+let input_innskuddsrente = 2.5;
 let input_aadt_oppstart = 2030;
 let input_bomselskap = 15;
 let input_tungandel = 15;
@@ -25,41 +26,84 @@ let input_tungmult = 3;
 let input_rabattbil_andel = 80;
 let input_rabattbil_pris = 80; // som % av lettbil
 let input_offisielt = "vedtak";
-let input_aarlig_laan = [];
+let ainput_aarlig_laan = [];
 
 // resultater som globale
 let result_styringsramme_ved_oppstart = 0.0;
 let result_bompengelaan_oppstart = 0.0;
 let result_bomselskap_aapning = 0.0; // bomselskapet skal betjene lån og drifte fra denne datoen
 let result_kumulativt_laan = 0.0;
+let result_kumulativt_laan_disk = 0.0;
 let result_initiell_avg_bomsats = 0.0;
+let result_initiell_avg_bomsats_min = 0.0;
+let result_initiell_avg_bomsats_max = 0.0;
 let result_sluttaar = 2099;
-let result_bomsatser = [];
-let result_bominntekt = [];
-let result_restlaan = [];
-let result_tilbomselskap = [];
-let result_tilbomselskap_sum = 0.0;
+let result_aapningsaar = 2099;
+let result_aar_til_aapning = 2099;
+let result_aar_til_bomfritt = 2099;
+let result_diverse_aar = "";
+let result_diskontert = 99.99;
+let result_max_diskontert = 99.99;
+let result_min_diskontert = 99.99;
+let result_lettbil = 99.99;
+let result_rabattbil = 99.99;
+let result_tungbil = 99.99;
+let result_kum_renter_disk = 0.0;
+let result_kum_renter_bygging_disk = 0.0;
+let aresult_0101 = [];
+let aresult_3112 = [];
+let aresult_year = [];
+let aresult_bomtakst = [];
+let aresult_bominntekt = [];
+let aresult_restlaan = [];
+let aresult_tilbomselskap = [];
+let aresult_tilbomselskap_disk = [];
+let result_tilbomselskap_sum_disk = 0.0;
+let result_kum_kapitalkostn_disk = 0.0;
 let result_renter_aarlig_sum = 0.0;
-let result_rentefot = [];
-let result_rente_aarlig = [];
-let result_aadt = [];
+let result_renter_u_bygging_disk = 0.0;
+
+// for alle a* vektorer er index 0 lik basisår
+let aresult_rentefot = [];
+let aresult_rente_aarlig = []; // for hele perioden, index 0 er basisår
+let aresult_rente_aarlig_disk = []; // for hele perioden, index 0 er basisår
+let aresult_aadt = [];
 
 // de neste er her for låneopptak i byggeperioden
-let bygge_aar = [];
-let bygge_laanopptak = [];
-let bygge_kumulativt_laan = [];
-let bygge_kumulativt_laan_proj = [];
-let bygge_rentefot = [];
+let abygge_aar = [];
+let abygge_laanopptak = [];
+let abygge_kumulativt_laan = [];
+let abygge_kumulativt_laan_proj = [];
 
-function pris_ved_aar(innpris, aar) {
-    // beregn pris som følgende av prisstigning etter et antall aar
-    let nypris = innpris * Math.pow(1.0 + input_prisstigning, aar);
-    return nypris;
+//######################################################################################
+// MAIN
+//######################################################################################
+
+function main() {
+    les_inngangsdata();
+
+    oppstartsverdier();
+
+    beregn_laan();
+
+    finn_gjennomsnitt_bomsats();
+
+    diverse_beregninger();
+
+    bycar_type(result_initiell_avg_bomsats);
+
+    reset_tabell();
+
+    html_resultater();
 }
 
-function parse_input() {
+//######################################################################################
+// Funksjoner
+//######################################################################################
+
+function les_inngangsdata() {
     // les input fra HTML, og la tall være i kroner, mens prosent er i fraksjon
-    input_byggeoppstart = parseInt(document.calc.byggeoppstart.value);
+    input_byggstart = parseInt(document.calc.byggeoppstart.value);
     input_byggetid = parseInt(document.calc.byggetid.value);
     input_styringsramme =
         parseFloat(document.calc.styringsramme.value.replace(",", ".")) * MRD;
@@ -79,6 +123,8 @@ function parse_input() {
     input_laanerente_endring = parseInt(document.calc.laanerente_endring.value);
     input_prisstigning =
         parseFloat(document.calc.prisstigning.value.replace(",", ".")) / 100.0;
+    input_innskuddsrente =
+        parseFloat(document.calc.innskuddsrente.value.replace(",", ".")) / 100.0;
     input_aadt_oppstart = parseInt(document.calc.aadt_oppstart.value);
     input_trafikkvekst =
         parseFloat(document.calc.trafikkvekst.value.replace(",", ".")) / 100.0;
@@ -94,33 +140,122 @@ function parse_input() {
         document.calc.rabattbil_pris.value.replace(",", ".") / 100.0
     );
     input_offisielt = document.calc.offisielt.value;
-
-    result_sluttaar = input_byggeoppstart + input_byggetid + input_nedbetalingstid;
 }
 
-function iterate_toll_value() {
+function oppstartsverdier() {
+    // beregn initielle vektorer etc
+    // basisaar: 01/01
+    // opptak lån skjer 01/01
+    // nedbetaling skjer 31/12
+    // status gjeld er 31/12
+
+    result_sluttaar =
+        input_basisaar +
+        (input_byggstart - input_basisaar) +
+        input_byggetid +
+        input_nedbetalingstid -
+        1;
+    result_aar_til_aapning = input_byggstart + input_byggetid - input_basisaar;
+    result_aar_til_bomfritt = result_sluttaar - input_basisaar + 1; // første år uten bom
+    result_aapningsaar = input_basisaar + result_aar_til_aapning;
+
+    console.log("Result åpningsår:", result_aapningsaar);
+    console.log("Result sluttår:", result_sluttaar);
+    console.log("Antall år til åpning:", result_aar_til_aapning);
+    console.log("Antall år til bomfritt:", result_aar_til_bomfritt);
+
+    for (let i = 0; i < MAXYEARS; i++) {
+        aresult_0101[i] = i;
+        aresult_3112[i] = i + 1;
+        aresult_year[i] = i + input_basisaar;
+    }
+
+    for (let i = 0; i <= result_aar_til_bomfritt + 10; i++) {
+        aresult_rentefot[i] = input_laanerente1;
+        yr = aresult_year[i];
+        if (yr >= input_laanerente_endring) {
+            aresult_rentefot[i] = input_laanerente2;
+        }
+        //console.log("Rentefot for år ", yr, "er", aresult_rentefot[i]);
+
+        // initialiser
+        aresult_rente_aarlig[i] = 0.0;
+        aresult_rente_aarlig_disk[i] = 0.0;
+        abygge_laanopptak[i] = 0.0;
+        abygge_kumulativt_laan[i] = 0.0;
+        aresult_restlaan[i] = 0.0;
+        aresult_tilbomselskap[i] = 0.0;
+        aresult_tilbomselskap_disk[i] = 0.0;
+    }
+
+    result_styringsramme_ved_oppstart = _verdi_ved_aar(
+        input_styringsramme,
+        input_byggstart - input_basisaar,
+        input_prisstigning
+    );
+
+    result_bompengelaan_oppstart = _verdi_ved_aar(
+        input_bompengelaan,
+        input_byggstart - input_basisaar,
+        input_prisstigning
+    );
+
+    result_bomselskap_aapning = _verdi_ved_aar(
+        input_bomselskap,
+        input_byggstart + input_byggetid - input_basisaar,
+        input_prisstigning
+    );
+
+    //==================================================================================
+    // info om år, akkumulert lån, etc
+    //==================================================================================
+
+    aapning = input_byggstart + input_byggetid;
+    result_diverse_aar =
+        input_basisaar.toString() +
+        "/" +
+        input_byggstart.toString() +
+        "/" +
+        aapning.toString() +
+        "/" +
+        result_sluttaar.toString();
+}
+
+function beregn_laan() {
     // iterer verdier
     if (input_laaneprofil == 4) {
         get_aarlig_profile(input_byggetid);
-        console.log("Låneprofil", input_aarlig_laan);
+        console.log("Låneprofil, diskonterte verdier", ainput_aarlig_laan);
     }
 
     let cumloan = 0.0;
-    if (input_laaneprofil == 0) {
-        input_prisstigning = 0.0; // as test!
-        cumloan = compute_sumloan0();
-    } else if (input_laaneprofil == 1) {
-        cumloan = compute_sumloan1();
-    } else if (input_laaneprofil == 2) {
-        cumloan = compute_sumloan2();
-    } else if (input_laaneprofil == 3) {
-        cumloan = compute_sumloan3();
-    } else if (input_laaneprofil == 4) {
-        cumloan = compute_sumloan1(); // yes, 1
+    cumloan = compute_sumloan();
+
+    // dersom forhåndslån som skal det trekkes fra, etter justering pga innskuddrente
+    let forhaandsinnkrevet = 0.0;
+    if (input_forhaandsinnkrevet > 0) {
+        forhaandsinnkrevet = _verdi_ved_aar(
+            input_forhaandsinnkrevet,
+            result_aar_til_aapning,
+            input_innskuddsrente
+        );
+        //console.log("Forhåndsinnkrevet, verdi ved oppstart: ", forhaandsinnkrevet);
+        //console.log("År til åpning: ", result_aar_til_aapning);
     }
 
     console.log("Kumulativt bompengelån ved åpning:", cumloan);
-    result_kumulativt_laan = cumloan;
+    result_kumulativt_laan = cumloan - forhaandsinnkrevet;
+    result_kumulativt_laan_disk =
+        result_kumulativt_laan /
+        Math.pow(1 + input_prisstigning, result_aar_til_aapning + 1);
+    console.log(
+        "Netto kumulativt bompengelån ved åpning, fratrekk forhåndinnkrevet:",
+        result_kumulativt_laan
+    );
+}
+
+function finn_gjennomsnitt_bomsats() {
+    // iterer verdier for bompenger til laan er nedbetalt på gitt tid
 
     // rough estimate of toll as start value...
     let toll =
@@ -128,14 +263,14 @@ function iterate_toll_value() {
             input_bomselskap * input_nedbetalingstid) /
         (input_nedbetalingstid * 365 * input_aadt_oppstart);
 
-    console.log("Initiell bompengesats:", toll);
+    console.log("Initiell bompengesats (1):", toll);
     let finalyear = yearly_streams(toll);
 
     console.log("Initial finalyear:", finalyear);
-    if (finalyear != -1 && finalyear <= input_nedbetalingstid) {
-        toll = toll / 2.0;
-    }
-    console.log("Initiell bompengesats (2):", toll);
+    // if (finalyear != -1 && finalyear <= input_nedbetalingstid) {
+    //     toll = toll / 2.0;
+    // }
+    // console.log("Initiell bompengesats (2):", toll);
 
     let tollincrement = 1;
     if (toll > 100) tollincrement = 5;
@@ -146,12 +281,12 @@ function iterate_toll_value() {
     for (var i = 0; i < MAXTRIES; i++) {
         finalyear = yearly_streams(toll);
 
-        console.log("Final year vs target:", finalyear, input_nedbetalingstid);
+        //console.log("Retry: Final year vs target:", finalyear, input_nedbetalingstid);
 
         if (finalyear == 1 || finalyear > input_nedbetalingstid) {
             previoustoll = toll;
             toll = toll + tollincrement;
-        } else if (finalyear == -1) {
+        } else if (finalyear == -999) {
             previoustoll = toll;
             toll = toll + tollincrement;
         } else if (finalyear < input_nedbetalingstid) {
@@ -160,313 +295,310 @@ function iterate_toll_value() {
             break;
         }
     }
-    previoustoll = toll * 0.95;
-    console.log("ROUGH TOLL VALUE IS", toll);
-    console.log("ITERATE USING", previoustoll);
+    let approxtoll = toll;
+    console.log("Omtrentlig bomsats er: ", approxtoll);
+    console.log("Iterer og fintuner, bruker: ", toll);
 
-    // fine tune to 50 or 10 øre
-    tollincrement = 0.5;
+    // fine tune to 50 or 10 øre, minimum
+    tollincrement = 0.1;
     if (toll < 50) {
         tollincrement = 0.1;
     }
-    toll = previoustoll;
+    toll = approxtoll;
+    previoustoll = approxtoll;
+    console.log("Iterer og fintuner for minimum: ");
     for (let i = 0; i < MAXTRIES; i++) {
-        // console.log("Fine tune, toll = ", toll)
+        //console.log("Fine tune minimum, toll = ", toll);
         finalyear = yearly_streams(toll);
         console.log(finalyear);
 
-        if (finalyear == 1 || finalyear > input_nedbetalingstid) {
-            toll = toll + tollincrement;
-        } else if (finalyear == -1) {
-            toll = toll + tollincrement;
-        } else if (finalyear < input_nedbetalingstid) {
+        if (finalyear == input_nedbetalingstid) {
+            previoustoll = toll;
             toll = toll - tollincrement;
         } else {
             break;
         }
     }
+    let minimumtoll = previoustoll;
+    console.log("Minimum toll:", minimumtoll);
+
+    // maximum toll
+    toll = approxtoll;
+    previoustoll = approxtoll;
+    console.log("Iterer og fintuner for maximum: ");
+    for (let i = 0; i < MAXTRIES; i++) {
+        //console.log("Fine tune maximum, toll = ", toll);
+        finalyear = yearly_streams(toll);
+        console.log(finalyear);
+
+        if (finalyear == input_nedbetalingstid) {
+            previoustoll = toll;
+            toll = toll + tollincrement;
+        } else {
+            break;
+        }
+    }
+    let maximumtoll = previoustoll;
+    console.log("Maximum toll:", maximumtoll);
+
+    toll = 0.5 * (minimumtoll + maximumtoll);
+    console.log("Endelig gjennomsnitt bomsats: ", toll);
+
+    // DEBUG!
+    // toll = 409;
 
     // run once more with mode=1 to make tables
     finalyear = yearly_streams(toll, (mode = 1));
 
-    console.log("Proposed toll is ", toll);
     result_initiell_avg_bomsats = toll;
+    result_initiell_avg_bomsats_min = minimumtoll;
+    result_initiell_avg_bomsats_max = maximumtoll;
 }
 
 function get_aarlig_profile(yrs) {
     if (document.bomaarlig.aar1.value != null) {
-        input_aarlig_laan[0] = parseFloat(document.bomaarlig.aar1.value) * MRD;
+        ainput_aarlig_laan[0] = parseFloat(document.bomaarlig.aar1.value) * MRD;
     }
     if (document.bomaarlig.aar2.value != null) {
-        input_aarlig_laan[1] = parseFloat(document.bomaarlig.aar2.value) * MRD;
+        ainput_aarlig_laan[1] = parseFloat(document.bomaarlig.aar2.value) * MRD;
     }
     if (document.bomaarlig.aar3.value != null) {
-        input_aarlig_laan[2] = parseFloat(document.bomaarlig.aar3.value) * MRD;
+        ainput_aarlig_laan[2] = parseFloat(document.bomaarlig.aar3.value) * MRD;
     }
     if (document.bomaarlig.aar4.value != null) {
-        input_aarlig_laan[3] = parseFloat(document.bomaarlig.aar4.value) * MRD;
+        ainput_aarlig_laan[3] = parseFloat(document.bomaarlig.aar4.value) * MRD;
     }
     if (document.bomaarlig.aar5.value != null) {
-        input_aarlig_laan[4] = parseFloat(document.bomaarlig.aar5.value) * MRD;
+        ainput_aarlig_laan[4] = parseFloat(document.bomaarlig.aar5.value) * MRD;
     }
     if (document.bomaarlig.aar6.value != null) {
-        input_aarlig_laan[5] = parseFloat(document.bomaarlig.aar6.value) * MRD;
+        ainput_aarlig_laan[5] = parseFloat(document.bomaarlig.aar6.value) * MRD;
     }
     if (document.bomaarlig.aar7.value != null) {
-        input_aarlig_laan[6] = parseFloat(document.bomaarlig.aar7.value) * MRD;
+        ainput_aarlig_laan[6] = parseFloat(document.bomaarlig.aar7.value) * MRD;
     }
     if (document.bomaarlig.aar8.value != null) {
-        input_aarlig_laan[7] = parseFloat(document.bomaarlig.aar8.value) * MRD;
+        ainput_aarlig_laan[7] = parseFloat(document.bomaarlig.aar8.value) * MRD;
     }
     if (document.bomaarlig.aar9.value != null) {
-        input_aarlig_laan[8] = parseFloat(document.bomaarlig.aar9.value) * MRD;
+        ainput_aarlig_laan[8] = parseFloat(document.bomaarlig.aar9.value) * MRD;
     }
     if (document.bomaarlig.aar10.value != null) {
-        input_aarlig_laan[9] = parseFloat(document.bomaarlig.aar10.value) * MRD;
+        ainput_aarlig_laan[9] = parseFloat(document.bomaarlig.aar10.value) * MRD;
     }
     if (document.bomaarlig.aar11.value != null) {
-        input_aarlig_laan[10] = parseFloat(document.bomaarlig.aar11.value) * MRD;
+        ainput_aarlig_laan[10] = parseFloat(document.bomaarlig.aar11.value) * MRD;
     }
     if (document.bomaarlig.aar12.value != null) {
-        input_aarlig_laan[11] = parseFloat(document.bomaarlig.aar12.value) * MRD;
+        ainput_aarlig_laan[11] = parseFloat(document.bomaarlig.aar12.value) * MRD;
     }
     if (document.bomaarlig.aar13.value != null) {
-        input_aarlig_laan[12] = parseFloat(document.bomaarlig.aar13.value) * MRD;
+        ainput_aarlig_laan[12] = parseFloat(document.bomaarlig.aar13.value) * MRD;
     }
     if (document.bomaarlig.aar14.value != null) {
-        input_aarlig_laan[13] = parseFloat(document.bomaarlig.aar14.value) * MRD;
+        ainput_aarlig_laan[13] = parseFloat(document.bomaarlig.aar14.value) * MRD;
     }
 
-    console.log(input_aarlig_laan);
-}
-
-function compute_sumloan0() {
-    // låneprofil 0: lån tas opp i like rater per år. Dette er Minkens formel
-    // For eks 10 MRD ved 5.5% rente over byggetid 5 år:
-    // result = (10 / 5) * (1.055^4 + 1.055^3 + ... + 1.055^0) = 11.1622 MRD
-    // Ingen prisstigning her. For referanse!
-
-    let cum = 0.0;
-
-    let rente = input_laanerente1;
-    for (let year = 0; year < input_byggetid; year++) {
-        if (year >= input_laanerente_endring) {
-            rente = input_laanerente2;
-        }
-        cum = cum + Math.pow(1.0 + rente, year);
+    // sjekk om sum i input tilsvarer totaalt beløp:
+    let sumlaan = 0.0;
+    for (let i = 0; i < 14; i++) {
+        sumlaan += ainput_aarlig_laan[i];
     }
-    let result = (cum * input_bompengelaan) / input_byggetid;
-
-    return result;
+    if (sumlaan != input_bompengelaan) {
+        console.log("SUM av LÅN PROFIL per år stemmer ikke med oppgitt verdi!");
+        console.log(sumlaan / MRD);
+        console.log(input_bompengelaan / MRD);
+        document.getElementById("errormsg").innerHTML =
+            "Sum av bompengelån er inkonsistent!";
+    }
 }
 
-function compute_sumloan1() {
-    // låneprofil 1: lån tas opp i like rater per år eller som vektor!.
+function compute_sumloan() {
+    // generisk: lån tas opp i like rater per år eller som vektor!.
     // Prisstigning er med her!
+    // Lån tas opp 1/1, mens gjeld beregnes 31/12
 
     let cum = 0.0;
     let cum_projected = 0.0;
 
     let rente = input_laanerente1;
     let aarlig_sum = input_bompengelaan / input_byggetid;
-    let dyear = input_byggeoppstart - input_basisaar;
-    for (let year = 0; year < input_byggetid; year++) {
-        if (year >= input_laanerente_endring) {
-            rente = input_laanerente2;
-        }
+
+    let dyear = input_byggstart - input_basisaar;
+    let i = 0;
+
+    // denne loopen går fra byggestart, ikke basisår
+    for (let year = input_byggstart; year < input_byggstart + input_byggetid; year++) {
+        rente = aresult_rentefot[dyear + i];
 
         if (input_laaneprofil == 4) {
-            aarlig_sum = input_aarlig_laan[year];
+            aarlig_sum = ainput_aarlig_laan[i];
         }
 
-        let reell_sum = aarlig_sum * Math.pow(1 + input_prisstigning, year + dyear);
+        let reell_sum = aarlig_sum * Math.pow(1 + input_prisstigning, dyear + i);
 
-        console.log(
-            "Låneopptak (mill) i år",
-            year + input_byggeoppstart,
-            "er",
-            (reell_sum / MLL).toFixed(4)
-        );
+        // cumulativ på slutten av året
         cum = (cum + reell_sum) * (1.0 + rente);
 
-        let part = reell_sum * Math.pow(1.0 + rente, input_byggetid - year);
-        cum_projected += part;
+        // herav renter
+        let rentesum = cum - cum / (1 + rente);
 
-        bygge_aar[year] = input_byggeoppstart + year;
-        bygge_laanopptak[year] = reell_sum;
-        bygge_kumulativt_laan[year] = cum;
-        bygge_kumulativt_laan_proj[year] = part; // vil bli feil dersom rente endres!
-        bygge_rentefot[year] = rente;
-    }
+        aresult_rente_aarlig[dyear + i] = rentesum;
+        aresult_rente_aarlig_disk[dyear + i] =
+            rentesum / Math.pow(1 + input_prisstigning, dyear + i + 1);
 
-    return cum;
-}
+        abygge_laanopptak[dyear + i] = reell_sum;
+        abygge_kumulativt_laan[dyear + i] = cum;
+        // console.log(
+        //     "Reelt låneopptak i år",
+        //     year,
+        //     "pga prisstigning",
+        //     "er",
+        //     (reell_sum / MLL).toFixed(4),
+        //     "og gjeld i slutt av år er",
+        //     (cum / MLL).toFixed(2),
+        //     "renter (nominelt / diskontert) er",
+        //     (aresult_rente_aarlig[dyear + i] / MLL).toFixed(4),
+        //     "/",
+        //     (aresult_rente_aarlig_disk[dyear + i] / MLL).toFixed(4)
+        // );
 
-function compute_sumloan2() {
-    // Her er bomselskap tidlig og forholdet mellom stat og bomselskap må beregnes
-    // Etter bomselskap er ferdig å låne så går det noe tid mens stat låner, så
-    // det blir rentes renter... Pessimistisk scenario
-
-    let cum = 0.0;
-    let cum_projected = 0.0;
-
-    let rente = input_laanerente1;
-
-    let aarlig_total_sum = input_styringsramme / input_byggetid;
-    let dyear = input_byggeoppstart - input_basisaar;
-    let laane_andel = input_bompengelaan;
-
-    for (let year = 0; year < input_byggetid; year++) {
-        if (year >= input_laanerente_endring) {
-            rente = input_laanerente2;
-        }
-
-        let aarlig_sum = 0.0;
-        if (aarlig_total_sum < laane_andel) {
-            aarlig_sum = aarlig_total_sum;
-            laane_andel = laane_andel - aarlig_sum;
-        } else if (aarlig_total_sum > laane_andel && laane_andel > 0.0) {
-            aarlig_sum = laane_andel;
-            laane_andel = 0.0;
-        } else if (laane_andel == 0.0) {
-            aarlig_sum = 0.0;
-        } else {
-            console.error("Unexpected!");
-        }
-
-        let reell_sum = aarlig_sum * Math.pow(1 + input_prisstigning, year + dyear);
-
-        console.log(
-            "Låneopptak (mill) i år",
-            year + input_byggeoppstart,
-            "er",
-            (reell_sum / MLL).toFixed(4)
-        );
-        cum = (cum + reell_sum) * (1.0 + rente);
-
-        let part = reell_sum * Math.pow(1.0 + rente, input_byggetid - year);
-        cum_projected += part;
-
-        bygge_aar[year] = input_byggeoppstart + year;
-        bygge_laanopptak[year] = reell_sum;
-        bygge_kumulativt_laan[year] = cum;
-        bygge_kumulativt_laan_proj[year] = part; // vil bli feil dersom rente endres!
-        bygge_rentefot[year] = rente;
-    }
-
-    return cum;
-}
-
-function compute_sumloan3() {
-    // Her er bomselskap seint og forholdet mellom stat og bomselskap må beregnes
-    // Optimistisk scenario
-
-    let cum = 0.0;
-    let cum_projected = 0.0;
-
-    let rente = input_laanerente1;
-
-    let aarlig_total_sum = input_styringsramme / input_byggetid;
-    let dyear = input_byggeoppstart - input_basisaar;
-    let stat_andel = input_styringsramme - input_bompengelaan;
-    let laane_andel = 0.0;
-    let aarlig_sum = 0.0;
-    console.log("Stat_andel vs aarlig_total_sum", stat_andel, aarlig_total_sum);
-
-    for (let year = 0; year < input_byggetid; year++) {
-        if (year >= input_laanerente_endring) {
-            rente = input_laanerente2;
-        }
-
-        if (aarlig_total_sum < stat_andel) {
-            aarlig_sum = 0.0;
-            stat_andel = stat_andel - aarlig_total_sum;
-        } else if (aarlig_total_sum > stat_andel && stat_andel > 0.0) {
-            aarlig_sum = aarlig_total_sum - stat_andel;
-            stat_andel = 0.0;
-        } else if (stat_andel == 0.0) {
-            aarlig_sum = aarlig_total_sum;
-        } else {
-            console.error("Unexpected!");
-        }
-
-        let reell_sum = aarlig_sum * Math.pow(1 + input_prisstigning, year + dyear);
-
-        console.log(
-            "Låneopptak (mill) i år",
-            year + input_byggeoppstart,
-            "er",
-            (reell_sum / MLL).toFixed(4)
-        );
-        cum = (cum + reell_sum) * (1.0 + rente);
-
-        let part = reell_sum * Math.pow(1.0 + rente, input_byggetid - year);
-        cum_projected += part;
-
-        bygge_aar[year] = input_byggeoppstart + year;
-        bygge_laanopptak[year] = reell_sum;
-        bygge_kumulativt_laan[year] = cum;
-        bygge_kumulativt_laan_proj[year] = part; // vil bli feil dersom rente endres!
-        bygge_rentefot[year] = rente;
+        i++;
     }
 
     return cum;
 }
 
 function yearly_streams(toll, mode = 0) {
-    let cumincome = [];
-    let cumrest = [];
+    // dette er årlige strømmer etter basisår
 
-    let rest = result_kumulativt_laan;
+    let rest = result_kumulativt_laan; // kumulativt lån ved åpning!
     let previousrest = rest;
 
     // both toll and bomselskap will increase with moneygrowth factor
     let xtoll = toll;
     let xbomselskap = result_bomselskap_aapning;
-    let xbomselskap_sum = 0.0;
-    let xrenter_sum = 0.0;
-    let rente = input_laanerente1;
-    let aar_renteendring = input_laanerente_endring - input_byggetid;
 
-    for (let year = 0; year <= MAXYEARS; year++) {
-        if (year >= aar_renteendring) {
+    let dyear = result_aar_til_aapning; // for diskonterte verdier vs basisår
+
+    for (let i = 0; i <= MAXYEARS; i++) {
+        let delta = i - dyear;
+        let true_year = aresult_year[i];
+
+        xtoll = toll * Math.pow(1.0 + input_prisstigning, i);
+        xbomselskap = input_bomselskap * Math.pow(1.0 + input_prisstigning, i);
+
+        let rente = input_laanerente1;
+        if (true_year >= input_laanerente_endring) {
             rente = input_laanerente2;
         }
 
-        xtoll = toll * Math.pow(1.0 + input_prisstigning, year);
-        xbomselskap =
-            result_bomselskap_aapning * Math.pow(1.0 + input_prisstigning, year);
-        xbomselskap_sum += xbomselskap;
-
         let income = 0;
-        let trafikk = input_aadt_oppstart;
-        trafikk = input_aadt_oppstart * Math.pow(1 + input_trafikkvekst, year); // year - 1 ?
-        income = 365 * trafikk * xtoll - xbomselskap;
+        let trafikk = 0;
+        let renteutgift_etter_oppstart = 0;
+        if (delta < 0) {
+            income = 0;
+            trafikk = 0;
+            renteutgift_etter_oppstart = 0;
+        } else {
+            trafikk = input_aadt_oppstart * Math.pow(1 + input_trafikkvekst, delta);
+            income = 365 * trafikk * xtoll - xbomselskap;
+            renteutgift_etter_oppstart = rest * rente;
+        }
 
-        let rest_urente = rest - income;
-        rest = (rest - income) * (1.0 + rente);
-        let renteutgift = rest - rest_urente;
-        xrenter_sum += renteutgift;
+        rest = rest + renteutgift_etter_oppstart - income;
 
-        if (mode == 1) {
-            result_bomsatser[year] = xtoll;
-            result_bominntekt[year] = income;
-            result_restlaan[year] = rest;
-            result_tilbomselskap[year] = xbomselskap;
-            result_rentefot[year] = rente;
-            result_rente_aarlig[year] = renteutgift;
-            result_aadt[year] = trafikk;
-            result_tilbomselskap_sum = xbomselskap_sum;
-            result_renter_aarlig_sum = xrenter_sum;
+        if (mode == 1 && delta >= 0) {
+            aresult_bomtakst[i] = xtoll;
+            aresult_bominntekt[i] = income;
+            aresult_restlaan[i] = rest;
+            aresult_tilbomselskap[i] = xbomselskap;
+            aresult_tilbomselskap_disk[i] =
+                xbomselskap / Math.pow(1 + input_prisstigning, i + 1);
+            aresult_rente_aarlig[i] = renteutgift_etter_oppstart;
+            aresult_rente_aarlig_disk[i] =
+                renteutgift_etter_oppstart / Math.pow(1 + input_prisstigning, i + 1);
+
+            aresult_aadt[i] = trafikk;
         }
 
         if (previousrest > 0.0 && rest <= 0.0) {
-            return year;
+            return delta;
         }
+        // if (delta >= 0) {
+        //     console.log("----------------------------------------------------------");
+        //     console.log(
+        //         "PrevioisRest:",
+        //         previousrest,
+        //         "Rest:",
+        //         rest,
+        //         "Renteutgift etter oppstart:",
+        //         renteutgift_etter_oppstart,
+        //         "Rentefot:",
+        //         rente
+        //     );
+        //     console.log(
+        //         "TRUE_YEAR er",
+        //         true_year,
+        //         "DELTA er",
+        //         delta,
+        //         "ÅDT",
+        //         trafikk,
+        //         "Bomselskap",
+        //         xbomselskap,
+        //         "Inntekt er",
+        //         income
+        //     );
+        //     console.log(
+        //         "TRUE_YEAR er",
+        //         true_year,
+        //         "DELTA er",
+        //         delta,
+        //         "inntekt",
+        //         income,
+        //         "Initiell sats",
+        //         toll,
+        //         "År sats",
+        //         xtoll,
+        //         "Rest er",
+        //         rest
+        //     );
+        // }
         previousrest = rest;
     }
 
-    return -1;
+    return -999;
+}
+
+function diverse_beregninger() {
+    // endel andre sum beregninger
+    sum_renter_disk = 0.0;
+    sum_renter_bygging_disk = 0.0;
+    sum_bomselskap_disk = 0.0;
+    for (let i = 0; i < result_aar_til_bomfritt; i++) {
+        yr = aresult_year[i];
+        // console.log(
+        //     yr,
+        //     "Renter:",
+        //     aresult_rente_aarlig[i],
+        //     "Renter, disk:",
+        //     aresult_rente_aarlig_disk[i],
+        //     "Til bomselskap",
+        //     aresult_tilbomselskap[i],
+        //     "Til bomselskap disk",
+        //     aresult_tilbomselskap_disk[i]
+        // );
+        sum_renter_disk += aresult_rente_aarlig_disk[i];
+        sum_bomselskap_disk += aresult_tilbomselskap_disk[i];
+        if (i < result_aar_til_aapning) {
+            sum_renter_bygging_disk += aresult_rente_aarlig_disk[i];
+        }
+    }
+    result_kum_renter_disk = sum_renter_disk;
+    result_kum_renter_bygging_disk = sum_renter_bygging_disk;
+    result_tilbomselskap_sum_disk = sum_bomselskap_disk;
+    result_kum_kapitalkostn_disk = sum_renter_disk + sum_bomselskap_disk;
+    result_sann_kostnad = input_styringsramme + result_kum_kapitalkostn_disk;
 }
 
 function renter_diskontert() {
@@ -475,10 +607,10 @@ function renter_diskontert() {
     let sumrente_disk = 0.0;
     let sumrente = 0.0;
     for (let i = 0; i <= input_nedbetalingstid; i++) {
-        rente = result_rente_aarlig[i];
+        rente = aresult_rente_aarlig[i];
         if (rente > 0.0) {
             sumrente += rente;
-            diffaar = input_byggeoppstart + input_byggetid + i - input_basisaar;
+            diffaar = input_byggstart + input_byggetid + i - input_basisaar;
             rente = rente / Math.pow(1.0 + input_prisstigning, diffaar);
             sumrente_disk += rente;
         }
@@ -505,155 +637,137 @@ function bycar_type(toll) {
         document.getElementById("umulig").innerHTML = "";
     }
 
-    let lettbil = x;
-    let lettbilrabatt = x * e;
-    let tung = x * t;
-
-    document.resultbom.proposed_lettbil.value = lettbil.toFixed(1);
-    document.resultbom.proposed_rabattbil.value = lettbilrabatt.toFixed(1);
-    document.resultbom.proposed_tung.value = tung.toFixed(1);
+    result_lettbil = x;
+    result_lettbilrabatt = x * e;
+    result_tungbil = x * t;
 }
 
-function main() {
-    parse_input();
-
-    //==================================================================================
-    // styringsramme og lån ved oppstart bygging
-    //==================================================================================
-
-    result_styringsramme_ved_oppstart = pris_ved_aar(
-        input_styringsramme,
-        input_byggeoppstart - input_basisaar
-    );
-
-    document.result.styringsramme_oppstart.value = (
-        result_styringsramme_ved_oppstart / MRD
-    ).toFixed(1);
-
-    result_bompengelaan_oppstart = pris_ved_aar(
-        input_bompengelaan,
-        input_byggeoppstart - input_basisaar
-    );
-
-    document.result.bompengelaan_oppstart.value = (
-        result_bompengelaan_oppstart / MRD
-    ).toFixed(1);
-
-    //==================================================================================
-    // bomselskap sats ved åpning som følge av prisstigning
-    // ser her bort ifra ta bomselskap også vil ta betalt for å ta opp lån under bygging
-    //==================================================================================
-
-    result_bomselskap_aapning = pris_ved_aar(
-        input_bomselskap,
-        input_byggeoppstart + input_byggetid - input_basisaar
-    );
-
-    //==================================================================================
-    // iterer frem til gjennomsnitt sats
-    //==================================================================================
-
-    iterate_toll_value();
-
-    proposed_toll = result_initiell_avg_bomsats;
-
-    //==================================================================================
-    // info om år, akkumulert lån, etc
-    //==================================================================================
-
-    aapning = input_byggeoppstart + input_byggetid;
-    diverse_aar =
-        input_basisaar.toString() +
-        " / " +
-        input_byggeoppstart.toString() +
-        "  / " +
-        aapning.toString() +
-        " / " +
-        result_sluttaar.toString();
-    document.result.diverse_aar.value = diverse_aar;
-
-    var fixed = 0;
-    if (proposed_toll < 50) {
-        fixed = 1;
+function _getyearindex(year) {
+    for (let i = 0; i < MAXYEARS; i++) {
+        if (aresult_year[i] == year) {
+            return i;
+        }
     }
-    document.resultbom.proposed.value = proposed_toll.toFixed(fixed);
-    document.resultbom.proposed_end.value =
-        result_bomsatser[input_nedbetalingstid - 1].toFixed(fixed);
+    return -999;
+}
 
-    let deltaaar = input_byggetid + (input_byggeoppstart - input_basisaar);
-    console.log("Deltaår:", deltaaar);
-    let diskontert = proposed_toll / Math.pow(1.0 + input_prisstigning, deltaaar);
-    document.resultbom.proposed_start_disk.value = diskontert.toFixed(fixed);
+function html_resultater() {
+    // collect all html results
+
+    var fixed = 1;
+    if (result_initiell_avg_bomsats < 50) {
+        fixed = 2;
+    }
+
+    console.log("Fixed er:", fixed);
+    console.log("Proposed toll:", result_initiell_avg_bomsats);
+
+    //==================================================================================
+    // "resultbom"
+    //==================================================================================
+
+    document.resultbom.proposed_start_disk.value =
+        result_initiell_avg_bomsats.toFixed(fixed);
+    let range =
+        result_initiell_avg_bomsats_min.toFixed(fixed) +
+        " - " +
+        result_initiell_avg_bomsats_max.toFixed(fixed);
+    document.resultbom.proposed_disk_minmax.value = range;
+
+    iaapnaar = _getyearindex(result_aapningsaar);
+    isluttnaar = _getyearindex(result_sluttaar);
+    document.resultbom.proposed_aapning.value = aresult_bomtakst[iaapnaar].toFixed(1);
+    document.resultbom.proposed_slutt.value = aresult_bomtakst[isluttnaar].toFixed(1);
+
+    document.resultbom.proposed_lettbil.value = result_lettbil.toFixed(1);
+    document.resultbom.proposed_rabattbil.value = result_lettbilrabatt.toFixed(1);
+    document.resultbom.proposed_tung.value = result_tungbil.toFixed(1);
+
+    //==================================================================================
+    // "result"
+    //==================================================================================
+
+    document.result.diverse_aar.value = result_diverse_aar;
+
     document.result.result_kumulativt_laan.value = (
         result_kumulativt_laan / MRD
     ).toFixed(3);
-
-    // diskontert kumulativt lån:
-    let result_kumulativt_laan_disk =
-        result_kumulativt_laan / Math.pow(1.0 + input_prisstigning, deltaaar);
     document.result.result_kumulativt_laan_disk.value = (
         result_kumulativt_laan_disk / MRD
     ).toFixed(3);
 
-    // herav renter ved åpning, diskontert til basisår
-    let renter_u_bygging_diskontert = result_kumulativt_laan_disk - input_bompengelaan;
-    document.result.result_rentekostnad_bygging_disk.value = (
-        renter_u_bygging_diskontert / MRD
+    document.result.result_kum_renter_bygging_disk.value = (
+        result_kum_renter_bygging_disk / MRD
     ).toFixed(3);
 
-    // så renter under bompengeperioden, nominelt og diskontert til basisår
-    kum_renter = renter_diskontert();
-    document.result.result_rentekostnad_drift.value = (kum_renter[0] / MRD).toFixed(3);
-    document.result.result_rentekostnad_drift_disk.value = (
-        kum_renter[1] / MRD
+    document.result.result_kum_renter_disk.value = (
+        result_kum_renter_disk / MRD
     ).toFixed(3);
 
-    // så bomselskap under bompengeperioden, diskontert til basisår
-    let akkumulert_bomselskap_disk = input_bomselskap * input_nedbetalingstid;
-    document.result.result_bomselskap_drift_disk.value = (
-        akkumulert_bomselskap_disk / MRD
+    document.result.result_kum_renter_disk.value = (
+        result_kum_renter_disk / MRD
     ).toFixed(3);
 
-    let sum_inkl_disk =
-        input_forhaandsinnkrevet +
-        renter_u_bygging_diskontert +
-        kum_renter[1] +
-        akkumulert_bomselskap_disk;
-
-    document.result.result_kumulativt_laan_all_disk.value = (
-        sum_inkl_disk / MRD
+    document.result.result_tilbomselskap_sum_disk.value = (
+        result_tilbomselskap_sum_disk / MRD
     ).toFixed(3);
 
-    // reell diskontert av prosjektet er da
-    let kostnad_reell = input_styringsramme + sum_inkl_disk;
-    document.result.result_sann_kostnad.value = (kostnad_reell / MRD).toFixed(3);
+    document.result.result_kum_kapitalkostn_disk.value = (
+        result_kum_kapitalkostn_disk / MRD
+    ).toFixed(3);
 
-    bycar_type(diskontert);
+    document.result.result_sann_kostnad.value = (result_sann_kostnad / MRD).toFixed(3);
 
-    reset_tabell();
-    for (let i = 0; i < input_byggetid; i++) {
-        let aar = bygge_aar[i];
-        let rente = (bygge_rentefot[i] * 100.0).toFixed(1);
-        let opptaklaan = (bygge_laanopptak[i] / MRD).toFixed(4);
-        let cumlaan = (bygge_kumulativt_laan[i] / MRD).toFixed(4);
-        let cumlaan_proj = (bygge_kumulativt_laan_proj[i] / MRD).toFixed(4);
-        bygge_tabell(aar, rente, opptaklaan, cumlaan);
+    //==================================================================================
+    // dynamiske tabeller
+    //==================================================================================
+
+    for (let i = 0; i < result_aar_til_aapning; i++) {
+        year = aresult_year[i];
+        if (year < input_byggstart) {
+            continue;
+        }
+        if (year >= input_byggstart + input_byggetid) {
+            break;
+        }
+        let rente = (aresult_rentefot[i] * 100.0).toFixed(1);
+        let opptaklaan = (abygge_laanopptak[i] / MRD).toFixed(4);
+        let cumlaan = (abygge_kumulativt_laan[i] / MRD).toFixed(4);
+        let cumlaan_proj = 999; // (abygge_kumulativt_laan_proj[i] / MRD).toFixed(4);
+        bygge_tabell(year, rente, opptaklaan, cumlaan);
     }
 
-    for (let i = 0; i <= input_nedbetalingstid; i++) {
-        let xrente = (result_rentefot[i] * 100.0).toFixed(1);
-        let sats = result_bomsatser[i].toFixed(2);
-        let innt = (result_bominntekt[i] / MLL).toFixed(4);
-        let tilbom = (result_tilbomselskap[i] / MLL).toFixed(4);
-        let rest = (result_restlaan[i] / MLL).toFixed(4);
-        let aar = i + input_byggeoppstart + input_byggetid;
-        let trafikk = Math.round(result_aadt[i]);
-        let renter_aar = (result_rente_aarlig[i] / MLL).toFixed(4);
-        result_tabell(xrente, aar, sats, trafikk, tilbom, innt, rest, renter_aar);
+    for (let i = 0; i <= result_sluttaar; i++) {
+        year = aresult_year[i];
+        if (year < input_basisaar + result_aar_til_aapning) {
+            continue;
+        }
+        if (year > result_sluttaar) {
+            break;
+        }
+        let xrente = (aresult_rentefot[i] * 100.0).toFixed(1);
+        let sats = aresult_bomtakst[i].toFixed(2);
+        let innt = (aresult_bominntekt[i] / MLL).toFixed(4);
+        let tilbom = (aresult_tilbomselskap[i] / MLL).toFixed(4);
+        let rest = (aresult_restlaan[i] / MLL).toFixed(4);
+        let trafikk = Math.round(aresult_aadt[i]);
+        let renter_aar = (aresult_rente_aarlig[i] / MLL).toFixed(4);
+        result_tabell(xrente, year, sats, trafikk, tilbom, innt, rest, renter_aar);
     }
 }
 
-function avg_value(arr) {
+//######################################################################################
+// Enkle hjelpefunksjoner
+//######################################################################################
+
+function _verdi_ved_aar(innpris, aar, rente) {
+    // hjelpefunksjon: beregn pris som følgende av prisstigning etter et antall aar
+    let nypris = innpris * Math.pow(1.0 + rente, aar);
+    return nypris;
+}
+
+function _avg_value(arr) {
+    // gjennomsnittsverdi av array (ikke i bruk?)
     let nlen = arr.length;
     let sum = 0.0;
     for (let i = 0; i < nlen; i++) {
@@ -661,6 +775,10 @@ function avg_value(arr) {
     }
     return sum / nlen;
 }
+
+//######################################################################################
+// Reset og populering Tabeller
+//######################################################################################
 
 function reset_tabell() {
     let table = document.getElementById("restabell");
@@ -670,11 +788,12 @@ function reset_tabell() {
     }
 
     let btable = document.getElementById("byggtabell");
-    var rowCount = btable.rows.length;
-    for (var x = rowCount - 1; x > 0; x--) {
+    rowCount = btable.rows.length;
+    for (x = rowCount - 1; x > 0; x--) {
         btable.deleteRow(x);
     }
 }
+
 function result_tabell(rente, aar, sats, trafikk, tilbom, innt, rest, rent) {
     let table = document.getElementById("restabell");
 
@@ -725,6 +844,7 @@ function resetcase() {
     document.calc.laanerente2.value = null;
     document.calc.laanerente_endring.value = null;
     document.calc.prisstigning.value = null;
+    document.calc.innskuddsrente.value = null;
     document.calc.aadt_oppstart.value = null;
     document.calc.trafikkvekst.value = null;
     document.calc.bomselskap.value = null;
@@ -749,19 +869,31 @@ function resetcase() {
     document.bomaarlig.aar13.value = null;
     document.bomaarlig.aar14.value = null;
 
-    document.resultbom.proposed.value = null;
     document.resultbom.proposed_start_disk.value = null;
-    document.resultbom.proposed_end.value = null;
+    document.resultbom.proposed_disk_minmax.value = null;
+    document.resultbom.proposed_aapning.value = null;
+    document.resultbom.proposed_slutt.value = null;
     document.resultbom.proposed_lettbil.value = null;
     document.resultbom.proposed_rabattbil.value = null;
     document.resultbom.proposed_tung.value = null;
+
+    document.result.diverse_aar.value = null;
     document.result.result_kumulativt_laan.value = null;
     document.result.result_kumulativt_laan_disk.value = null;
-    document.result.result_kumulativt_laan_all_disk.value = null;
+    document.result.result_kum_renter_bygging_disk.value = null;
+    document.result.result_kum_renter_disk.value = null;
+    document.result.result_tilbomselskap_sum_disk.value = null;
+    document.result.result_kum_kapitalkostn_disk.value = null;
     document.result.result_sann_kostnad.value = null;
+
+    document.getElementById("errormsg").innerHTML = null;
 
     reset_tabell();
 }
+
+//######################################################################################
+// Forhåndsinnfylte case
+//######################################################################################
 
 function testcase() {
     resetcase();
@@ -776,8 +908,9 @@ function testcase() {
     document.calc.nedbetalingstid.value = 15;
     document.calc.laanerente1.value = 5;
     document.calc.laanerente2.value = 6;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2030;
     document.calc.prisstigning.value = 0;
+    document.calc.innskuddsrente.value = 0;
     document.calc.aadt_oppstart.value = 20000;
     document.calc.trafikkvekst.value = 1;
     document.calc.bomselskap.value = 5;
@@ -785,7 +918,7 @@ function testcase() {
     document.calc.tungmult.value = 3;
     document.calc.rabattbil_andel.value = 70;
     document.calc.rabattbil_pris.value = 80;
-    document.calc.offisielt.value = "68";
+    document.calc.offisielt.value = "~78";
 }
 
 function minkencase() {
@@ -801,7 +934,8 @@ function minkencase() {
     document.calc.nedbetalingstid.value = 16;
     document.calc.laanerente1.value = 4;
     document.calc.laanerente2.value = 4;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2020;
+    document.calc.innskuddsrente.value = 1;
     document.calc.prisstigning.value = 0;
     document.calc.aadt_oppstart.value = 40000;
     document.calc.trafikkvekst.value = 1.7;
@@ -827,12 +961,13 @@ function rogfast1() {
     document.calc.nedbetalingstid.value = 20;
     document.calc.laanerente1.value = 5.5;
     document.calc.laanerente2.value = 6.5;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2028;
     document.calc.prisstigning.value = 2.5;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 5950;
     document.calc.trafikkvekst.value = 1.5;
     document.calc.bomselskap.value = 12;
-    document.calc.tungandel.value = 12;
+    document.calc.tungandel.value = 15;
     document.calc.tungmult.value = 3;
     document.calc.rabattbil_andel.value = 16;
     document.calc.rabattbil_pris.value = 50;
@@ -862,16 +997,17 @@ function rogfast2() {
     document.calc.styringsramme.value = 20.6;
     document.calc.kostnadsramme.value = 24.8;
     document.calc.basisaar.value = 2020;
-    document.calc.bompengelaan.value = 10.66;
+    document.calc.bompengelaan.value = 10.657;
     document.calc.laaneprofil.value = 4;
     document.calc.forhaandsinnkrevet.value = 1.7;
-    document.calc.nedbetalingstid.value = 20;
+    document.calc.nedbetalingstid.value = 19;
     document.calc.laanerente1.value = 5.5;
     document.calc.laanerente2.value = 6.5;
-    document.calc.laanerente_endring.value = 8;
+    document.calc.laanerente_endring.value = 2031;
     document.calc.prisstigning.value = 2;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 5980;
-    document.calc.trafikkvekst.value = 1.3;
+    document.calc.trafikkvekst.value = 0.91;
     document.calc.bomselskap.value = 6;
     document.calc.tungandel.value = 12;
     document.calc.tungmult.value = 3;
@@ -896,6 +1032,48 @@ function rogfast2() {
 }
 
 // https://www.regjeringen.no/contentassets/7cb4217acb094720905ba6c438cd3ab7/svv-vedlegg-1-leveranse-til-sd-endelig.pdf
+function hordfast0() {
+    resetcase();
+    document.calc.byggetid.value = 5;
+    document.calc.byggeoppstart.value = 2023;
+    document.calc.styringsramme.value = 38.5;
+    document.calc.kostnadsramme.value = 44.0;
+    document.calc.basisaar.value = 2021;
+    document.calc.bompengelaan.value = 14.4;
+    document.calc.laaneprofil.value = 4;
+    document.calc.forhaandsinnkrevet.value = 0;
+    document.calc.nedbetalingstid.value = 20;
+    document.calc.laanerente1.value = 5.5;
+    document.calc.laanerente2.value = 6.5;
+    document.calc.laanerente_endring.value = 2037;
+    document.calc.prisstigning.value = 2;
+    document.calc.innskuddsrente.value = 2.5;
+    document.calc.aadt_oppstart.value = 5700;
+    document.calc.trafikkvekst.value = 1.5;
+    document.calc.bomselskap.value = 15;
+    document.calc.tungandel.value = 13;
+    document.calc.tungmult.value = 3;
+    document.calc.rabattbil_andel.value = 70;
+    document.calc.rabattbil_pris.value = 80;
+    document.calc.offisielt.value = "362 pr bil med avtale, BA 2020";
+
+    document.bomaarlig.aar1.value = 7.4; // 2026
+    document.bomaarlig.aar2.value = 6.0;
+    document.bomaarlig.aar3.value = 0.0; //
+    document.bomaarlig.aar3.value = 0.0; //
+    document.bomaarlig.aar4.value = 1.0; //
+    document.bomaarlig.aar5.value = 0.0; //
+    document.bomaarlig.aar6.value = 0.0; //
+    document.bomaarlig.aar7.value = 0.0; //
+    document.bomaarlig.aar8.value = 0.0;
+    document.bomaarlig.aar9.value = 0.0;
+    document.bomaarlig.aar10.value = 0.0;
+    document.bomaarlig.aar11.value = 0.0;
+    document.bomaarlig.aar12.value = 0.0;
+    document.bomaarlig.aar13.value = 0.0;
+    document.bomaarlig.aar14.value = 0.0;
+}
+
 function hordfast1() {
     resetcase();
     document.calc.byggetid.value = 7;
@@ -909,8 +1087,9 @@ function hordfast1() {
     document.calc.nedbetalingstid.value = 20;
     document.calc.laanerente1.value = 5.5;
     document.calc.laanerente2.value = 6.5;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2037;
     document.calc.prisstigning.value = 2;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 5700;
     document.calc.trafikkvekst.value = 1.5;
     document.calc.bomselskap.value = 15;
@@ -951,8 +1130,9 @@ function hordfast2() {
     document.calc.nedbetalingstid.value = 25;
     document.calc.laanerente1.value = 5.5;
     document.calc.laanerente2.value = 6.5;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2031;
     document.calc.prisstigning.value = 2;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 4000;
     document.calc.trafikkvekst.value = 0.5;
     document.calc.bomselskap.value = 20;
@@ -979,6 +1159,49 @@ function hordfast2() {
     document.bomaarlig.aar14.value = 0.0; //
 }
 
+// 2015 doc
+function hordfast3() {
+    resetcase();
+    document.calc.byggetid.value = 5;
+    document.calc.byggeoppstart.value = 2017;
+    document.calc.styringsramme.value = 25.0;
+    document.calc.kostnadsramme.value = 29.0;
+    document.calc.basisaar.value = 2015;
+    document.calc.bompengelaan.value = 10.9;
+    document.calc.laaneprofil.value = 4;
+    document.calc.forhaandsinnkrevet.value = 0;
+    document.calc.nedbetalingstid.value = 20;
+    document.calc.laanerente1.value = 6.5;
+    document.calc.laanerente2.value = 6.5;
+    document.calc.laanerente_endring.value = 2025;
+    document.calc.prisstigning.value = 2.5;
+    document.calc.innskuddsrente.value = 2.5;
+    document.calc.aadt_oppstart.value = 5300;
+    document.calc.trafikkvekst.value = 1.5;
+    document.calc.bomselskap.value = 20;
+    document.calc.tungandel.value = 10;
+    document.calc.tungmult.value = 3;
+    document.calc.rabattbil_andel.value = 70;
+    document.calc.rabattbil_pris.value = 90;
+    document.calc.offisielt.value = "489 kr (tilbakeregnet; 407/1222)";
+
+    document.bomaarlig.aar1.value = 10.9; // 2026
+    document.bomaarlig.aar2.value = 0.0;
+    document.bomaarlig.aar3.value = 0.0; //
+    document.bomaarlig.aar3.value = 0.0; //
+    document.bomaarlig.aar4.value = 0.0; //
+    document.bomaarlig.aar5.value = 0.0; //
+    document.bomaarlig.aar6.value = 0.0; //
+    document.bomaarlig.aar7.value = 0.0; //
+    document.bomaarlig.aar8.value = 0.0; //
+    document.bomaarlig.aar9.value = 0.0; //
+    document.bomaarlig.aar10.value = 0.0; //
+    document.bomaarlig.aar11.value = 0.0; //
+    document.bomaarlig.aar12.value = 0.0; //
+    document.bomaarlig.aar13.value = 0.0; //
+    document.bomaarlig.aar14.value = 0.0; //
+}
+
 // https://www.regjeringen.no/contentassets/72a5e7fc2d5048a0a4268aa2714301f5/no/pdfs/prp201020110103000dddpdfs.pdf
 function grime_vesleelva() {
     resetcase();
@@ -993,8 +1216,9 @@ function grime_vesleelva() {
     document.calc.nedbetalingstid.value = 15;
     document.calc.laanerente1.value = 8;
     document.calc.laanerente2.value = 8;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2040;
     document.calc.prisstigning.value = 2.5;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 1500;
     document.calc.trafikkvekst.value = 1.1;
     document.calc.bomselskap.value = 3;
@@ -1014,13 +1238,14 @@ function kilden_presterodbakken() {
     document.calc.kostnadsramme.value = 0.226;
     document.calc.basisaar.value = 2017;
     document.calc.bompengelaan.value = 0.194;
-    document.calc.laaneprofil.value = 2;
+    document.calc.laaneprofil.value = 4;
     document.calc.forhaandsinnkrevet.value = 0;
     document.calc.nedbetalingstid.value = 4;
     document.calc.laanerente1.value = 5.5;
     document.calc.laanerente2.value = 5.5;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2040;
     document.calc.prisstigning.value = 2.5;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 10800;
     document.calc.trafikkvekst.value = 1.7;
     document.calc.bomselskap.value = 3;
@@ -1030,6 +1255,21 @@ function kilden_presterodbakken() {
     document.calc.rabattbil_pris.value = 90;
 
     document.calc.offisielt.value = "13.5 kr, St.prop. 103 S";
+
+    document.bomaarlig.aar1.value = 0.194;
+    document.bomaarlig.aar2.value = 0.0;
+    document.bomaarlig.aar3.value = 0.0; //
+    document.bomaarlig.aar4.value = 0.0; //
+    document.bomaarlig.aar5.value = 0.0; //
+    document.bomaarlig.aar6.value = 0.0; //
+    document.bomaarlig.aar7.value = 0.0; //
+    document.bomaarlig.aar8.value = 0.0; //
+    document.bomaarlig.aar9.value = 0.0; //
+    document.bomaarlig.aar10.value = 0.0; //
+    document.bomaarlig.aar11.value = 0.0; //
+    document.bomaarlig.aar12.value = 0.0; //
+    document.bomaarlig.aar13.value = 0.0; //
+    document.bomaarlig.aar14.value = 0.0; //
 }
 
 function foenhus_bagn() {
@@ -1045,8 +1285,9 @@ function foenhus_bagn() {
     document.calc.nedbetalingstid.value = 15;
     document.calc.laanerente1.value = 6.5;
     document.calc.laanerente2.value = 6.5;
-    document.calc.laanerente_endring.value = 10;
+    document.calc.laanerente_endring.value = 2040;
     document.calc.prisstigning.value = 2.5;
+    document.calc.innskuddsrente.value = 2.5;
     document.calc.aadt_oppstart.value = 2200;
     document.calc.trafikkvekst.value = 1.0;
     document.calc.bomselskap.value = 3;
@@ -1059,4 +1300,15 @@ function foenhus_bagn() {
     document.bomaarlig.aar1.value = 0.19; // 2012
     document.bomaarlig.aar2.value = 0.03;
     document.bomaarlig.aar3.value = 0.0; //
+    document.bomaarlig.aar4.value = 0.0; //
+    document.bomaarlig.aar5.value = 0.0; //
+    document.bomaarlig.aar6.value = 0.0; //
+    document.bomaarlig.aar7.value = 0.0; //
+    document.bomaarlig.aar8.value = 0.0; //
+    document.bomaarlig.aar9.value = 0.0; //
+    document.bomaarlig.aar10.value = 0.0; //
+    document.bomaarlig.aar11.value = 0.0; //
+    document.bomaarlig.aar12.value = 0.0; //
+    document.bomaarlig.aar13.value = 0.0; //
+    document.bomaarlig.aar14.value = 0.0; //
 }
