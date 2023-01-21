@@ -1,106 +1,118 @@
 <!DOCTYPE html>
 <html>
-
-<body>
-    <canvas id="line-chart" width="400" height="250"></canvas>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-    <script>
-
-        var year = [];
-        var index = 0;
-        for (i = 2008; i < 2032; i++) {
-            year[index++] = i;
-        }
-
-        bjfj = [
-            2727,
-            2814,
-            2840,
-            2904,
-            2978,
-            3029,
-            3152,
-            3158,
-            3180,
-            3259,
-            3284,
-            3212,
-            2972,
-            3255,
-        ]
-
-        bofj = [
-            3307,
-            3478,
-            3564,
-            3632,
-            3733,
-            3885,
-            4157,
-            4183,
-            4125,
-            4182,
-            4212,
-            4112,
-            3806,
-            4201,
-        ]
-
-        var rogfast = [];
-        var hordfast = [];
-        for (i = 0; i < year.length; i++) {
-            rogfast[i] = NaN
-            hordfast[i] = NaN
-            if (year[i] == 2031) {
-                rogfast[i] = 5980
-                hordfast[i] = 5700
+    <body>
+        <canvas id="line-chart" width="400" height="250"></canvas>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+        <script>
+            var year = [];
+            var index = 0;
+            for (i = 2008; i < 2035; i++) {
+                year[index++] = i.toString();
             }
-        }
-        console.log(rogfast)
-        Chart.defaults.global.defaultFontSize = 14;
 
-        new Chart(document.getElementById("line-chart"), {
-            type: 'line',
-            data: {
-                labels: year,
-                datasets: [{
-                    data: bjfj,
-                    label: "Bjørnafjorden",
-                    borderColor: "green",
-                    fill: false
-                }, {
-                    data: bofj,
-                    label: "Boknafjorden",
-                    borderColor: "purple",
-                    fill: false
-                }, {
-                    data: rogfast,
-                    label: "Rogfast estimert ÅDT oppstart",
-                    borderColor: "red",
-                    fill: true,
-                    pointStyle: "star",
-                    pointRadius: 10,
-                }, {
-                    data: hordfast,
-                    label: "Hordfast estimert ÅDT oppstart",
-                    borderColor: "cyan",
-                    fill: true,
-                    pointStyle: "star",
-                    pointRadius: 10,
-                },
-                ],
-            },
-            options: {
-                title: {
-                    display: true,
-                    text: 'Ferge ÅDT Bjørnafjorden og Boknafjorden',
-                    fontSize: 20,
-                    fontColor: 'black',
+            bjfj = [
+                2727, 2814, 2840, 2904, 2978, 3029, 3152, 3158, 3180, 3259, 3284, 3212,
+                2972, 3255, 3496,
+            ];
+
+            bofj = [
+                3307, 3478, 3564, 3632, 3733, 3885, 4157, 4183, 4125, 4182, 4212, 4112,
+                3806, 4201, 4588,
+            ];
+
+            var rogfast = [];
+            var hordfast = [];
+            for (i = 0; i < year.length; i++) {
+                rogfast[i] = NaN;
+                hordfast[i] = NaN;
+                if (year[i] == 2031) {
+                    rogfast[i] = 5980;
+                }
+                if (year[i] == 2033) {
+                    hordfast[i] = 5700;
                 }
             }
-        });
+            console.log(rogfast);
+            Chart.defaults.global.defaultFontSize = 14;
 
-    </script>
-</body>
+            new Chart(document.getElementById("line-chart"), {
+                type: "line",
+                plugins: {
+                    afterDraw: (chart) => {
+                        var ctx = chart.chart.ctx;
+                        var xAxis = chart.scales["x-axis-0"];
+                        var yAxis = chart.scales["y-axis-0"];
+                        ctx.save();
+                        ctx.font = "18px Arial";
+                        ctx.fillStyle = "black";
+                        var x = xAxis.getPixelForValue("2021");
+                        ctx.fillText(
+                            "Kraftig redusert fergepris i 2021/2022 (gir økt trafikk)",
+                            x + x * 0.02,
+                            yAxis.getPixelForValue(2700)
+                        );
+                        x = xAxis.getPixelForValue("2019");
+                        ctx.fillText(
+                            "Korona",
+                            x + x * 0.03,
+                            yAxis.getPixelForValue(2700)
+                        );
+                        ctx.beginPath();
+                        ctx.moveTo(
+                            xAxis.getPixelForValue("2021"),
+                            yAxis.getPixelForValue(2500)
+                        );
+                        ctx.lineTo(
+                            xAxis.getPixelForValue("2021"),
+                            yAxis.getPixelForValue(3000)
+                        );
+                        ctx.stroke();
+                        ctx.restore();
+                    },
+                },
 
+                data: {
+                    labels: year,
+                    datasets: [
+                        {
+                            data: bjfj,
+                            label: "Bjørnafjorden",
+                            borderColor: "green",
+                            fill: false,
+                        },
+                        {
+                            data: bofj,
+                            label: "Boknafjorden",
+                            borderColor: "purple",
+                            fill: false,
+                        },
+                        {
+                            data: rogfast,
+                            label: "Rogfast estimert ÅDT oppstart 2031",
+                            borderColor: "red",
+                            fill: true,
+                            pointStyle: "star",
+                            pointRadius: 10,
+                        },
+                        {
+                            data: hordfast,
+                            label: "Hordfast estimert ÅDT oppstart hvis 2033",
+                            borderColor: "brown",
+                            fill: true,
+                            pointStyle: "star",
+                            pointRadius: 10,
+                        },
+                    ],
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: "Ferge ÅDT Bjørnafjorden og Boknafjorden",
+                        fontSize: 20,
+                        fontColor: "black",
+                    },
+                },
+            });
+        </script>
+    </body>
 </html>
