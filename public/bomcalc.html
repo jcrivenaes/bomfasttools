@@ -79,14 +79,20 @@
                     <br>
                     <li><a href="#" onClick="kilden_presterodbakken();">&#9193 Kilden-Presterødbakken</a> FV. 311 Kilden-Presterødbakken for validering: Fra <A
                         HREF=https://www.regjeringen.no/contentassets/0b1c67e1808d45d29e474abd16125416/no/pdfs/prp201720180103000dddpdfs.pdf  target="_blank">prop
-                        103 S (2017-2018)</A> Bompenger liten bil 2021 er 21 kroner dersom avtale.</li>
-                        <br>
-                        <li><a href="#" onClick="foenhus_bagn();">&#9193 Fønhus-Bagn</a> E16 Fønhus-Bagn, for validering: Fra <A
+                        103 S (2017-2018)</A> Bompenger liten bil 2021 er 21 kroner dersom avtale.
+                    </li>
+                    <br>
+                    <li><a href="#" onClick="foenhus_bagn();">&#9193 Fønhus-Bagn</a> E16 Fønhus-Bagn, for validering: Fra <A
                         HREF=https://www.regjeringen.no/contentassets/262884fcb4ac4a21a69b1b809bc3dae4/no/pdfs/prp201120120101000dddpdfs.pdf target="_blank">prop.
                         101 S (2011-2012). "</A> Fra info 2021: "Det vil koste 34 kroner per passering for lette
                         kjøretøy og det dobbelte for tunge kjøretøy. Med gyldig AutoPASS-avtale får du ti prosent rabatt
                         og betaler ikke for mer enn 40 passeringer per måned gjennom bomstasjonen i Sør-Aurdal. ÅDT i 2019 var 2598.
                     </li>
+                    <br>
+                    <li><a href="#" onClick="kjerringsundet();">&#9193 Kjerringsundet FV. 662</a>. Se <A HREF=https://mrfylke.no/content/download/22695/239871?version=4 target="_blank">beskrivelse av bompengeopplegget</a>
+                        fra  og Romsdal Fylkeskommune. Gjennomsnittsbompengene traffer godt, mens rabattordningene er noe diffuse.
+                    </li>
+                    <br>
                 </ul>
                 <hr>
 
@@ -327,20 +333,24 @@
                         <td><input type=text name=result_kumulativt_laan_disk size=10 readonly> MRD kr</td>
                     </tr>
                     <tr>
-                        <td>Akkumulerte renter under bygging (diskontert til basisår)</td>
-                        <td><input type=text name=result_kum_renter_bygging_disk size=10 readonly> MRD kr</td>
-                    </tr>
-                    <tr>
-                        <td>Akkumulerte renter totalt (diskontert til basisår)</td>
+                        <td>Totale kapitalkostnader (etterskudd, diskontert)</td>
                         <td><input type=text name=result_kum_renter_disk size=10 readonly> MRD kr</td>
                     </tr>
-                    <tr>
+                     <tr>
                         <td>Innkrevingskostnad dvs. utgift til bomselskap (diskontert)</td>
                         <td><input type=text name=result_tilbomselskap_sum_disk size=10 readonly> MRD kr</td>
                     </tr>
-                    <tr>
-                        <td>Total rente og innkrevingskostnad (diskontert)</td>
+                   <tr>
+                        <td>Total kapital- og innkrevingskostnad (diskontert)</td>
                         <td><input type=text name=result_kum_kapitalkostn_disk size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Totale bompengeinntekter (etterskudd, diskontert)</td>
+                        <td><input type=text name=result_kum_bominntekter_disk size=10 readonly> MRD kr</td>
+                    </tr>
+                    <tr>
+                        <td>Totale bompengeinntekter (inkl. forhåndinnkrevet, diskontert)</td>
+                        <td><input type=text name=result_kum_bominntekter_disk_all size=10 readonly> MRD kr</td>
                     </tr>
                     <tr style="background-color:#d897fd; font-size: 20px;font-weight: 800;">
                         <td>Reell kostnad av prosjektet (inkl. kapitalkostnader, diskontert til basisår)</td>
