@@ -33,15 +33,15 @@ var options = {
         text: "Reisetid Bergen-Stavanger",
         align: "center",
         style: {
-            fontSize: "44px",
+            fontSize: "34px",
         },
     },
     subtitle: {
-        text: "Reisetider for buss/bil er hvis Hordfast er bygget",
+        text: "Dagens fly er desidert mest effektivt. Reisetider for buss/bil er hvis Hordfast er bygget",
         align: "center",
         offsetY: 60,
         style: {
-            fontSize: "24px",
+            fontSize: "14px",
         },
     },
     series: [
