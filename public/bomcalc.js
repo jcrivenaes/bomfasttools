@@ -601,11 +601,14 @@ function diverse_beregninger() {
         }
     }
     result_tilbomselskap_sum_disk = sum_bomselskap_disk;
-    result_kum_kapitalkostn_disk = sum_bominntekter_disk + sum_bomselskap_disk - input_bompengelaan;
-    result_kum_renter_disk = result_kum_kapitalkostn_disk - sum_bomselskap_disk;  // rentekostnad "kun"
+    result_kum_kapitalkostn_disk =
+        sum_bominntekter_disk + sum_bomselskap_disk - input_bompengelaan;
+    result_kum_renter_disk = result_kum_kapitalkostn_disk - sum_bomselskap_disk; // rentekostnad "kun"
     result_kum_bominntekter_disk = sum_bominntekter_disk + sum_bomselskap_disk;
-    result_kum_bominntekter_disk_all = result_kum_bominntekter_disk + input_forhaandsinnkrevet;
-    result_sann_kostnad = input_styringsramme + result_kum_kapitalkostn_disk + input_forhaandsinnkrevet;
+    result_kum_bominntekter_disk_all =
+        result_kum_bominntekter_disk + input_forhaandsinnkrevet;
+    result_sann_kostnad =
+        input_styringsramme + result_kum_kapitalkostn_disk + input_forhaandsinnkrevet;
 }
 
 function renter_diskontert() {
@@ -703,12 +706,13 @@ function html_resultater() {
         result_kumulativt_laan_disk / MRD
     ).toFixed(3);
 
-
     document.result.result_tilbomselskap_sum_disk.value = (
         result_tilbomselskap_sum_disk / MRD
     ).toFixed(3);
 
-    document.result.result_kum_renter_disk.value = (result_kum_renter_disk / MRD).toFixed(3);
+    document.result.result_kum_renter_disk.value = (
+        result_kum_renter_disk / MRD
+    ).toFixed(3);
 
     document.result.result_kum_kapitalkostn_disk.value = (
         result_kum_kapitalkostn_disk / MRD
@@ -718,7 +722,9 @@ function html_resultater() {
         result_kum_bominntekter_disk / MRD
     ).toFixed(3);
 
-    document.result.result_kum_bominntekter_disk_all.value = (result_kum_bominntekter_disk_all / MRD).toFixed(3);
+    document.result.result_kum_bominntekter_disk_all.value = (
+        result_kum_bominntekter_disk_all / MRD
+    ).toFixed(3);
 
     document.result.result_sann_kostnad.value = (result_sann_kostnad / MRD).toFixed(3);
 
