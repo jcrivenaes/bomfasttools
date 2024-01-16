@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <canvas id="line-chart" width="400" height="250"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script>
+      var year = [];
+      var index = 0;
+      for (i = 2000; i <= 2050; i++) {
+        year[index++] = i.toString();
+      }
+
+      halj_stord = [
+        1460, 1575, 1659, 1690, 1712, 1740, 1848, 2089, 2289, 2366, 2406, 2454,
+        2513, 2553, 2649, 2648, 2656, 2709, 2745, 2683, 2541, 2736, 2976, 2944,
+      ];
+
+      var start = 2454;
+      var high = [];
+      var med = [];
+      var low = [];
+      for (y = 0; y <= 10; y++) {
+        high[y] = NaN;
+        med[y] = NaN;
+        low[y] = NaN;
+      }
+      high[11] = start;
+      med[11] = start;
+      low[11] = start;
+
+      for (y = 12; y <= 23; y++) {
+        high[y] = high[y - 1] + 0.05 * high[y - 1];
+        med[y] = med[y - 1] + 0.04 * med[y - 1];
+        low[y] = low[y - 1] + 0.03 * low[y - 1];
+      }
+      for (y = 24; y <= 33; y++) {
+        high[y] = high[y - 1] + 0.04 * high[y - 1];
+        med[y] = med[y - 1] + 0.03 * med[y - 1];
+        low[y] = low[y - 1] + 0.02 * low[y - 1];
+      }
+      for (y = 34; y <= 50; y++) {
+        high[y] = high[y - 1] + 0.03 * high[y - 1];
+        med[y] = med[y - 1] + 0.02 * med[y - 1];
+        low[y] = low[y - 1] + 0.02 * low[y - 1];
+      }
+      Chart.defaults.global.defaultFontSize = 14;
+
+      new Chart(document.getElementById("line-chart"), {
+        type: "line",
+
+        data: {
+          labels: year,
+          datasets: [
+            {
+              data: halj_stord,
+              label: "Halhjem-Stord: TELLINGER",
+              borderColor: "black",
+              borderWidth: 5,
+              fill: false,
+            },
+            {
+              data: high,
+              label: "Prognose: HØG",
+              borderColor: "#3484c8",
+              fill: false,
+              pointStyle: "star",
+              radius: 1,
+            },
+            {
+              data: med,
+              label: "Prognose: MIDDELS",
+              borderColor: "#f67a24",
+              fill: false,
+              pointStyle: "star",
+              radius: 1,
+            },
+            {
+              data: low,
+              label: "Prognose: LÅGT",
+              borderColor: "grey",
+              fill: false,
+              pointStyle: "star",
+              radius: 1,
+            },
+          ],
+        },
+        options: {
+          title: {
+            display: true,
+            text: "Ferge ÅDT Os-Stord vs prognose fra SVV 2016",
+            fontSize: 20,
+            fontColor: "black",
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
