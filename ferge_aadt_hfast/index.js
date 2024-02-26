@@ -147,7 +147,7 @@ var options = {
     },
   },
   subtitle: {
-    text: "Gjelder kjøretøy tellinger utenom motorsykkel/moped. Kilde SVV fergedatabanken",
+    text: "Gjelder kjøretøy tellinger utenom motorsykkel/moped. Kilde SVV rapporter + fergedatabanken",
     align: "left",
     style: {
       fontSize: "14px",
