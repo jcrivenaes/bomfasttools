@@ -1,0 +1,130 @@
+<!-- Mal for Highcharts - API: Lag egne datasett -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "https://www.w3.org/TR/html4/strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>SSB API mot Statstikkbanken - befolkningsvekst</title>
+
+    <!-- 1. Add these JavaScript inclusions in the head of your page  -->
+    <!-- json-stat.js - JSON-stat Javascript Toolkit (JJT) -->
+    <script
+      type="text/javascript"
+      src="https://json-stat.org/lib/json-stat.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://code.highcharts.com/highcharts.js"
+    ></script>
+  </head>
+
+  <body>
+    <script type="text/javascript">
+      /* url som spørringen postes mot */
+      url = "https://data.ssb.no/api/v0/no/table/13599";
+
+      query =
+        /* Api spørring - kode kan f.eks. tas fra Konsoll */
+        {
+          query: [
+            {
+              code: "Alder",
+              selection: {
+                filter: "agg:TredeltGrupperingB2",
+                values: ["F20-64"],
+              },
+            },
+            {
+              code: "InnvandrLandbakgr",
+              selection: {
+                filter: "vs:InnvandrKatLand01",
+                values: ["00"],
+              },
+            },
+            {
+              code: "Framskriv",
+              selection: {
+                filter: "item",
+                values: ["MMM"],
+              },
+            },
+          ],
+          response: {
+            format: "json-stat2",
+          },
+        };
+
+      /* slutt API-spørring */
+
+      function main(obj) {
+        ds = JSONstat(obj).Dataset(0);
+        console.log(ds);
+
+        /*jQuery sjekk */
+        $(document).ready(
+          function () {
+            /* Highcharts kode */
+            $("#container").highcharts({
+              chart: {
+                type: "spline",
+              },
+
+              title: {
+                text: "Fremskrevet befolkning Norge, yrkesaktiv alder, MMM",
+              },
+
+              xAxis: [
+                {
+                  /* Henter årene fra datasettet */
+                  categories: ds.Dimension("Tid").id,
+                  tickInterval: 2,
+                },
+              ],
+
+              yAxis: [
+                {
+                  title: {
+                    text: "Befolkning 20-65 år",
+                  },
+                  height: "110%",
+                },
+              ],
+
+              series: [
+                {
+                  name: "Folketall 20-65 år",
+                  /* viser verdiene. siden det kun er en serie i datasettet kan en benytte ds.value */
+                  data: ds.value,
+                },
+              ],
+            });
+          }
+          /* Slutt Highcharts kode */
+        );
+      }
+
+      $.post({
+        url: url,
+        data: JSON.stringify(query),
+        success: main,
+      });
+
+      /* funksjon for å POSTe en spørring mot url
+    POST(url, query, main);
+
+    function POST(url, query, main){
+      fetch( url, { method: "post", body: JSON.stringify(query) } )
+        .then(function(resp) {
+          resp.json().then(main);
+        })
+      ;
+    }*/
+    </script>
+
+    <!-- 3. Add the container -->
+    <div id="container" style="margin: 0 auto"></div>
+  </body>
+</html>
