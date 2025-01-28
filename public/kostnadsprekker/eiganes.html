@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eiganestunnelen</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f4f4f9;
+      }
+
+      #chart {
+        width: 98%;
+        max-width: 700px;
+        height: 400px;
+        background-color: #ffffff;
+        border: 3px solid #cccccc;
+        border-radius: 10px;
+        box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart"></div>
+    <script>
+      // Initialize the ECharts instance
+      const chart = echarts.init(document.getElementById("chart"));
+
+      // Configure the bar chart options
+      const options = {
+        title: {
+          text: "Eiganestunnelen, indeksjustert relativ kostnad (KVU = 100)",
+          left: "center",
+          textStyle: {
+            fontSize: 20,
+            fontWeight: "bold",
+          },
+        },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
+        },
+        xAxis: {
+          type: "category",
+          data: ["KVU 2001", "2007 (KMD)", "St.ting 2012", "Sluttsum"],
+          axisLine: {
+            lineStyle: {
+              color: "#323",
+            },
+          },
+          axisLabel: {
+            fontSize: 11,
+            fontWeight: "bold",
+          },
+        },
+        yAxis: {
+          type: "value",
+          axisLine: {
+            lineStyle: {
+              color: "#323",
+            },
+          },
+          splitLine: {
+            lineStyle: {
+              type: "dashed",
+              color: "#ddd",
+            },
+          },
+        },
+        series: [
+          {
+            name: "Indeksjustert relativ kostnad",
+            type: "bar",
+            data: [100, 162, 222, 334],
+            barWidth: "50%",
+            itemStyle: {
+              color: "darkgreen",
+            },
+          },
+        ],
+      };
+
+      // Set the options and render the chart
+      chart.setOption(options);
+    </script>
+  </body>
+</html>
