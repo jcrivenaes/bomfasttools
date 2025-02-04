@@ -33,6 +33,7 @@
       // Initialize the ECharts instance
       const chart = echarts.init(document.getElementById("chart"));
 
+<<<<<<< HEAD
       var rkpi = [100, 125, 157, 242];
       var rbyg = [100, 117, 144, 205];
 
@@ -53,6 +54,8 @@
       // combine text_1 and text_2
       text_1 = text_1 + " -- " + text_2;
 
+=======
+>>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
       // Configure the bar chart options
       const options = {
         title: {
@@ -62,7 +65,11 @@
             fontSize: 20,
             fontWeight: "bold",
           },
+<<<<<<< HEAD
           subtext: text_1 + "\n(OPS prosjekt; her vises estimert byggekostnad)",
+=======
+          subtext: "OPS prosjekt; her vises kun (estimert) byggekostnad",
+>>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
         },
         tooltip: {
           trigger: "axis",
@@ -102,14 +109,22 @@
         },
         series: [
           {
+<<<<<<< HEAD
             name: "Indeksjustert relativ byggekostnad (KPI)",
             type: "bar",
             data: rkpi,
             barWidth: "20%",
+=======
+            name: "Indeksjustert relativ byggekostnad",
+            type: "bar",
+            data: [100, 125, 157, 242],
+            barWidth: "50%",
+>>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
             itemStyle: {
               color: "#5470c6",
             },
           },
+<<<<<<< HEAD
           {
             name: "Indeksjustert relativ byggekostnad (byggekostindeks)",
             type: "bar",
@@ -119,6 +134,8 @@
               color: "#89CFF0",
             },
           },
+=======
+>>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
         ],
       };
 
