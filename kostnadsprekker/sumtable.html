@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rådals-Svegatjørn</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f4f4f9;
+      }
+
+      #table-container {
+        width: 98%;
+        max-width: 700px;
+        background-color: #ffffff;
+        border: 3px solid #cccccc;
+        border-radius: 10px;
+        box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #dddddd;
+      }
+
+      th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+      }
+
+      tr:hover {
+        background-color: #f1f1f1;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="table-container">
+      <table id="data-table">
+        <thead>
+          <tr>
+            <th>Prosjekt</th>
+            <th>KVU sprekk %</th>
+            <th>Sprekk rel. St.t vedtak %</th>
+            <th>Overskridet initiell kostn.ramme?</th>
+            <th>Kommentar</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be added by JavaScript -->
+        </tbody>
+      </table>
+    </div>
+    <script>
+      const data = [
+        {
+          project: "Rådal-Svegatjørn",
+          a: 121,
+          b: 32,
+          c: "JA",
+          d: "",
+        },
+        { project: "Ryfast", a: 560, b: 31, c: "JA", d: "" },
+        { project: "Eiganestunnelen", a: 234, b: 50, c: "JA", d: "" },
+        {
+          project: "Smiene-Harestad",
+          a: 1415,
+          b: "N/A",
+          c: "N/A",
+          d: "Prosjekt ikke vedtatt",
+        },
+        { project: "Hardarengerbrua", a: 75, b: 16, c: "JA", d: "" },
+        {
+          project: "Sotrasambandet",
+          a: 142,
+          b: "54 (progn.)",
+          c: "Trolig",
+          d: "Under bygging",
+        },
+        {
+          project: "Rogfast",
+          a: 225,
+          b: "53 (progn.)",
+          c: "Ja",
+          d: "Under bygging",
+        },
+        {
+          project: "Bommestad-Sky",
+          a: 83,
+          b: "15",
+          c: "Ja",
+          d: "",
+        },
+        {
+          project: "Hålogolandsbrua",
+          a: 96,
+          b: "36",
+          c: "Ja",
+          d: "",
+        },
+      ];
+
+      const tableBody = document.querySelector("#data-table tbody");
+
+      data.forEach((row) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${row.project}</td>
+          <td>${row.a}</td>
+          <td>${row.b}</td>
+          <td>${row.c}</td>
+          <td>${row.d}</td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    </script>
+  </body>
+</html>
