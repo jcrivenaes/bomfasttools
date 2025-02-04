@@ -33,6 +33,25 @@
       // Initialize the ECharts instance
       const chart = echarts.init(document.getElementById("chart"));
 
+      var rkpi = [100, 167, 212, 325];
+      var rbyg = [100, 155, 194, 268];
+
+      var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
+      var sprekk_kvu_byg = Math.round((100 * (rbyg[3] - rbyg[0])) / rbyg[0]);
+      var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
+      var sprekk_vedt_byg = Math.round((100 * (rbyg[3] - rbyg[2])) / rbyg[2]);
+      var text_1 =
+        "Økning rel KVU: " + sprekk_kvu_kpi + "% (" + sprekk_kvu_byg + "%)";
+      var text_2 =
+        "Økning rel St.ting: " +
+        sprekk_vedt_kpi +
+        "% (" +
+        sprekk_vedt_byg +
+        "%)";
+
+      // combine text_1 and text_2
+      text_1 = text_1 + " -- " + text_2;
+
       // Configure the bar chart options
       const options = {
         title: {
@@ -42,6 +61,7 @@
             fontSize: 20,
             fontWeight: "bold",
           },
+          subtext: text_1,
         },
         tooltip: {
           trigger: "axis",
@@ -76,12 +96,21 @@
         },
         series: [
           {
-            name: "Indeksjustert relativ kostnad",
+            name: "Indeksjustert (KPI) relativ kostnad",
             type: "bar",
-            data: [100, 167, 212, 325],
-            barWidth: "50%",
+            data: rkpi,
+            barWidth: "20%",
             itemStyle: {
               color: "#d40078",
+            },
+          },
+          {
+            name: "Indeksjustert (byggeindeks vei) relativ kostnad",
+            type: "bar",
+            data: rbyg,
+            barWidth: "20%",
+            itemStyle: {
+              color: "pink",
             },
           },
         ],

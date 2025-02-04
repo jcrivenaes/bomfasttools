@@ -33,6 +33,26 @@
       // Initialize the ECharts instance
       const chart = echarts.init(document.getElementById("chart"));
 
+      var rkpi = [100, 125, 157, 242];
+      var rbyg = [100, 117, 144, 205];
+
+      var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
+      var sprekk_kvu_byg = Math.round((100 * (rbyg[3] - rbyg[0])) / rbyg[0]);
+      var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
+      var sprekk_vedt_byg = Math.round((100 * (rbyg[3] - rbyg[2])) / rbyg[2]);
+
+      var text_1 =
+        "Økning rel KVU: " + sprekk_kvu_kpi + "% (" + sprekk_kvu_byg + "%)";
+      var text_2 =
+        "Økning rel St.ting: " +
+        sprekk_vedt_kpi +
+        "% (" +
+        sprekk_vedt_byg +
+        "%)";
+
+      // combine text_1 and text_2
+      text_1 = text_1 + " -- " + text_2;
+
       // Configure the bar chart options
       const options = {
         title: {
@@ -42,7 +62,7 @@
             fontSize: 20,
             fontWeight: "bold",
           },
-          subtext: "OPS prosjekt; her vises kun (estimert) byggekostnad",
+          subtext: text_1 + "\n(OPS prosjekt; her vises estimert byggekostnad)",
         },
         tooltip: {
           trigger: "axis",
@@ -82,12 +102,21 @@
         },
         series: [
           {
-            name: "Indeksjustert relativ byggekostnad",
+            name: "Indeksjustert relativ byggekostnad (KPI)",
             type: "bar",
-            data: [100, 125, 157, 242],
-            barWidth: "50%",
+            data: rkpi,
+            barWidth: "20%",
             itemStyle: {
               color: "#5470c6",
+            },
+          },
+          {
+            name: "Indeksjustert relativ byggekostnad (byggekostindeks)",
+            type: "bar",
+            data: rbyg,
+            barWidth: "20%",
+            itemStyle: {
+              color: "#89CFF0",
             },
           },
         ],

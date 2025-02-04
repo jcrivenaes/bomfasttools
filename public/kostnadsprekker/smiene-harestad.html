@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eiganestunnelen</title>
+    <title>Smiene-Harestad</title>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.2/dist/echarts.min.js"></script>
     <style>
       body {
@@ -33,8 +33,9 @@
       // Initialize the ECharts instance
       const chart = echarts.init(document.getElementById("chart"));
 
-      var rkpi = [100, 162, 222, 334];
-      var rbyg = [100, 138, 175, 241];
+      var rkpi = [100, 483, 1464, 1515];
+      var rbyg = [100, 430, 1096, 1134];
+
       var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
       var sprekk_kvu_byg = Math.round((100 * (rbyg[3] - rbyg[0])) / rbyg[0]);
       var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
@@ -42,7 +43,6 @@
 
       var text_1 =
         "Økning rel KVU: " + sprekk_kvu_kpi + "% (" + sprekk_kvu_byg + "%)";
-
       var text_2 =
         "Økning rel St.ting: " +
         sprekk_vedt_kpi +
@@ -51,18 +51,20 @@
         "%)";
 
       // combine text_1 and text_2
-      text_1 = text_1 + " -- " + text_2;
+      text_1 = text_1; // + " -- " + text_2;
 
       // Configure the bar chart options
       const options = {
         title: {
-          text: "Eiganestunnelen, indeksjustert relativ kostnad (KVU = 100)",
+          text: "Smiene-Harestad, indeksjustert relativ byggekostnad (KVU = 100)",
           left: "center",
           textStyle: {
             fontSize: 20,
             fontWeight: "bold",
           },
-          subtext: text_1,
+          subtext:
+            text_1 +
+            "\n(Prosjektet ikke igangssatt; her vises estimert byggekostnad)",
         },
         tooltip: {
           trigger: "axis",
@@ -70,14 +72,19 @@
         },
         xAxis: {
           type: "category",
-          data: ["KVU 2001", "2007 (KMD)", "St.ting 2012", "Sluttsum"],
+          data: [
+            "NTP 2006 (KVU?)",
+            "KMD 2011",
+            "Reg.plan 2024",
+            "Kostnadsramme 2024",
+          ],
           axisLine: {
             lineStyle: {
               color: "#323",
             },
           },
           axisLabel: {
-            fontSize: 11,
+            fontSize: 10,
             fontWeight: "bold",
           },
         },
@@ -97,21 +104,21 @@
         },
         series: [
           {
-            name: "Indeksjustert relativ kostnad (KPI)",
+            name: "Indeksjustert relativ byggekostnad (KPI)",
             type: "bar",
             data: rkpi,
             barWidth: "20%",
             itemStyle: {
-              color: "darkgreen",
+              color: "#666633",
             },
           },
           {
-            name: "Indeksjustert relativ kostnad (byggindeks)",
+            name: "Indeksjustert relativ byggekostnad (byggekostindeks)",
             type: "bar",
             data: rbyg,
             barWidth: "20%",
             itemStyle: {
-              color: "lightgreen",
+              color: "#CCCC99",
             },
           },
         ],
