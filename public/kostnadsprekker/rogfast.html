@@ -33,7 +33,6 @@
       // Initialize the ECharts instance
       const chart = echarts.init(document.getElementById("chart"));
 
-<<<<<<< HEAD
       var rkpi = [100, 167, 212, 325];
       var rbyg = [100, 155, 194, 268];
 
@@ -53,8 +52,6 @@
       // combine text_1 and text_2
       text_1 = text_1 + " -- " + text_2;
 
-=======
->>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
       // Configure the bar chart options
       const options = {
         title: {
@@ -64,10 +61,7 @@
             fontSize: 20,
             fontWeight: "bold",
           },
-<<<<<<< HEAD
           subtext: text_1,
-=======
->>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
         },
         tooltip: {
           trigger: "axis",
@@ -102,22 +96,14 @@
         },
         series: [
           {
-<<<<<<< HEAD
             name: "Indeksjustert (KPI) relativ kostnad",
             type: "bar",
             data: rkpi,
             barWidth: "20%",
-=======
-            name: "Indeksjustert relativ kostnad",
-            type: "bar",
-            data: [100, 167, 212, 325],
-            barWidth: "50%",
->>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
             itemStyle: {
               color: "#d40078",
             },
           },
-<<<<<<< HEAD
           {
             name: "Indeksjustert (byggeindeks vei) relativ kostnad",
             type: "bar",
@@ -127,8 +113,6 @@
               color: "pink",
             },
           },
-=======
->>>>>>> 4823ed265c17c3f38f055005b4ab076dfe4216f5
         ],
       };
 
