@@ -33,6 +33,20 @@
       // Initialize the ECharts instance
       const chart = echarts.init(document.getElementById("chart"));
 
+      var rkpi = [100, 109, 151, 175];
+      var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
+      var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
+
+      var text_1 = "Økning rel KVU: " + sprekk_kvu_kpi + "%";
+
+      var text_2 =
+        "Økning rel St.ting: " +
+        sprekk_vedt_kpi +
+        "% (byggeprisindeks ikke tilgjengelig)";
+
+      // combine text_1 and text_2
+      text_1 = text_1 + " -- " + text_2;
+
       // Configure the bar chart options
       const options = {
         title: {
@@ -42,6 +56,7 @@
             fontSize: 20,
             fontWeight: "bold",
           },
+          subtext: text_1,
         },
         tooltip: {
           trigger: "axis",
@@ -49,7 +64,7 @@
         },
         xAxis: {
           type: "category",
-          data: ["~KVU", "NTP 2002", "St.tings vedtak", "Reell kostnad"],
+          data: ["~KVU 1988", "NTP 2002", "St.tings vedtak", "Sluttkostnad"],
           axisLine: {
             lineStyle: {
               color: "#323",
@@ -78,8 +93,8 @@
           {
             name: "Indeksjustert relativ kostnad",
             type: "bar",
-            data: [100, 109, 151, 175],
-            barWidth: "50%",
+            data: rkpi,
+            barWidth: "40%",
             itemStyle: {
               color: "#5470c6",
             },
