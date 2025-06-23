@@ -1,138 +1,166 @@
 <!DOCTYPE html>
 <html>
-    <body>
-        <canvas id="line-chart" width="400" height="250"></canvas>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-        <script>
-            var year = [];
-            var index = 0;
-            for (i = 2008; i <= 2060; i++) {
-                year[index++] = i;
+  <body>
+    <canvas id="line-chart" width="400" height="250"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+    <script>
+      var year = [];
+      var index = 0;
+      for (i = 2008; i <= 2060; i++) {
+        year[index++] = i;
+      }
+
+      var xlen = year.length / 2;
+
+      bjfj = [
+        2727, 2814, 2840, 2904, 2978, 3029, 3152, 3158, 3180, 3237, 3254, 3186,
+        2989, 3222, 3490, 3754, 3970,
+      ];
+
+      let hf0 = [];
+      let hf0x = [];
+      let yr = 0;
+      for (i = 0; i < year.length; i++) {
+        hf0[i] = NaN;
+        hf0x[i] = NaN;
+        if (year[i] >= 2025 && year[i] <= 2031) {
+          hf0[i] = (3800 * Math.pow(1.009, yr)).toFixed(0);
+          yr += 1;
+        }
+        if (year[i] == 2050) {
+          hf0x[i] = 5030;
+        }
+      }
+
+      // https://www.vegvesen.no/globalassets/fag/fokusomrader/nasjonal-transportplan-ntp/2022-2033/2020-11-26-korrigert-versjon-av-15-okt-leveransen.pdf
+      // Sitat s. 84: "Årsdøgntrafikken over brua over Bjørnafjorden er beregnet til
+      // 5 700 med bompenger i 2030 (10 400 uten bompenger). Det er forutsatt
+      // trafikkvekst videre utover (vel 30 pst. frem til 2050)". (30% økning
+      // er 7410 i 2050)
+      let hf1 = [];
+      yr = 0;
+      for (i = 0; i < year.length; i++) {
+        hf1[i] = NaN;
+        if (year[i] >= 2031 && year[i] <= 2050) {
+          hf1[i] = (5700 * Math.pow(1.015, yr)).toFixed(0);
+          yr += 1;
+        }
+      }
+
+      // kilde 13230: https://www.regjeringen.no/contentassets/891678bea8e64859a443434dd9135d53/svar-del-2/svar-pa-sporsmal-241-242-og-2452053901.pdf
+      let hf2 = [];
+      yr = 0;
+      for (i = 0; i < year.length; i++) {
+        hf2[i] = NaN;
+        if (year[i] >= 2050) {
+          hf2[i] = (13230 * Math.pow(1.003, yr)).toFixed(0);
+          yr += 1;
+        }
+      }
+      Chart.defaults.global.defaultFontSize = 14;
+
+      // Register the plugin globally for Chart.js 2.5.0
+      Chart.plugins.register({
+        afterDraw: function (chart) {
+          var ctx = chart.chart.ctx;
+          ctx.save();
+          ctx.font = "bold 19px Arial";
+          ctx.fillStyle = "darkgreen";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          // Log available scales to the console
+          console.log(chart.scales);
+          // Try default scale IDs
+          var xScale = chart.scales["x-axis-0"];
+          var yScale = chart.scales["y-axis-0"];
+          if (xScale && yScale) {
+            var text =
+              "Kraftig reduksjon i fergebillett priser i\n2022-2024 gir trafikkøkning";
+            var lines = text.split("\n");
+            var x = xScale.getPixelForValue(2022);
+            var y = yScale.getPixelForValue(3200);
+            for (var i = 0; i < lines.length; i++) {
+              ctx.fillText(lines[i], x, y + i * 24); // 24px mellom linjene
             }
+          }
+          ctx.restore();
+        },
+      });
 
-            var xlen = year.length / 2;
-
-            bjfj = [
-                2727, 2814, 2840, 2904, 2978, 3029, 3152, 3158, 3180, 3259, 3284, 3212,
-                2972,
-            ];
-
-            let hf0 = [];
-            let hf0x = [];
-            let yr = 0;
-            for (i = 0; i < year.length; i++) {
-                hf0[i] = NaN;
-                hf0x[i] = NaN;
-                if (year[i] >= 2021 && year[i] <= 2031) {
-                    hf0[i] = (3300 * Math.pow(1.005, yr)).toFixed(0);
-                    yr += 1;
-                }
-                if (year[i] == 2050) {
-                    hf0x[i] = 5030;
-                }
-            }
-
-            // https://www.vegvesen.no/globalassets/fag/fokusomrader/nasjonal-transportplan-ntp/2022-2033/2020-11-26-korrigert-versjon-av-15-okt-leveransen.pdf
-            // Sitat s. 84: "Årsdøgntrafikken over brua over Bjørnafjorden er beregnet til
-            // 5 700 med bompenger i 2030 (10 400 uten bompenger). Det er forutsatt
-            // trafikkvekst videre utover (vel 30 pst. frem til 2050)". (30% økning
-            // er 7410 i 2050)
-            let hf1 = [];
-            yr = 0;
-            for (i = 0; i < year.length; i++) {
-                hf1[i] = NaN;
-                if (year[i] >= 2031 && year[i] <= 2050) {
-                    hf1[i] = (5700 * Math.pow(1.015, yr)).toFixed(0);
-                    yr += 1;
-                }
-            }
-
-            // kilde 13230: https://www.regjeringen.no/contentassets/891678bea8e64859a443434dd9135d53/svar-del-2/svar-pa-sporsmal-241-242-og-2452053901.pdf
-            let hf2 = [];
-            yr = 0;
-            for (i = 0; i < year.length; i++) {
-                hf2[i] = NaN;
-                if (year[i] >= 2050) {
-                    hf2[i] = (13230 * Math.pow(1.003, yr)).toFixed(0);
-                    yr += 1;
-                }
-            }
-            Chart.defaults.global.defaultFontSize = 14;
-
-            new Chart(document.getElementById("line-chart"), {
-                type: "line",
-                data: {
-                    labels: year,
-                    datasets: [
-                        {
-                            data: bjfj,
-                            label: "Historisk",
-                            borderColor: "green",
-                            borderWidth: 5,
-                            fill: false,
-                        },
-                        {
-                            data: hf0,
-                            label: "Ferge, trend?",
-                            borderColor: "grey",
-                            borderDash: [10, 5],
-                            borderWidth: 3,
-                            fill: false,
-                        },
-                        {
-                            data: hf0x,
-                            label: "Ferge 2050 iflg SVV",
-                            borderColor: "blue",
-                            pointStyle: "star",
-                            fill: true,
-                            pointRadius: 10,
-                        },
-                        {
-                            data: hf1,
-                            label: "Bro + bom iflg SVV",
-                            borderColor: "magenta",
-                            borderWidth: 3,
-                            fill: false,
-                        },
-                        {
-                            data: hf2,
-                            label: "Bro etter/uten bom iflg SVV",
-                            borderColor: "red",
-                            borderWidth: 3,
-                            fill: false,
-                        },
-                    ],
+      new Chart(document.getElementById("line-chart"), {
+        type: "line",
+        data: {
+          labels: year,
+          datasets: [
+            {
+              data: bjfj,
+              label: "Historisk",
+              borderColor: "green",
+              borderWidth: 5,
+              fill: false,
+            },
+            {
+              data: hf0,
+              label: "Ferge, trend?",
+              borderColor: "grey",
+              borderDash: [10, 5],
+              borderWidth: 3,
+              fill: false,
+            },
+            {
+              data: hf0x,
+              label: "Ferge 2050 iflg SVV (2022)",
+              borderColor: "blue",
+              pointStyle: "star",
+              fill: true,
+              pointRadius: 10,
+            },
+            {
+              data: hf1,
+              label: "Bro + bom iflg SVV (2022)",
+              borderColor: "magenta",
+              borderWidth: 3,
+              fill: false,
+            },
+            {
+              data: hf2,
+              label: "Bro etter/uten bom iflg SVV",
+              borderColor: "red",
+              borderWidth: 3,
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          title: {
+            display: true,
+            text: "Trafikk ÅDT Bjørnafjorden er i 2051 planlagt til 418% av dagens",
+            fontSize: 20,
+            fontColor: "black",
+          },
+          scales: {
+            yAxes: [
+              {
+                display: true,
+                ticks: {
+                  beginAtZero: true,
+                  suggestedMin: 0,
                 },
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: "Trafikk ÅDT Bjørnafjorden er i 2051 planlagt til 418% av dagens",
-                        fontSize: 20,
-                        fontColor: "black",
-                    },
-                    scales: {
-                        yAxes: [
-                            {
-                                display: true,
-                                ticks: {
-                                    beginAtZero: true,
-                                    suggestedMin: 0,
-                                },
-                            },
-                        ],
-                        xAxes: [
-                            {
-                                display: true,
-                                ticks: {
-                                    beginAtZero: false,
-                                    maxTicksLimit: xlen,
-                                },
-                            },
-                        ],
-                    },
+              },
+            ],
+            xAxes: [
+              {
+                display: true,
+                ticks: {
+                  beginAtZero: false,
+                  maxTicksLimit: xlen,
                 },
-            });
-        </script>
-    </body>
+              },
+            ],
+          },
+        },
+      });
+    </script>
+  </body>
 </html>
