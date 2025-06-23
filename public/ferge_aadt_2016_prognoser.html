@@ -12,7 +12,8 @@
 
       halj_stord = [
         1460, 1575, 1659, 1690, 1712, 1740, 1848, 2089, 2289, 2366, 2406, 2454,
-        2513, 2553, 2649, 2648, 2656, 2709, 2745, 2683, 2541, 2736, 2976, 2944,
+        2513, 2553, 2649, 2648, 2656, 2709, 2745, 2683, 2541, 2736, 2976, 3199,
+        3395,
       ];
 
       var start = 2454;
@@ -44,6 +45,33 @@
         low[y] = low[y - 1] + 0.02 * low[y - 1];
       }
       Chart.defaults.global.defaultFontSize = 14;
+
+      Chart.plugins.register({
+        afterDraw: function (chart) {
+          var ctx = chart.chart.ctx;
+          ctx.save();
+          ctx.font = "bold 19px Arial";
+          ctx.fillStyle = "black";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "middle";
+          // Log available scales to the console
+          console.log(chart.scales);
+          // Try default scale IDs
+          var xScale = chart.scales["x-axis-0"];
+          var yScale = chart.scales["y-axis-0"];
+          if (xScale && yScale) {
+            var text =
+              "Kraftig reduksjon i fergebillett priser i\n2022-2024 gir trafikkøkning";
+            var lines = text.split("\n");
+            var x = xScale.getPixelForValue("2022");
+            var y = yScale.getPixelForValue(2800);
+            for (var i = 0; i < lines.length; i++) {
+              ctx.fillText(lines[i], x, y + i * 24); // 24px mellom linjene
+            }
+          }
+          ctx.restore();
+        },
+      });
 
       new Chart(document.getElementById("line-chart"), {
         type: "line",
