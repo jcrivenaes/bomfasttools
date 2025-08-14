@@ -1,0 +1,101 @@
+{
+    "opening_year": 2032,
+    "construction_period": 7,
+    "price_level": 2023,
+    "comparison_year": 2025,
+    "vat_construction": 0.22,
+    "vat_general": 0.25,
+    "analysis_period": 40,
+    "lifetime": 75,
+    "construction_cost": -53700000000,
+    "tax_factor": 0.2,
+    "annual_maintenance": -185000000,
+    "annual_ferry_subsidy": 470000000,
+    "capital_interest_0_40": 0.04,
+    "capital_interest_41_75": 0.03,
+    "bnp_growth": 0.007,
+    "other": {
+        "health_gs": 5768000,
+        "tax_income": 1128876000,
+        "accidents": -104103000,
+        "ghg_emissions": -856336000,
+        "other_env_costs": -6831000,
+        "operators_sum": -185332000
+    },
+    "traffic": {
+        "aadt_ferry": 4500,
+        "traffic_growth_ferry": {
+            "light": {
+                "2025": 0.004,
+                "2060": 0.004
+            },
+            "heavy": {
+                "2025": 0.004,
+                "2060": 0.004
+            }
+        },
+        "aadt_project": 10000,
+        "traffic_growth_project": {
+            "light": {
+                "2025": 0.007,
+                "2060": 0.004
+            },
+            "heavy": {
+                "2025": 0.014,
+                "2060": 0.012
+            }
+        },
+        "heavy_share": 0.1,
+        "work_share": 0.1,
+        "leisure_share": 0.65,
+        "business_share": 0.15
+    },
+    "toll": {
+        "enabled": true,
+        "gradual_loan_uptake": false,
+        "toll_loan": 12000000000,
+        "toll_loan_interest": 0.055,
+        "inflation_rate": 0.025,
+        "heavy_vehicle_toll_factor": 3,
+        "repayment_period": 20,
+        "enable_dynamic": true,
+        "static": {
+            "toll_aadt_multiplier": 0.7,
+            "costs": {
+                "light": 150,
+                "heavy": 650
+            }
+        },
+        "dynamic": {
+            "elasticity": {
+                "light": -0.4,
+                "heavy": -0.2
+            }
+        }
+    },
+    "time_values": {
+        "leisure": 252,
+        "work": 175,
+        "business": 790,
+        "heavy": 900
+    },
+    "ferry": {
+        "costs": {
+            "light": 150,
+            "heavy": 600
+        },
+        "extra_time": {
+            "leisure": 1.1,
+            "work": 1.1,
+            "business": 1.1,
+            "heavy": 1.15
+        },
+        "comfort_factor": 1.1
+    },
+    "vehicle_costs": {
+        "light": 3,
+        "heavy": 6,
+        "speed_factor": 1.25,
+        "change_in_road_length": 22.5
+    }
+}
