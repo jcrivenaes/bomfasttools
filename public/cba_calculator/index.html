@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kost-nytteanalyse Kalkulator</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container" style="position: relative">
+      <!-- Dropdown in upper right corner -->
+      <div
+        style="
+          position: absolute;
+          top: 1em;
+          right: 1em;
+          display: flex;
+          align-items: center;
+          z-index: 100;
+          background: #fff;
+          padding: 0.3em 0.6em;
+          border-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        "
+      >
+        <select
+          id="case-select"
+          style="padding: 0.3em 0.8em; font-size: 0.85em; border-radius: 4px"
+        >
+          <option
+            value="references/hfast_svv_2025.json"
+            title="Fra SVV re..plan 2025 uten bompenger - forsøker å komme gnaske likt offisielle SVV tall"
+          >
+            SVV reg.plan 2025 uten bompenger
+          </option>
+          <option
+            value="references/hfast_svv_2025_b1.json"
+            title="Fra SVV re..plan 2025 med bompenger (12 mrd i bompengelån)"
+          >
+            SVV reg.plan 2025 med bompenger (12 mrd)
+          </option>
+          <!-- Add more cases here as needed -->
+        </select>
+      </div>
+
+      <h1>Estimering av trafikkantnytte (test!)</h1>
+      <p>
+        Denne verktøyet utfører en kostnads-nytteanalyse for et
+        transportinfrastrukturprosjekt (fergeavløsningsprosjekt), basert på
+        prinsippene som brukes i norsk transportanalyse. Denne kalkulatoren er
+        fortsatt under utvikling, og det kan forekomme feil i beregningene.
+      </p>
+
+      <div
+        class="form-header"
+        style="
+          display: flex;
+          align-items: center;
+          gap: 1.5em;
+          margin-bottom: 1em;
+        "
+      >
+        <div class="tabs">
+          <button class="tab-link active" onclick="openTab(event, 'general')">
+            Generelt og bygging
+          </button>
+          <button class="tab-link" onclick="openTab(event, 'traffic')">
+            Trafikk
+          </button>
+          <button class="tab-link" onclick="openTab(event, 'ferry')">
+            Ferje
+          </button>
+          <button class="tab-link" onclick="openTab(event, 'vehicle')">
+            Kjøretøy og tid
+          </button>
+          <button class="tab-link" onclick="openTab(event, 'toll')">
+            Bompenger
+          </button>
+          <button class="tab-link" onclick="openTab(event, 'other')">
+            Andre kostnader/nytte
+          </button>
+        </div>
+      </div>
+
+      <form id="cba-form">
+        <div id="general" class="tab-content active">
+          <h2>Generelt og bygging</h2>
+          <div class="form-grid">
+            <label for="price_level">Prisnivå (år):</label>
+            <input
+              type="number"
+              id="price_level"
+              value="2023"
+              title="Året som brukes som prisnivå; alle tall må oppgis i NOK som gjelder for dette året"
+            />
+            <label for="comparison_year">Sammenligningsår:</label>
+            <input
+              type="number"
+              id="comparison_year"
+              value="2025"
+              title="Året som tallene skal diskonteres til."
+            />
+            <label for="opening_year">Åpningsår:</label>
+            <input
+              type="number"
+              id="opening_year"
+              value="2032"
+              title="Året prosjektet åpner for trafikk."
+            />
+            <label for="construction_period">Byggetid (år):</label>
+            <input
+              type="number"
+              id="construction_period"
+              value="7"
+              title="Antall år byggeperioden varer. Disse vil komme før åpningen av prosjektet."
+            />
+            <label for="lifetime">Levetid (år):</label>
+            <input
+              type="number"
+              id="lifetime"
+              value="75"
+              title="Teknisk levetid for prosjektet. Hvis større enn analyseperiode, så vil det beregnes en restverdi."
+            />
+            <label for="analysis_period">Analyseperiode (år):</label>
+            <input
+              type="number"
+              id="analysis_period"
+              value="40"
+              title="Analyseperioden for prosjektet."
+            />
+            <label for="construction_cost">Byggekostnad inkl moms (MRD):</label>
+            <input type="number" id="construction_cost" value="53.7" />
+            <label for="annual_maintenance">Årlig vedlikehold (Mill):</label>
+            <input
+              type="number"
+              id="annual_maintenance"
+              value="50"
+              title="Årlige gjennomsnittelige vedlikeholdskostnader for prosjektet, uten mva."
+            />
+            <label for="vat_construction">MVA-sats bygging (%):</label>
+            <input
+              type="number"
+              id="vat_construction"
+              value="22"
+              step="1"
+              title="Gjennomsnittelig MVA-sats for veiprosjekter er typisk 22%."
+            />
+            <label for="vat_general">MVA-sats annet (%):</label>
+            <input
+              type="number"
+              id="vat_general"
+              value="25"
+              step="1"
+              title="MVA-sats for andre beregninger er typisk 25%."
+            />
+            <label for="bnp_growth">BNP vekst rate i %:</label>
+            <input type="number" id="bnp_growth" value="0.7" step="0.1" />
+            <label for="capital_interest_0_40"
+              >Kalkuleringrente (0-40 år) %:</label
+            >
+            <input
+              type="number"
+              id="capital_interest_0_40"
+              value="4"
+              step="0.5"
+            />
+            <label for="capital_interest_41_75"
+              >Kalkuleringrente (41-75 år) %:</label
+            >
+            <input
+              type="number"
+              id="capital_interest_41_75"
+              value="3"
+              step="0.5"
+            />
+            <label for="tax_factor">Skattefaktor i %:</label>
+            <input
+              type="number"
+              id="tax_factor"
+              value="20"
+              step="1"
+              title="Skattekonstnadsfaktor i prosent, standard er 20% i Norge"
+            />
+          </div>
+        </div>
+
+        <div id="traffic" class="tab-content">
+          <h2>Trafikkparametere</h2>
+          <div class="form-grid">
+            <label for="aadt_ferry">ÅDT Ferje (basisår):</label>
+            <input type="number" id="aadt_ferry" value="4000" step="10" />
+            <label for="aadt_project">ÅDT Prosjekt (basisår):</label>
+            <input
+              type="number"
+              id="aadt_project"
+              value="8000"
+              step="10"
+              title="Antatt ÅDT for prosjektet ved åpning (basisår), dersom ingen bompenger!"
+            />
+          </div>
+
+          <h3>Kjøretøyandeler (totalt 100%)</h3>
+          <div class="slider-grid">
+            <div class="slider-container">
+              <label for="heavy_share"
+                >Tunge kjøretøy:
+                <span id="heavy_share_display">10%</span></label
+              >
+              <input
+                type="range"
+                id="heavy_share"
+                min="0"
+                max="100"
+                value="10"
+                class="slider"
+              />
+            </div>
+            <div class="slider-container">
+              <label for="leisure_share"
+                >Fritid: <span id="leisure_share_display">40%</span></label
+              >
+              <input
+                type="range"
+                id="leisure_share"
+                min="0"
+                max="100"
+                value="40"
+                class="slider"
+              />
+            </div>
+            <div class="slider-container">
+              <label for="work_share"
+                >Arbeid: <span id="work_share_display">30%</span></label
+              >
+              <input
+                type="range"
+                id="work_share"
+                min="0"
+                max="100"
+                value="30"
+                class="slider"
+              />
+            </div>
+            <div class="slider-container">
+              <label for="business_share"
+                >Næring: <span id="business_share_display">20%</span></label
+              >
+              <input
+                type="range"
+                id="business_share"
+                min="0"
+                max="100"
+                value="20"
+                class="slider"
+              />
+            </div>
+          </div>
+
+          <h3>Trafikkvekst Ferje</h3>
+          <p>
+            Angi forventet trafikkvekst for ferje i prosent som kan endre seg
+            over årene:
+          </p>
+
+          <div class="traffic-growth-section">
+            <h4>Lette kjøretøy</h4>
+            <div class="traffic-growth-table" id="ferry-light-table">
+              <div class="table-header">
+                <span>År</span>
+                <span>Vekstrate (%)</span>
+                <span>Handling</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="add-row-btn"
+              onclick="addTrafficGrowthRow('ferry-light-table', 'ferry_growth_light')"
+            >
+              + Legg til år
+            </button>
+            <textarea id="ferry_growth_light" style="display: none">
+{"2025": 0.01, "2040": 0.005}</textarea
+            >
+
+            <h4>Tunge kjøretøy</h4>
+            <div class="traffic-growth-table" id="ferry-heavy-table">
+              <div class="table-header">
+                <span>År</span>
+                <span>Vekstrate (%)</span>
+                <span>Handling</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="add-row-btn"
+              onclick="addTrafficGrowthRow('ferry-heavy-table', 'ferry_growth_heavy')"
+            >
+              + Legg til år
+            </button>
+            <textarea id="ferry_growth_heavy" style="display: none">
+{"2025": 0.02, "2040": 0.01}</textarea
+            >
+          </div>
+
+          <h3>Trafikkvekst Prosjekt</h3>
+
+          <div class="traffic-growth-section">
+            <h4>Lette kjøretøy</h4>
+            <div class="traffic-growth-table" id="project-light-table">
+              <div class="table-header">
+                <span>År</span>
+                <span>Vekstrate (%)</span>
+                <span>Handling</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="add-row-btn"
+              onclick="addTrafficGrowthRow('project-light-table', 'project_growth_light')"
+            >
+              + Legg til år
+            </button>
+            <textarea id="project_growth_light" style="display: none">
+{"2032": 0.02, "2050": 0.01}</textarea
+            >
+
+            <h4>Tunge kjøretøy</h4>
+            <div class="traffic-growth-table" id="project-heavy-table">
+              <div class="table-header">
+                <span>År</span>
+                <span>Vekstrate (%)</span>
+                <span>Handling</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              class="add-row-btn"
+              onclick="addTrafficGrowthRow('project-heavy-table', 'project_growth_heavy')"
+            >
+              + Legg til år
+            </button>
+            <textarea id="project_growth_heavy" style="display: none">
+{"2032": 0.025, "2050": 0.015}</textarea
+            >
+          </div>
+        </div>
+
+        <div id="ferry" class="tab-content">
+          <h2>Ferjeparametere</h2>
+          <div class="form-grid">
+            <label for="ferry_cost_light">Ferjebillett lette biler:</label>
+            <input
+              type="number"
+              id="ferry_cost_light"
+              value="218"
+              title="Ferjebillett pris for lette biler (personerbiler, varebiler) i gjennomsnitt"
+            />
+            <label for="ferry_cost_heavy">Ferjebillett tunge biler:</label>
+            <input
+              type="number"
+              id="ferry_cost_heavy"
+              value="780"
+              title="Ferjebillett pris for tunge biler (busser, lastebiler) i gjennomsnitt"
+            />
+            <label for="annual_ferry_subsidy"
+              >Årlig statlig ferjesubsidie (mill NOK):</label
+            >
+            <input type="number" id="annual_ferry_subsidy" value="100" />
+            <label for="ferry_comfort_factor">Komfortfaktor:</label>
+            <input
+              type="number"
+              id="ferry_comfort_factor"
+              value="1.1"
+              step="0.1"
+            />
+          </div>
+          <h3>Ekstra tid på ferje (timer)</h3>
+          <div class="form-grid">
+            <label for="ferry_time_leisure">Fritid:</label>
+            <input
+              type="number"
+              id="ferry_time_leisure"
+              value="0.5"
+              step="0.1"
+            />
+            <label for="ferry_time_work">Arbeid:</label>
+            <input type="number" id="ferry_time_work" value="0.5" step="0.1" />
+            <label for="ferry_time_business">Næring:</label>
+            <input
+              type="number"
+              id="ferry_time_business"
+              value="0.5"
+              step="0.1"
+            />
+            <label for="ferry_time_heavy">Tung:</label>
+            <input type="number" id="ferry_time_heavy" value="0.5" step="0.1" />
+          </div>
+        </div>
+
+        <div id="vehicle" class="tab-content">
+          <h2>Kjøretøykostnader & Tidsverdier</h2>
+          <div class="form-grid">
+            <label for="change_in_road_length">Endring i veilengde (km):</label>
+            <input
+              type="number"
+              id="change_in_road_length"
+              value="22"
+              step="0.1"
+              title="Positiv verdi om økt veilengde ved utbygging"
+            />
+            <label for="speed_factor">Fartsfaktor:</label>
+            <input
+              type="number"
+              id="speed_factor"
+              value="1.0"
+              step="0.05"
+              title="Dersom prosjekt vil gi økt fart vil og energibruk/slitasje øke relativt"
+            />
+            <label for="voc_light">Kjøretøykostnad (Lett):</label>
+            <input
+              type="number"
+              id="voc_light"
+              value="2.5"
+              step="0.1"
+              title="Kjøretøykostnad for lette kjøretøy (NOK/km). Se veiledere for typiske tall."
+            />
+            <label for="voc_heavy">Kjøretøykostnad (Tung):</label>
+            <input
+              type="number"
+              id="voc_heavy"
+              value="8.0"
+              step="0.1"
+              title="Kjøretøykostnad for tunge kjøretøy (NOK/km). Se veiledere for typiske tall."
+            />
+          </div>
+          <h3>Tidsverdier</h3>
+          <p>
+            Verdien av tid per bil (NOK/time) for forskjellige brukergrupper.
+            Dette er basert på antatt betalingsvillighet og samfunnsøkonomiske
+            vurderinger.
+          </p>
+          <div class="form-grid">
+            <label for="vot_leisure">Fritid:</label>
+            <input type="number" id="vot_leisure" value="150" />
+            <label for="vot_work">Arbeid:</label>
+            <input type="number" id="vot_work" value="350" />
+            <label for="vot_business">Næring:</label>
+            <input type="number" id="vot_business" value="500" />
+            <label for="vot_heavy">Tung:</label>
+            <input type="number" id="vot_heavy" value="450" />
+          </div>
+        </div>
+
+        <div id="toll" class="tab-content">
+          <h2>Bompengeparametere</h2>
+          <div class="form-grid">
+            <label for="toll_enabled">Bompenger aktivert:</label>
+            <input
+              type="checkbox"
+              id="toll_enabled"
+              unchecked
+              title="Aktiver bruk av bompenger"
+            />
+            <label for="toll_dynamic_enabled"
+              >Dynamisk bompengeberegning:</label
+            >
+            <input type="checkbox" id="toll_dynamic_enabled" checked />
+            <label for="toll_loan">Bompengelån (MRD kr):</label>
+            <input type="number" id="toll_loan" value="10" />
+            <label for="repayment_period">Nedbetalingstid (år):</label>
+            <input type="number" id="repayment_period" value="20" />
+            <label for="toll_loan_interest">Lånerente (%):</label>
+            <input
+              type="number"
+              id="toll_loan_interest"
+              value="5.5"
+              step="0.1"
+            />
+            <label for="inflation_rate">Inflasjonsrate (%):</label>
+            <input type="number" id="inflation_rate" value="2" step="0.1" />
+            <label for="gradual_loan_uptake">Gradvis låneopptak:</label>
+            <input
+              type="checkbox"
+              id="gradual_loan_uptake"
+              checked
+              title="Aktiver konstant låneopptak per år; hvis ikke kommer bompengelånet tidlig i byggeprosessen slik det ofte gjør i praksis"
+            />
+            <label for="heavy_vehicle_toll_factor"
+              >Faktor tunge kjøretøy:</label
+            >
+            <input
+              type="number"
+              id="heavy_vehicle_toll_factor"
+              value="3.0"
+              step="0.1"
+              title="Hvor mange ganger høyere bompenge for tunge kjøretøy sammenlignet med lette kjøretøy. Typisk 2 eller 3"
+            />
+          </div>
+          <h3>Elastisitet</h3>
+          <p>
+            Elastisitet sier hvor mye trafikken reduseres relativ til
+            bompengenivået. Skal være et negativ tall, normalt i området -0.2
+            til -0.7. Jo større negativt tall, jo mer trafikkreduksjon.
+          </p>
+          <div class="form-grid">
+            <label for="elasticity_light">Lette kjøretøy:</label>
+            <input
+              type="number"
+              id="elasticity_light"
+              value="-0.5"
+              step="0.1"
+            />
+            <label for="elasticity_heavy">Tunge kjøretøy:</label>
+            <input
+              type="number"
+              id="elasticity_heavy"
+              value="-0.2"
+              step="0.1"
+            />
+          </div>
+        </div>
+
+        <div id="other" class="tab-content">
+          <h2>Andre kostnader & nytte</h2>
+          <p>
+            Angi eventuelle andre kostnader og nytte som ikke allerede er dekket
+            av de andre kategoriene. Disse blir ikke beregnet her, men man kan
+            bruke inngangstall fra SVV sine analyser. Stort sett er disse
+            tallene relativt små. Alle tall i mill. NOK, og i prisnivå angitt.
+          </p>
+          <div class="form-grid">
+            <label for="health_gs">Helseffekter (GS):</label>
+            <input type="number" id="health_gs" value="0" />
+            <label for="operators_sum">Sum operatører:</label>
+            <input type="number" id="operators_sum" value="0" />
+            <label for="accidents">Ulykkeskostnad:</label>
+            <input type="number" id="accidents" value="-500000000" />
+            <label for="ghg_emissions">Klimagassutslippskostnad:</label>
+            <input type="number" id="ghg_emissions" value="-2000000000" />
+            <label for="other_env_costs">Andre miljøkostnader:</label>
+            <input type="number" id="other_env_costs" value="-200000000" />
+            <label for="tax_income_correction">Skatteinntekt korreksjon:</label>
+            <input type="number" id="tax_income_correction" value="0" />
+          </div>
+        </div>
+      </form>
+
+      <button id="calculate-btn">Beregn</button>
+      <button id="export-btn" onclick="exportFormDataAsJSON()">
+        Eksporter konfigurasjon
+      </button>
+
+      <div id="results" class="hidden">
+        <h2>Resultater</h2>
+        <div id="summary-results"></div>
+        <h3>Trafikkutvikling</h3>
+        <div id="chart-container"></div>
+        <pre id="log-output"></pre>
+        <div id="results-table"></div>
+
+        <!-- Reference Image Section -->
+        <div id="reference-section">
+          <h3>Sammenligning med referanse</h3>
+          <div class="reference-controls">
+            <input
+              type="file"
+              id="reference-upload"
+              accept="image/*"
+              onchange="loadReferenceImage(event)"
+            />
+            <label for="reference-upload" class="file-upload-btn"
+              >Last opp referansebilde (PNG/JPG)</label
+            >
+            <button
+              id="load-default-reference"
+              onclick="loadDefaultReference()"
+              class="file-upload-btn"
+              style="background-color: #6c757d"
+            >
+              Last referanse for valgt case
+            </button>
+            <button
+              id="toggle-reference"
+              onclick="toggleReferenceView()"
+              style="display: none"
+            >
+              Vis/skjul referanse
+            </button>
+          </div>
+
+          <div
+            id="reference-display"
+            class="reference-container"
+            style="display: none"
+          >
+            <div class="reference-image-container">
+              <h4>Referansebilde</h4>
+              <img id="reference-image" src="" alt="Referansebilde" />
+            </div>
+          </div>
+        </div>
+
+        <div id="tax-breakdown"></div>
+      </div>
+    </div>
+    <script src="cba_loader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="script.js"></script>
+  </body>
+</html>

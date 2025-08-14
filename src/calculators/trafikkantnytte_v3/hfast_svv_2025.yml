@@ -1,0 +1,102 @@
+# Forsøker å replikere SVV 2025 tall
+opening_year: 2032
+construction_period: 7
+price_level: 2023
+comparison_year: 2025
+vat_construction: 0.22
+vat_general: 0.25
+analysis_period: 40
+lifetime: 75
+construction_cost: -53_700_000_000  # incl. VAT
+tax_factor: 0.2
+annual_maintenance: -185_000_000
+annual_ferry_subsidy: 470_000_000
+capital_interest_0_40: 0.04
+capital_interest_41_75: 0.03
+bnp_growth: 0.007
+
+# other, not computed here but added in the NNB setup
+other:
+  health_gs: 5_768_000
+  tax_income_correction: 1_128_876_000  # actually dynamic but quite hard to compute
+  accidents: -104_103_000
+  ghg_emissions: -856_336_000
+  other_env_costs: -6_831_000
+  operators_sum: -185_332_000  # usually relative small
+
+
+
+# traffic at opening year and onwards
+traffic:
+  aadt_ferry: 4500
+  traffic_growth_ferry:
+    light:
+      "2025": 0.004
+      "2060": 0.004
+    heavy:
+      "2025": 0.004
+      "2060": 0.004
+
+  aadt_project: 10000
+  traffic_growth_project:
+    light:
+      "2025": 0.007
+      "2060": 0.004
+    heavy:
+      "2025": 0.014
+      "2060": 0.012
+
+
+  # initial shares
+  heavy_share: 0.1
+  work_share: 0.1
+  leisure_share: 0.65
+  business_share: 0.15
+
+toll:
+  enabled: no
+  gradual_loan_uptake: false
+  toll_loan: 12_000_000_000
+  toll_loan_interest: 0.055
+  inflation_rate: 0.025
+  heavy_vehicle_toll_factor: 3
+  repayment_period: 20
+
+  # effect of toll is either pre-computed (static), or dynamically computed.
+  enable_dynamic: yes
+  static:
+    toll_aadt_multiplier: 0.7  # means that trafikk is reduced by this factor
+    costs:
+      light: 150
+      heavy: 650
+  dynamic:
+    # compute the traffic and tolls based on toll_loan and elasticities
+    elasticity:
+      light: -0.4
+      heavy: -0.2
+
+
+# time values are average per car per hour
+time_values:
+  leisure: 252
+  work: 175
+  business: 790
+  heavy: 900
+
+ferry:
+  costs:
+    light: 150  # SVV using wrong numbers?
+    heavy: 600
+  extra_time:
+    leisure: 1.1  # extra time in hrs
+    work: 1.1
+    business: 1.1
+    heavy: 1.15
+  comfort_factor: 1.1  # increase time with this; assume project (4 lane) is 1.0
+
+# vehicle costs per km
+vehicle_costs:
+  light: 3
+  heavy: 6
+  speed_factor: 1.25
+  change_in_road_length: 22.5  # km; positive if length increases after project

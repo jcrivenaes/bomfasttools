@@ -1,0 +1,85 @@
+# Forsøker å replikere SVV 2025 tall
+opening_year: 2032
+construction_period: 7
+price_level: 2023
+comparison_year: 2025
+vat: 0.22
+analysis_period: 40
+lifetime: 75
+construction_cost: -53_700_000_000  # incl. VAT
+tax_factor: 0.2
+annual_maintenance: -185_000_000
+annual_ferry_subsidy: 470_000_000
+capital_interest: 0.04
+bnp_growth: 0.007
+
+# other, not computed here but added in the NNB setup
+other:
+  health_gs: 5_768_000
+  tax_income: 1_128_876_000  # this is actually dynamic
+  accidents: -104_103_000
+  ghg_emissions: -856_336_000
+  other_env_costs: -6_831_000
+  operators_sum: -185_332_000  # usually relative small
+
+
+
+# traffic at opening year and onwards
+traffic:
+  aadt_ferry: 4500
+  traffic_growth_ferry: 0.007
+  aadt_project: 7400
+  traffic_growth_project: 0.007
+  heavy_share: 0.1
+  work_share: 0.1
+  leisure_share: 0.65
+  business_share: 0.15
+
+toll:
+  enabled: no
+  gradual_loan_uptake: false
+  toll_loan: 13_000_000_000
+  toll_loan_interest: 0.055
+  inflation_rate: 0.025
+  heavy_vehicle_toll_factor: 3
+  repayment_period: 20
+
+  # effect of toll is either pre-computed (static), or dynamically computed.
+  enable_dynamic: yes
+  static:
+    toll_aadt_multiplier: 0.7  # means that trafikk is reduced by this factor
+    costs:
+      light: 200
+      heavy: 600
+  dynamic:
+    # compute the traffic and tolls based on toll_loan and elasticities
+    elasticity:
+      light: -0.5
+      heavy: -0.2
+      average: -0.45
+
+
+# time values are average per car per hour
+time_values:
+  leisure: 252
+  work: 175
+  business: 790
+  heavy: 900
+
+ferry:
+  costs:
+    light: 115
+    heavy: 600
+  extra_time:
+    leisure: 0.8  # extra time in hrs
+    work: 0.8
+    business: 0.8
+    heavy: 0.9
+  comfort_factor: 1.1  # increase time with this; assume project (4 lane) is 1.0
+
+# vehicle costs per km
+vehicle_costs:
+  light: 3.8
+  heavy: 6
+  speed_factor: 1.25
+  change_in_road_length: 22.5  # km; positive if length increases after project
