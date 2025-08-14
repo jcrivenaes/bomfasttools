@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="no" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interaktiv Kalkulator for Trafikkantnytte</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Chosen Palette: Calm Harmony (Light neutrals like bg-slate-50, with subtle blues and greens for accents and charts) -->
+    <!-- Application Structure Plan: A single-page interactive calculator. Section 1: Inputs, now with separate fields for 'Business Travel' and 'Freight', including distribution and time values. Section 2: Dynamically updated results and charts, with the group benefit chart now showing four categories. Section 3: Data table. -->
+    <!-- Visualization & Content Choices: Inputs -> Separated the 'Business/Freight' category into two distinct categories ('Business' and 'Freight') across all relevant inputs (distribution, time values). The distribution sliders now auto-balance across four items. This provides a more granular and realistic model. Charts -> The group benefit chart is updated to display these four categories, providing deeper insight. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f8fafc; /* slate-50 */
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        height: 350px;
+        max-height: 400px;
+      }
+      @media (min-width: 768px) {
+        .chart-container {
+          height: 400px;
+        }
+      }
+      input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 8px;
+        background: #e2e8f0; /* slate-200 */
+        border-radius: 5px;
+        outline: none;
+        opacity: 0.9;
+        transition: opacity 0.2s;
+      }
+      input[type="range"]:hover {
+        opacity: 1;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        background: #0ea5e9; /* sky-500 */
+        cursor: pointer;
+        border-radius: 50%;
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        background: #0ea5e9; /* sky-500 */
+        cursor: pointer;
+        border-radius: 50%;
+      }
+      .tooltip {
+        position: relative;
+        display: inline-block;
+      }
+      .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 220px;
+        background-color: #1e293b;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -110px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        font-size: 0.8rem;
+        font-weight: normal;
+      }
+      .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+      }
+      .toggle-checkbox:checked {
+        right: 0;
+        border-color: #0ea5e9;
+      }
+      .toggle-checkbox:checked + .toggle-label {
+        background-color: #0ea5e9;
+      }
+    </style>
+  </head>
+  <body class="text-slate-800">
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+      <header class="text-center mb-10">
+        <h1 class="text-4xl md:text-5xl font-bold text-slate-900">
+          Interaktiv Kalkulator for Trafikkantnytte
+        </h1>
+        <p class="mt-4 text-lg text-slate-600 max-w-3xl mx-auto">
+          Analyser den samfunnsøkonomiske lønnsomheten ved å erstatte en ferge
+          med ny vei. Juster forutsetningene under for å se hvordan de påvirker
+          resultatet i sanntid.
+        </p>
+      </header>
+
+      <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Venstre kolonne: Inputs -->
+        <section
+          class="lg:col-span-1 bg-white p-6 rounded-xl shadow-lg space-y-8 h-fit sticky top-8"
+        >
+          <h2 class="text-2xl font-bold text-slate-900 border-b pb-3">
+            Forutsetninger
+          </h2>
+
+          <div id="input-container" class="space-y-6">
+            <!-- Prosjektrammer -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-semibold text-slate-700">
+                Prosjektrammer
+              </h3>
+              <div class="input-group">
+                <label
+                  for="year_price"
+                  class="block text-sm font-medium text-slate-600"
+                  >År for pris</label
+                >
+                <input
+                  type="number"
+                  id="year_price"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="year_comparison"
+                  class="block text-sm font-medium text-slate-600"
+                  >Sammenligningsår</label
+                >
+                <input
+                  type="number"
+                  id="year_comparison"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="construction_time"
+                  class="block text-sm font-medium text-slate-600"
+                  >Byggetid (år)</label
+                >
+                <input
+                  type="number"
+                  id="construction_time"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="year_opening"
+                  class="block text-sm font-medium text-slate-600"
+                  >Åpningsår</label
+                >
+                <input
+                  type="number"
+                  id="year_opening"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="investment_cost"
+                  class="block text-sm font-medium text-slate-600"
+                  >Kostnad inkl MVA (MNOK)</label
+                >
+                <input
+                  type="number"
+                  id="investment_cost"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="vat_percent"
+                  class="block text-sm font-medium text-slate-600"
+                  >MVA sats %</label
+                >
+                <input
+                  type="number"
+                  id="vat_percent"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="opex_road"
+                  class="block text-sm font-medium text-slate-600"
+                >
+                  Årlig drift/vedlikehold vei (MNOK)
+                </label>
+                <input
+                  type="number"
+                  id="opex_road"
+                  value="5"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="opex_ferry"
+                  class="block text-sm font-medium text-slate-600"
+                >
+                  Årlig drift/vedlikehold ferge (MNOK)
+                </label>
+                <input
+                  type="number"
+                  id="opex_ferry"
+                  value="30"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="technical_lifespan"
+                  class="block text-sm font-medium text-slate-600"
+                  >Teknisk levetid (år)</label
+                >
+                <input
+                  type="number"
+                  id="technical_lifespan"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="analysis_period"
+                  class="block text-sm font-medium text-slate-600"
+                  >Analyseperiode:
+                  <span
+                    id="analysis_period_label"
+                    class="font-bold text-sky-600"
+                  ></span>
+                  år</label
+                >
+                <input
+                  type="range"
+                  id="analysis_period"
+                  min="10"
+                  max="75"
+                  class="mt-1"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="toll_period"
+                  class="block text-sm font-medium text-slate-600"
+                  >Bompengeperiode:
+                  <span
+                    id="toll_period_label"
+                    class="font-bold text-sky-600"
+                  ></span>
+                  år</label
+                >
+                <input
+                  type="range"
+                  id="toll_period"
+                  min="0"
+                  max="40"
+                  class="mt-1"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="discount_rate"
+                  class="block text-sm font-medium text-slate-600"
+                  >Diskonteringsrente (første 40 år):
+                  <span
+                    id="discount_rate_label"
+                    class="font-bold text-sky-600"
+                  ></span
+                  >%</label
+                >
+                <input
+                  type="range"
+                  id="discount_rate"
+                  min="1"
+                  max="8"
+                  step="0.1"
+                  class="mt-1"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="discount_rate_late"
+                  class="block text-sm font-medium text-slate-600"
+                  >Diskonteringsrente (etter 40 år):
+                  <span
+                    id="discount_rate_late_label"
+                    class="font-bold text-sky-600"
+                  ></span
+                  >%</label
+                >
+                <input
+                  type="range"
+                  id="discount_rate_late"
+                  min="1"
+                  max="8"
+                  step="0.1"
+                  class="mt-1"
+                />
+              </div>
+            </div>
+
+            <!-- Trafikk -->
+            <div class="space-y-4 pt-4 border-t">
+              <h3 class="text-lg font-semibold text-slate-700">Trafikk</h3>
+              <div class="input-group">
+                <label
+                  for="base_adt"
+                  class="block text-sm font-medium text-slate-600"
+                  >ÅDT i startår (ferge)</label
+                >
+                <input
+                  type="number"
+                  id="base_adt"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="induced_traffic"
+                  class="block text-sm font-medium text-slate-600"
+                  >Umiddelbar trafikkøkning (ny vei):
+                  <span
+                    id="induced_traffic_label"
+                    class="font-bold text-sky-600"
+                  ></span
+                  >%</label
+                >
+                <input
+                  type="range"
+                  id="induced_traffic"
+                  min="0"
+                  max="100"
+                  step="1"
+                  class="mt-1"
+                />
+              </div>
+              <div class="space-y-4 p-4 bg-slate-50 rounded-lg mt-4">
+                <h4 class="text-md font-semibold text-slate-700 mb-2">
+                  Trafikkfordeling (Reiseformål)
+                </h4>
+                <div class="input-group">
+                  <label
+                    for="leisure_distribution"
+                    class="block text-sm font-medium text-slate-600"
+                    >Andel Fritidsreiser:
+                    <span
+                      id="leisure_distribution_label"
+                      class="font-bold text-sky-600"
+                    ></span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="leisure_distribution"
+                    min="0"
+                    max="100"
+                    step="1"
+                    class="mt-1 distribution-slider"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="work_distribution"
+                    class="block text-sm font-medium text-slate-600"
+                    >Andel Arbeidsreiser:
+                    <span
+                      id="work_distribution_label"
+                      class="font-bold text-sky-600"
+                    ></span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="work_distribution"
+                    min="0"
+                    max="100"
+                    step="1"
+                    class="mt-1 distribution-slider"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="business_distribution"
+                    class="block text-sm font-medium text-slate-600"
+                    >Andel Tjenestereiser:
+                    <span
+                      id="business_distribution_label"
+                      class="font-bold text-sky-600"
+                    ></span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="business_distribution"
+                    min="0"
+                    max="100"
+                    step="1"
+                    class="mt-1 distribution-slider"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="goods_distribution"
+                    class="block text-sm font-medium text-slate-600"
+                    >Andel Gods:
+                    <span
+                      id="goods_distribution_label"
+                      class="font-bold text-sky-600"
+                      >5</span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="goods_distribution"
+                    min="0"
+                    max="100"
+                    step="1"
+                    value="5"
+                    class="mt-1 distribution-slider"
+                  />
+                </div>
+              </div>
+              <div class="space-y-4 pt-4 border-t mt-4">
+                <h4 class="text-md font-semibold text-slate-700">
+                  Vekstfaktorer
+                </h4>
+                <div class="input-group">
+                  <label
+                    for="traffic_growth_ferry"
+                    class="block text-sm font-medium text-slate-600"
+                    >Årlig vekst (Ferge):
+                    <span
+                      id="traffic_growth_ferry_label"
+                      class="font-bold text-sky-600"
+                      >1.0</span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="traffic_growth_ferry"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value="1.0"
+                    class="mt-1"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="traffic_growth_toll"
+                    class="block text-sm font-medium text-slate-600"
+                    >Årlig vekst (Vei m/bom):
+                    <span
+                      id="traffic_growth_toll_label"
+                      class="font-bold text-sky-600"
+                      >0.5</span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="traffic_growth_toll"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value="0.5"
+                    class="mt-1"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="extra_growth_post_toll"
+                    class="block text-sm font-medium text-slate-600"
+                    >Trafikkhopp etter bom:
+                    <span
+                      id="extra_growth_post_toll_label"
+                      class="font-bold text-sky-600"
+                      >10</span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="extra_growth_post_toll"
+                    min="0"
+                    max="50"
+                    step="1"
+                    value="10"
+                    class="mt-1"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="traffic_growth_post_toll"
+                    class="block text-sm font-medium text-slate-600"
+                    >Årlig vekst (Vei u/bom):
+                    <span
+                      id="traffic_growth_post_toll_label"
+                      class="font-bold text-sky-600"
+                      >1.5</span
+                    >%</label
+                  >
+                  <input
+                    type="range"
+                    id="traffic_growth_post_toll"
+                    min="0"
+                    max="5"
+                    step="0.1"
+                    value="1.5"
+                    class="mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Tidsverdier -->
+            <div class="space-y-4 pt-4 border-t">
+              <h3 class="text-lg font-semibold text-slate-700">Tidsverdier</h3>
+              <div class="input-group">
+                <label
+                  for="time_value_leisure"
+                  class="block text-sm font-medium text-slate-600"
+                  >Fritidsreiser (kr/time)</label
+                >
+                <input
+                  type="number"
+                  id="time_value_leisure"
+                  value="225"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="time_value_work"
+                  class="block text-sm font-medium text-slate-600"
+                  >Arbeidsreiser (kr/time)</label
+                >
+                <input
+                  type="number"
+                  id="time_value_work"
+                  value="310"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="time_value_business"
+                  class="block text-sm font-medium text-slate-600"
+                  >Tjenestereiser (kr/time)</label
+                >
+                <input
+                  type="number"
+                  id="time_value_business"
+                  value="650"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+              <div class="input-group">
+                <label
+                  for="time_value_goods"
+                  class="block text-sm font-medium text-slate-600"
+                  >Gods (kr/time)</label
+                >
+                <input
+                  type="number"
+                  id="time_value_goods"
+                  value="700"
+                  class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                />
+              </div>
+            </div>
+
+            <!-- Alternativer & Metode -->
+            <div class="space-y-4 pt-4 border-t">
+              <h3 class="text-lg font-semibold text-slate-700">
+                Alternativer & Metode
+              </h3>
+              <div class="p-4 bg-slate-50 rounded-lg space-y-4">
+                <h4 class="font-semibold">Dagens løsning (Ferge)</h4>
+                <div class="input-group">
+                  <label
+                    for="ferry_time"
+                    class="block text-sm font-medium text-slate-600"
+                    >Reisetid (minutter)</label
+                  ><input
+                    type="number"
+                    id="ferry_time"
+                    value="45"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="heavy_traffic_share_ferry"
+                    class="block text-sm font-medium text-slate-600"
+                    >Andel tungtrafikk (%):
+                    <span
+                      id="heavy_traffic_share_ferry_label"
+                      class="font-bold text-sky-600"
+                      >15</span
+                    >%</label
+                  ><input
+                    type="range"
+                    id="heavy_traffic_share_ferry"
+                    min="0"
+                    max="100"
+                    value="15"
+                    class="mt-1"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="ferry_price_light"
+                    class="block text-sm font-medium text-slate-600"
+                    >Billettpris lettbil (kr)</label
+                  ><input
+                    type="number"
+                    id="ferry_price_light"
+                    value="120"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="ferry_price_heavy"
+                    class="block text-sm font-medium text-slate-600"
+                    >Billettpris tungbil (kr)</label
+                  ><input
+                    type="number"
+                    id="ferry_price_heavy"
+                    value="300"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                  />
+                </div>
+                <div class="input-group">
+                  <label class="block text-sm font-medium text-slate-600"
+                    >Gjennomsnittlig billettpris</label
+                  >
+                  <p
+                    class="text-right font-bold text-slate-800"
+                    id="avg_ferry_price"
+                  >
+                    --
+                  </p>
+                </div>
+              </div>
+              <div class="p-4 bg-slate-50 rounded-lg space-y-4">
+                <h4 class="font-semibold">Ny løsning (Vei)</h4>
+                <div class="input-group">
+                  <label
+                    for="road_time"
+                    class="block text-sm font-medium text-slate-600"
+                    >Reisetid (minutter)</label
+                  ><input
+                    type="number"
+                    id="road_time"
+                    value="20"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="heavy_traffic_share_road"
+                    class="block text-sm font-medium text-slate-600"
+                    >Andel tungtrafikk (%):
+                    <span
+                      id="heavy_traffic_share_road_label"
+                      class="font-bold text-sky-600"
+                      >15</span
+                    >%</label
+                  ><input
+                    type="range"
+                    id="heavy_traffic_share_road"
+                    min="0"
+                    max="100"
+                    value="15"
+                    class="mt-1"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="toll_price_light"
+                    class="block text-sm font-medium text-slate-600"
+                    >Bompengetakst lettbil (kr)</label
+                  ><input
+                    type="number"
+                    id="toll_price_light"
+                    value="95"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                  />
+                </div>
+                <div class="input-group">
+                  <label
+                    for="toll_price_heavy"
+                    class="block text-sm font-medium text-slate-600"
+                    >Bompengetakst tungbil (kr)</label
+                  ><input
+                    type="number"
+                    id="toll_price_heavy"
+                    value="250"
+                    class="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 text-right"
+                  />
+                </div>
+                <div class="input-group">
+                  <label class="block text-sm font-medium text-slate-600"
+                    >Gjennomsnittlig bompengetakst</label
+                  >
+                  <p
+                    class="text-right font-bold text-slate-800"
+                    id="avg_toll_price"
+                  >
+                    --
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-4 border-t">
+                <span class="text-sm font-medium text-slate-600"
+                  >"Rule of a Half" for indusert trafikk
+                  <div class="tooltip">
+                    <span class="ml-1 text-sky-500 cursor-pointer">(?)</span>
+                    <span class="tooltiptext"
+                      >Nytten for ny trafikk vektes med 50%, da denne trafikken
+                      ikke hadde høy nok betalingsvilje til å reise med den
+                      gamle løsningen.</span
+                    >
+                  </div>
+                </span>
+                <div
+                  class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in"
+                >
+                  <input
+                    type="checkbox"
+                    name="toggle"
+                    id="rule_of_half_toggle"
+                    class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"
+                    checked
+                  />
+                  <label
+                    for="rule_of_half_toggle"
+                    class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"
+                  ></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Høyre kolonne: Resultater -->
+        <section class="lg:col-span-2 space-y-8">
+          <!-- Nøkkeltall -->
+          <div class="space-y-4">
+            <h2 class="text-2xl font-bold text-slate-900">Resultater</h2>
+            <p class="text-slate-600">
+              Resultatene under oppdateres automatisk når du endrer
+              forutsetningene til venstre. Dette gir en dynamisk oversikt over
+              prosjektets lønnsomhet.
+            </p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+              <h3 class="text-slate-500 font-medium">Total Nåverdi Nytte</h3>
+              <p
+                id="total_benefit"
+                class="text-3xl font-bold text-green-600 mt-2"
+              >
+                --
+              </p>
+              <p class="text-sm text-slate-400">MNOK</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+              <h3 class="text-slate-500 font-medium">Nåverdi av Restverdi</h3>
+              <p
+                id="residual_value"
+                class="text-3xl font-bold text-cyan-600 mt-2"
+              >
+                --
+              </p>
+              <p class="text-sm text-slate-400">MNOK</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+              <h3 class="text-slate-500 font-medium">Netto Nåverdi (NNV)</h3>
+              <p
+                id="net_present_value"
+                class="text-3xl font-bold text-sky-600 mt-2"
+              >
+                --
+              </p>
+              <p class="text-sm text-slate-400">MNOK</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+              <h3 class="text-slate-500 font-medium">
+                (Netto Nytte) / Investering
+              </h3>
+              <p
+                id="benefit_cost_ratio"
+                class="text-3xl font-bold text-amber-600 mt-2"
+              >
+                --
+              </p>
+              <p class="text-sm text-slate-400">
+                Netto nytte per investert krone
+              </p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+              <h3 class="text-slate-500 font-medium">
+                Diskontert sum D&V Ferge
+              </h3>
+              <p
+                id="npv_opex_ferry"
+                class="text-2xl font-bold text-sky-700 mt-2"
+              >
+                --
+              </p>
+              <p class="text-sm text-slate-400">MNOK</p>
+            </div>
+            <div class="bg-white p-6 rounded-xl shadow-lg text-center">
+              <h3 class="text-slate-500 font-medium">Diskontert sum D&V Vei</h3>
+              <p
+                id="npv_opex_road"
+                class="text-2xl font-bold text-sky-700 mt-2"
+              >
+                --
+              </p>
+              <p class="text-sm text-slate-400">MNOK</p>
+            </div>
+          </div>
+          <!-- Grafer -->
+          <div class="space-y-8">
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+              <h3 class="text-xl font-bold text-slate-900 mb-4">
+                Total Nytte fordelt på Grupper
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                Dette diagrammet viser hvor stor del av den totale,
+                neddiskonterte nytten som tilfaller de ulike gruppene av
+                trafikanter.
+              </p>
+              <div class="chart-container">
+                <canvas id="benefit_group_chart"></canvas>
+              </div>
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+              <h3 class="text-xl font-bold text-slate-900 mb-4">
+                Diskontert Årlig Nytte
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                Denne grafen viser den årlige nytten diskontert tilbake til
+                startåret. Summen av alle søylene utgjør prosjektets totale
+                nåverdi.
+              </p>
+              <div class="chart-container">
+                <canvas id="benefit_chart"></canvas>
+              </div>
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+              <h3 class="text-xl font-bold text-slate-900 mb-4">
+                Trafikkutvikling (ÅDT)
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                Her ser du den forventede utviklingen i årsdøgntrafikk (ÅDT) for
+                begge alternativene.
+              </p>
+              <div class="chart-container">
+                <canvas id="adt_chart"></canvas>
+              </div>
+            </div>
+            <div class="bg-white p-4 sm:p-6 rounded-xl shadow-lg">
+              <h3 class="text-xl font-bold text-slate-900 mb-4">
+                Årlig kostnad: Vei vs. Ferge
+              </h3>
+              <p class="text-sm text-slate-600 mb-4">
+                Grafen sammenligner den totale årlige samfunnskostnaden (tid +
+                penger) for de to alternativene.
+              </p>
+              <div class="chart-container">
+                <canvas id="cost_chart"></canvas>
+              </div>
+            </div>
+          </div>
+          <!-- Detaljert tabell -->
+          <div class="bg-white rounded-xl shadow-lg">
+            <details class="p-4 sm:p-6">
+              <summary class="text-xl font-bold text-slate-900 cursor-pointer">
+                Vis detaljert beregningstabell
+              </summary>
+              <div class="mt-4 overflow-x-auto">
+                <p class="text-sm text-slate-600 mb-4">
+                  Tabellen under viser den fullstendige, årlige beregningen som
+                  ligger til grunn for grafene og nøkkeltallene.
+                </p>
+                <table class="min-w-full divide-y divide-slate-200">
+                  <thead class="bg-slate-50">
+                    <tr>
+                      <th
+                        class="px-4 py-2 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"
+                      >
+                        År
+                      </th>
+                      <th
+                        class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider"
+                      >
+                        ÅDT Ferge
+                      </th>
+                      <th
+                        class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider"
+                      >
+                        ÅDT Vei
+                      </th>
+                      <th
+                        class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider"
+                      >
+                        Årlig Nytte (MNOK)
+                      </th>
+                      <th
+                        class="px-4 py-2 text-right text-xs font-medium text-slate-500 uppercase tracking-wider"
+                      >
+                        Nåverdi Nytte (MNOK)
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody
+                    id="calculation_table_body"
+                    class="bg-white divide-y divide-slate-200 text-sm"
+                  ></tbody>
+                </table>
+              </div>
+            </details>
+          </div>
+        </section>
+      </main>
+      <footer class="text-center mt-12 pt-8 border-t border-slate-200">
+        <p class="text-sm text-slate-500">
+          Kalkulatoren er basert på prinsipper fra samfunnsøkonomiske analyser
+          for transportprosjekter.
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const defaultValues = {
+          year_price: 2023,
+          year_comparison: 2025,
+          construction_time: 7,
+          year_opening: 2032,
+          investment_cost: 32000,
+          vat_percent: 22,
+          opex_road: 200,
+          opex_ferry: 230,
+          technical_lifespan: 75,
+          analysis_period: 40,
+          toll_period: 20,
+          discount_rate: 4,
+          discount_rate_late: 3,
+          base_adt: 4000,
+          induced_traffic: 40,
+          leisure_distribution: 60,
+          work_distribution: 25,
+          business_distribution: 10,
+          goods_distribution: 5,
+          traffic_growth_ferry: 1.5,
+          traffic_growth_toll: 1.5,
+          extra_growth_post_toll: 30,
+          traffic_growth_post_toll: 0.5,
+          time_value_leisure: 225,
+          time_value_work: 310,
+          time_value_business: 650,
+          time_value_goods: 700,
+          ferry_time: 45,
+          heavy_traffic_share_ferry: 15,
+          ferry_price_light: 120,
+          ferry_price_heavy: 300,
+          road_time: 20,
+          heavy_traffic_share_road: 15,
+          toll_price_light: 450,
+          toll_price_heavy: 1200,
+          rule_of_half_toggle: true,
+        };
+
+        // 2. Sett input-feltene til default-verdiene
+        for (const key in defaultValues) {
+          const el = document.getElementById(key);
+          if (!el) continue;
+          if (el.type === "checkbox") {
+            el.checked = defaultValues[key];
+          } else {
+            el.value = defaultValues[key];
+          }
+        }
+        const inputs = {
+          investment_cost: document.getElementById("investment_cost"),
+          opex_road: document.getElementById("opex_road"),
+          opex_ferry: document.getElementById("opex_ferry"),
+          technical_lifespan: document.getElementById("technical_lifespan"),
+          analysis_period: document.getElementById("analysis_period"),
+          toll_period: document.getElementById("toll_period"),
+          discount_rate: document.getElementById("discount_rate"),
+          base_adt: document.getElementById("base_adt"),
+          induced_traffic: document.getElementById("induced_traffic"),
+          leisure_distribution: document.getElementById("leisure_distribution"),
+          work_distribution: document.getElementById("work_distribution"),
+          business_distribution: document.getElementById(
+            "business_distribution"
+          ),
+          goods_distribution: document.getElementById("goods_distribution"),
+          traffic_growth_ferry: document.getElementById("traffic_growth_ferry"),
+          traffic_growth_toll: document.getElementById("traffic_growth_toll"),
+          extra_growth_post_toll: document.getElementById(
+            "extra_growth_post_toll"
+          ),
+          traffic_growth_post_toll: document.getElementById(
+            "traffic_growth_post_toll"
+          ),
+          time_value_leisure: document.getElementById("time_value_leisure"),
+          time_value_work: document.getElementById("time_value_work"),
+          time_value_business: document.getElementById("time_value_business"),
+          time_value_goods: document.getElementById("time_value_goods"),
+          ferry_time: document.getElementById("ferry_time"),
+          heavy_traffic_share_ferry: document.getElementById(
+            "heavy_traffic_share_ferry"
+          ),
+          ferry_price_light: document.getElementById("ferry_price_light"),
+          ferry_price_heavy: document.getElementById("ferry_price_heavy"),
+          road_time: document.getElementById("road_time"),
+          heavy_traffic_share_road: document.getElementById(
+            "heavy_traffic_share_road"
+          ),
+          toll_price_light: document.getElementById("toll_price_light"),
+          toll_price_heavy: document.getElementById("toll_price_heavy"),
+          rule_of_half_toggle: document.getElementById("rule_of_half_toggle"),
+        };
+
+        const labels = {
+          analysis_period: document.getElementById("analysis_period_label"),
+          toll_period: document.getElementById("toll_period_label"),
+          discount_rate: document.getElementById("discount_rate_label"),
+          induced_traffic: document.getElementById("induced_traffic_label"),
+          leisure_distribution: document.getElementById(
+            "leisure_distribution_label"
+          ),
+          work_distribution: document.getElementById("work_distribution_label"),
+          business_distribution: document.getElementById(
+            "business_distribution_label"
+          ),
+          goods_distribution: document.getElementById(
+            "goods_distribution_label"
+          ),
+          traffic_growth_ferry: document.getElementById(
+            "traffic_growth_ferry_label"
+          ),
+          traffic_growth_toll: document.getElementById(
+            "traffic_growth_toll_label"
+          ),
+          extra_growth_post_toll: document.getElementById(
+            "extra_growth_post_toll_label"
+          ),
+          traffic_growth_post_toll: document.getElementById(
+            "traffic_growth_post_toll_label"
+          ),
+          heavy_traffic_share_ferry: document.getElementById(
+            "heavy_traffic_share_ferry_label"
+          ),
+          heavy_traffic_share_road: document.getElementById(
+            "heavy_traffic_share_road_label"
+          ),
+        };
+
+        const distribution_sliders = [
+          inputs.leisure_distribution,
+          inputs.work_distribution,
+          inputs.business_distribution,
+          inputs.goods_distribution,
+        ];
+
+        const outputs = {
+          total_benefit: document.getElementById("total_benefit"),
+          residual_value: document.getElementById("residual_value"),
+          net_present_value: document.getElementById("net_present_value"),
+          benefit_cost_ratio: document.getElementById("benefit_cost_ratio"),
+          table_body: document.getElementById("calculation_table_body"),
+          avg_ferry_price: document.getElementById("avg_ferry_price"),
+          avg_toll_price: document.getElementById("avg_toll_price"),
+        };
+
+        let cost_chart, benefit_chart, adt_chart, benefit_group_chart;
+        let is_adjusting = false;
+
+        function format_number(num, decimals = 1, currency = false) {
+          if (isNaN(num) || !isFinite(num)) return "--";
+          let formatted = num.toLocaleString("nb-NO", {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals,
+          });
+          return currency ? `${formatted} kr` : formatted;
+        }
+
+        function update_labels() {
+          for (const key in labels) {
+            if (inputs[key]) {
+              labels[key].textContent = parseFloat(inputs[key].value).toFixed(
+                key.includes("distribution") || key.includes("share") ? 0 : 1
+              );
+            }
+          }
+        }
+
+        function handle_distribution_change(changed_slider) {
+          if (is_adjusting) return;
+          is_adjusting = true;
+
+          const sliders = distribution_sliders;
+          const changed_index = sliders.indexOf(changed_slider);
+
+          let current_total = sliders.reduce(
+            (acc, s) => acc + parseFloat(s.value),
+            0
+          );
+          let diff = current_total - 100;
+
+          let other_sliders = sliders.filter((_, i) => i !== changed_index);
+          let total_of_others = other_sliders.reduce(
+            (acc, s) => acc + parseFloat(s.value),
+            0
+          );
+
+          if (total_of_others > 0) {
+            other_sliders.forEach((slider) => {
+              let proportion = parseFloat(slider.value) / total_of_others;
+              slider.value = Math.max(
+                0,
+                parseFloat(slider.value) - diff * proportion
+              );
+            });
+          } else {
+            let adjustment = diff / other_sliders.length;
+            other_sliders.forEach((slider) => {
+              slider.value = Math.max(0, parseFloat(slider.value) - adjustment);
+            });
+          }
+
+          let final_total = sliders.reduce(
+            (acc, s) => acc + parseFloat(s.value),
+            0
+          );
+          let rounding_error = 100 - final_total;
+          if (Math.abs(rounding_error) > 0.1) {
+            let slider_to_adjust =
+              sliders.find(
+                (s) =>
+                  parseFloat(s.value) > Math.abs(rounding_error) &&
+                  s !== changed_slider
+              ) || other_sliders[0];
+            slider_to_adjust.value =
+              parseFloat(slider_to_adjust.value) + rounding_error;
+          }
+
+          update_labels();
+          is_adjusting = false;
+        }
+
+        function calculate() {
+          const config = {};
+          for (const key in inputs) {
+            config[key] =
+              inputs[key].type === "checkbox"
+                ? inputs[key].checked
+                : parseFloat(inputs[key].value);
+          }
+
+          const time_values = {
+            leisure: config.time_value_leisure,
+            work: config.time_value_work,
+            business: config.time_value_business,
+            goods: config.time_value_goods,
+          };
+
+          const traffic_distribution = {
+            leisure: config.leisure_distribution / 100,
+            work: config.work_distribution / 100,
+            business: config.business_distribution / 100,
+            goods: config.goods_distribution / 100,
+          };
+
+          const heavy_share_ferry = config.heavy_traffic_share_ferry / 100;
+          const avg_ferry_price =
+            config.ferry_price_light * (1 - heavy_share_ferry) +
+            config.ferry_price_heavy * heavy_share_ferry;
+          outputs.avg_ferry_price.textContent = format_number(
+            avg_ferry_price,
+            2,
+            true
+          );
+
+          const heavy_share_road = config.heavy_traffic_share_road / 100;
+          const avg_toll_price =
+            config.toll_price_light * (1 - heavy_share_road) +
+            config.toll_price_heavy * heavy_share_road;
+          outputs.avg_toll_price.textContent = format_number(
+            avg_toll_price,
+            2,
+            true
+          );
+
+          const analysis_period = config.analysis_period;
+          const toll_period = config.toll_period;
+          const discount_rate = config.discount_rate / 100;
+          const induced_traffic_ratio = config.induced_traffic / 100;
+          const growth_ferry = config.traffic_growth_ferry / 100;
+          const growth_toll = config.traffic_growth_toll / 100;
+          const extra_growth_post_toll_ratio =
+            config.extra_growth_post_toll / 100;
+          const growth_post_toll = config.traffic_growth_post_toll / 100;
+
+          let yearly_data = [];
+          let benefit_npv_by_group = {
+            leisure: 0,
+            work: 0,
+            business: 0,
+            goods: 0,
+          };
+          let adt_road_tracker = config.base_adt * (1 + induced_traffic_ratio);
+
+          for (let year = 1; year <= analysis_period; year++) {
+            const adt_ferry =
+              config.base_adt * Math.pow(1 + growth_ferry, year - 1);
+            let current_adt_road = adt_road_tracker;
+
+            let annual_benefit = 0;
+            let weighted_time_value = 0;
+
+            for (const group in time_values) {
+              weighted_time_value +=
+                time_values[group] * traffic_distribution[group];
+
+              const cost_per_trip_ferry =
+                (config.ferry_time / 60) * time_values[group] + avg_ferry_price;
+              const cost_per_trip_road =
+                (config.road_time / 60) * time_values[group] +
+                (year <= toll_period ? avg_toll_price : 0);
+              const benefit_per_trip = cost_per_trip_ferry - cost_per_trip_road;
+
+              const existing_traffic_volume =
+                adt_ferry * 365 * traffic_distribution[group];
+              const induced_traffic_volume =
+                (current_adt_road - adt_ferry) *
+                365 *
+                traffic_distribution[group];
+
+              let benefit_existing = benefit_per_trip * existing_traffic_volume;
+              let benefit_induced = benefit_per_trip * induced_traffic_volume;
+
+              if (config.rule_of_half_toggle && benefit_induced > 0) {
+                benefit_induced *= 0.5;
+              }
+
+              const group_annual_benefit = benefit_existing + benefit_induced;
+              benefit_npv_by_group[group] +=
+                group_annual_benefit / Math.pow(1 + discount_rate, year);
+              annual_benefit += group_annual_benefit;
+            }
+
+            const time_cost_ferry =
+              adt_ferry * 365 * (config.ferry_time / 60) * weighted_time_value;
+            const vehicle_cost_ferry = adt_ferry * 365 * avg_ferry_price;
+
+            const opex_ferry = config.opex_ferry * 1_000_000;
+
+            const total_cost_ferry =
+              time_cost_ferry + vehicle_cost_ferry + opex_ferry;
+
+            const time_cost_road =
+              current_adt_road *
+              365 *
+              (config.road_time / 60) *
+              weighted_time_value;
+            const vehicle_cost_road =
+              year <= toll_period ? current_adt_road * 365 * avg_toll_price : 0;
+
+            const opex_road = config.opex_road * 1_000_000;
+
+            const total_cost_road =
+              time_cost_road + vehicle_cost_road + opex_road;
+
+            yearly_data.push({
+              year: year,
+              adt_ferry: adt_ferry,
+              adt_road: current_adt_road,
+              total_cost_ferry: total_cost_ferry,
+              total_cost_road: total_cost_road,
+              annual_benefit: annual_benefit,
+              benefit_npv: annual_benefit / Math.pow(1 + discount_rate, year),
+            });
+
+            // Prepare ADT for next year
+            if (year < toll_period) {
+              adt_road_tracker *= 1 + growth_toll;
+            } else if (year === toll_period && toll_period > 0) {
+              adt_road_tracker *= 1 + growth_toll;
+              adt_road_tracker *= 1 + extra_growth_post_toll_ratio;
+            } else {
+              adt_road_tracker *= 1 + growth_post_toll;
+            }
+          }
+
+          const total_benefit_npv = Object.values(benefit_npv_by_group).reduce(
+            (a, b) => a + b,
+            0
+          );
+          const total_benefit_mnok = total_benefit_npv / 1_000_000;
+
+          let residual_value_npv_mnok = 0;
+          if (config.technical_lifespan > analysis_period) {
+            const remaining_lifespan =
+              config.technical_lifespan - analysis_period;
+            const residual_value_future_mnok =
+              config.investment_cost *
+              (remaining_lifespan / config.technical_lifespan);
+            residual_value_npv_mnok =
+              residual_value_future_mnok /
+              Math.pow(1 + discount_rate, analysis_period);
+          }
+
+          const investment_mnok = config.investment_cost;
+          const net_present_value =
+            total_benefit_mnok + residual_value_npv_mnok - investment_mnok;
+          const benefit_cost_ratio =
+            investment_mnok > 0 ? net_present_value / investment_mnok : 0;
+
+          let npv_opex_ferry = 0;
+          let npv_opex_road = 0;
+          for (let year = 1; year <= analysis_period; year++) {
+            npv_opex_ferry +=
+              (config.opex_ferry * 1_000_000) /
+              Math.pow(1 + discount_rate, year);
+            npv_opex_road +=
+              (config.opex_road * 1_000_000) /
+              Math.pow(1 + discount_rate, year);
+          }
+          // npv_opex_ferry og npv_opex_road er nåverdien (diskontert sum) av årlige D&V-kostnader for ferge og vei.
+          console.log("Diskontert sum opex_ferry:", npv_opex_ferry);
+          console.log("Diskontert sum opex_road:", npv_opex_road);
+
+          document.getElementById("npv_opex_ferry").textContent = format_number(
+            npv_opex_ferry / 1_000_000
+          );
+          document.getElementById("npv_opex_road").textContent = format_number(
+            npv_opex_road / 1_000_000
+          );
+
+          outputs.total_benefit.textContent = format_number(total_benefit_mnok);
+          outputs.residual_value.textContent = format_number(
+            residual_value_npv_mnok
+          );
+          outputs.net_present_value.textContent =
+            format_number(net_present_value);
+          outputs.benefit_cost_ratio.textContent = format_number(
+            benefit_cost_ratio,
+            2
+          );
+
+          outputs.net_present_value.classList.toggle(
+            "text-sky-600",
+            net_present_value >= 0
+          );
+          outputs.net_present_value.classList.toggle(
+            "text-red-600",
+            net_present_value < 0
+          );
+          outputs.benefit_cost_ratio.classList.toggle(
+            "text-green-600",
+            benefit_cost_ratio >= 0
+          );
+          outputs.benefit_cost_ratio.classList.toggle(
+            "text-red-600",
+            benefit_cost_ratio < 0
+          );
+
+          update_charts(yearly_data, benefit_npv_by_group);
+          update_table(yearly_data);
+        }
+
+        function create_charts() {
+          const chart_options = {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { intersect: false, mode: "index" },
+            plugins: {
+              legend: { position: "top" },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    let label = context.dataset.label || "";
+                    if (label) {
+                      label += ": ";
+                    }
+                    if (context.parsed.y !== null) {
+                      label += format_number(context.parsed.y, 0);
+                    }
+                    return label;
+                  },
+                },
+              },
+            },
+            scales: {
+              x: { title: { display: true, text: "År" } },
+              y: {
+                title: { display: true, text: "Verdi" },
+                ticks: {
+                  callback: function (value) {
+                    if (value >= 1_000_000_000)
+                      return value / 1_000_000_000 + " mrd.";
+                    if (value >= 1_000_000) return value / 1_000_000 + " mill.";
+                    if (value >= 1_000) return value / 1_000 + " tusen";
+                    return value;
+                  },
+                },
+              },
+            },
+          };
+
+          benefit_group_chart = new Chart(
+            document.getElementById("benefit_group_chart"),
+            {
+              type: "bar",
+              data: {
+                labels: [
+                  "Fritidsreiser",
+                  "Arbeidsreiser",
+                  "Tjenestereiser",
+                  "Gods",
+                ],
+                datasets: [
+                  {
+                    label: "Total Nåverdi Nytte (MNOK)",
+                    data: [],
+                    backgroundColor: [
+                      "#34d399",
+                      "#60a5fa",
+                      "#f59e0b",
+                      "#a855f7",
+                    ],
+                  },
+                ],
+              },
+              options: {
+                ...chart_options,
+                scales: {
+                  ...chart_options.scales,
+                  x: { title: { display: false } },
+                  y: {
+                    ...chart_options.scales.y,
+                    title: { display: true, text: "Nytte (MNOK)" },
+                  },
+                },
+              },
+            }
+          );
+
+          cost_chart = new Chart(document.getElementById("cost_chart"), {
+            type: "line",
+            data: {
+              labels: [],
+              datasets: [
+                {
+                  label: "Kostnad Ferge",
+                  data: [],
+                  borderColor: "#f97316",
+                  fill: false,
+                  tension: 0.1,
+                },
+                {
+                  label: "Kostnad Vei",
+                  data: [],
+                  borderColor: "#0ea5e9",
+                  fill: false,
+                  tension: 0.1,
+                },
+              ],
+            },
+            options: {
+              ...chart_options,
+              scales: {
+                ...chart_options.scales,
+                y: {
+                  ...chart_options.scales.y,
+                  title: { display: true, text: "Årlig Kostnad (kr)" },
+                },
+              },
+            },
+          });
+          benefit_chart = new Chart(document.getElementById("benefit_chart"), {
+            type: "bar",
+            data: {
+              labels: [],
+              datasets: [
+                {
+                  label: "Diskontert Nytte",
+                  data: [],
+                  backgroundColor: "#22c55e",
+                },
+              ],
+            },
+            options: {
+              ...chart_options,
+              scales: {
+                ...chart_options.scales,
+                y: {
+                  ...chart_options.scales.y,
+                  title: { display: true, text: "Diskontert Nytte (kr)" },
+                },
+              },
+            },
+          });
+          adt_chart = new Chart(document.getElementById("adt_chart"), {
+            type: "line",
+            data: {
+              labels: [],
+              datasets: [
+                {
+                  label: "ÅDT Ferge",
+                  data: [],
+                  borderColor: "#f97316",
+                  fill: false,
+                  tension: 0.1,
+                },
+                {
+                  label: "ÅDT Vei",
+                  data: [],
+                  borderColor: "#0ea5e9",
+                  fill: false,
+                  tension: 0.1,
+                },
+              ],
+            },
+            options: {
+              ...chart_options,
+              scales: {
+                ...chart_options.scales,
+                y: {
+                  ...chart_options.scales.y,
+                  title: { display: true, text: "Årsdøgntrafikk (ÅDT)" },
+                },
+              },
+            },
+          });
+        }
+
+        function update_charts(data, group_benefits) {
+          const labels = data.map((d) => d.year);
+          cost_chart.data.labels = labels;
+          cost_chart.data.datasets[0].data = data.map(
+            (d) => d.total_cost_ferry
+          );
+          cost_chart.data.datasets[1].data = data.map((d) => d.total_cost_road);
+          cost_chart.update();
+
+          benefit_chart.data.labels = labels;
+          benefit_chart.data.datasets[0].data = data.map((d) => d.benefit_npv);
+          benefit_chart.update();
+
+          adt_chart.data.labels = labels;
+          adt_chart.data.datasets[0].data = data.map((d) => d.adt_ferry);
+          adt_chart.data.datasets[1].data = data.map((d) => d.adt_road);
+          adt_chart.update();
+
+          benefit_group_chart.data.datasets[0].data = [
+            group_benefits.leisure / 1_000_000,
+            group_benefits.work / 1_000_000,
+            group_benefits.business / 1_000_000,
+            group_benefits.goods / 1_000_000,
+          ];
+          benefit_group_chart.update();
+        }
+
+        function update_table(data) {
+          let table_html = "";
+          data.forEach((d) => {
+            table_html += `<tr class="hover:bg-slate-50"><td class="px-4 py-2 whitespace-nowrap">${
+              d.year
+            }</td><td class="px-4 py-2 whitespace-nowrap text-right">${format_number(
+              d.adt_ferry,
+              0
+            )}</td><td class="px-4 py-2 whitespace-nowrap text-right">${format_number(
+              d.adt_road,
+              0
+            )}</td><td class="px-4 py-2 whitespace-nowrap text-right">${format_number(
+              d.annual_benefit / 1_000_000
+            )}</td><td class="px-4 py-2 whitespace-nowrap text-right">${format_number(
+              d.benefit_npv / 1_000_000
+            )}</td></tr>`;
+          });
+          outputs.table_body.innerHTML = table_html;
+        }
+
+        // Initial setup
+        create_charts();
+
+        distribution_sliders.forEach((slider) => {
+          slider.addEventListener("input", () =>
+            handle_distribution_change(slider)
+          );
+        });
+
+        Object.values(inputs).forEach((input) => {
+          input.addEventListener("input", () => {
+            if (!input.classList.contains("distribution-slider")) {
+              update_labels();
+            }
+            calculate();
+          });
+        });
+
+        update_labels();
+        calculate();
+      });
+    </script>
+  </body>
+</html>
