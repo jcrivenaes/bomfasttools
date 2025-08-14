@@ -7,20 +7,15 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="container" style="position: relative">
-      <!-- Dropdown in upper right corner -->
+    <div class="container embedded-calculator" style="position: relative">
+      <!-- Dropdown moved to normal flow and made more compact -->
       <div
         style="
-          position: absolute;
-          top: 1em;
-          right: 1em;
           display: flex;
           align-items: center;
+          justify-content: flex-end;
+          margin-bottom: 1em;
           z-index: 100;
-          background: #fff;
-          padding: 0.3em 0.6em;
-          border-radius: 6px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         "
       >
         <select
@@ -43,8 +38,10 @@
         </select>
       </div>
 
-      <h1>Estimering av trafikkantnytte (test!)</h1>
-      <p>
+      <h1 style="font-size: 1.8em; margin-bottom: 15px">
+        Estimering av trafikkantnytte (test!)
+      </h1>
+      <p style="margin-bottom: 15px">
         Denne verktøyet utfører en kostnads-nytteanalyse for et
         transportinfrastrukturprosjekt (fergeavløsningsprosjekt), basert på
         prinsippene som brukes i norsk transportanalyse. Denne kalkulatoren er
@@ -56,8 +53,8 @@
         style="
           display: flex;
           align-items: center;
-          gap: 1.5em;
-          margin-bottom: 1em;
+          gap: 1em;
+          margin-bottom: 15px;
         "
       >
         <div class="tabs">
@@ -84,7 +81,9 @@
 
       <form id="cba-form">
         <div id="general" class="tab-content active">
-          <h2>Generelt og bygging</h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">
+            Generelt og bygging
+          </h2>
           <div class="form-grid">
             <label for="price_level">Prisnivå (år):</label>
             <input
@@ -185,7 +184,9 @@
         </div>
 
         <div id="traffic" class="tab-content">
-          <h2>Trafikkparametere</h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">
+            Trafikkparametere
+          </h2>
           <div class="form-grid">
             <label for="aadt_ferry">ÅDT Ferje (basisår):</label>
             <input type="number" id="aadt_ferry" value="4000" step="10" />
@@ -346,7 +347,7 @@
         </div>
 
         <div id="ferry" class="tab-content">
-          <h2>Ferjeparametere</h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">Ferjeparametere</h2>
           <div class="form-grid">
             <label for="ferry_cost_light">Ferjebillett lette biler:</label>
             <input
@@ -398,7 +399,9 @@
         </div>
 
         <div id="vehicle" class="tab-content">
-          <h2>Kjøretøykostnader & Tidsverdier</h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">
+            Kjøretøykostnader & Tidsverdier
+          </h2>
           <div class="form-grid">
             <label for="change_in_road_length">Endring i veilengde (km):</label>
             <input
@@ -452,7 +455,9 @@
         </div>
 
         <div id="toll" class="tab-content">
-          <h2>Bompengeparametere</h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">
+            Bompengeparametere
+          </h2>
           <div class="form-grid">
             <label for="toll_enabled">Bompenger aktivert:</label>
             <input
@@ -521,7 +526,9 @@
         </div>
 
         <div id="other" class="tab-content">
-          <h2>Andre kostnader & nytte</h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">
+            Andre kostnader & nytte
+          </h2>
           <p>
             Angi eventuelle andre kostnader og nytte som ikke allerede er dekket
             av de andre kategoriene. Disse blir ikke beregnet her, men man kan
@@ -550,8 +557,8 @@
         Eksporter konfigurasjon
       </button>
 
-      <div id="results" class="hidden">
-        <h2>Resultater</h2>
+      <div id="results" style="margin-top: 30px">
+        <h2 style="font-size: 1.4em; margin-bottom: 15px">Resultater</h2>
         <div id="summary-results"></div>
         <h3>Trafikkutvikling</h3>
         <div id="chart-container"></div>
