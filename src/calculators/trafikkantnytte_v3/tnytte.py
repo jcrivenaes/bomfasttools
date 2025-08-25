@@ -36,7 +36,7 @@ def calculate_toll_rates(
     light_time_saving_hr: float = 1,
     light_traffic_growth: float = 0.01,
     light_elasticity: float = -0.5,
-    light_ferry_price: float = 150,
+    light_baseline_price: float = 150,  # baseline is often the ferry alternative
     light_vot: float = 350,
     light_voc: float = 2.5,
     # --- Heavy Vehicle Parameters ---
@@ -44,7 +44,7 @@ def calculate_toll_rates(
     heavy_time_saving_hr: float = 1,
     heavy_traffic_growth: float = 0.01,
     heavy_elasticity: float = -0.2,
-    heavy_ferry_price: float = 500.0,
+    heavy_baseline_price: float = 500.0,
     heavy_vot: float = 600,
     heavy_voc: float = 8.0,
     heavy_toll_factor: float = 3.0,
@@ -77,12 +77,12 @@ def calculate_toll_rates(
     # This is the total economic benefit a user gets from the new road.
     net_benefit_light = (
         (light_time_saving_hr * light_vot)
-        + light_ferry_price
+        + light_baseline_price
         - (extra_dist_km * light_voc)
     )
     net_benefit_heavy = (
         (heavy_time_saving_hr * heavy_vot)
-        + heavy_ferry_price
+        + heavy_baseline_price
         - (extra_dist_km * heavy_voc)
     )
 
@@ -197,7 +197,7 @@ class TrafficBenefitCalculator:
         self.result_construction_cost = 0  # construction cost ex VAT, discounted
         self.result_traffic_benefit = 0
         self.result_dv_costs = 0  # discounted D&V costs
-        self.result_ferry_subsidy_costs = 0  # ferry costs, discounted
+        self.result_baseline_subsidy_costs = 0  # baseline costs, discounted
         self.result_restverdi = 0  # residual value (restverdi), discounted
 
     @staticmethod
@@ -312,8 +312,12 @@ class TrafficBenefitCalculator:
             first_year = str(sorted_years[0])
             return growth_config[first_year]
 
-        light_traffic_growth = get_first_period_growth(cfg.traffic.traffic_growth_project.light)
-        heavy_traffic_growth = get_first_period_growth(cfg.traffic.traffic_growth_project.heavy)
+        light_traffic_growth = get_first_period_growth(
+            cfg.traffic.traffic_growth_project.light
+        )
+        heavy_traffic_growth = get_first_period_growth(
+            cfg.traffic.traffic_growth_project.heavy
+        )
 
         res = calculate_toll_rates(
             # financial parameters
@@ -326,15 +330,15 @@ class TrafficBenefitCalculator:
             extra_dist_km=cfg.vehicle_costs.change_in_road_length,
             # light vehicle parameters
             light_initial_aadt_project=cfg.traffic.aadt_project * light_share,
-            light_time_saving_hr=cfg.ferry.extra_time.leisure,  # assume leisure ~ light
+            light_time_saving_hr=cfg.baseline.extra_time.leisure,  # assume leisure ~ light
             light_traffic_growth=light_traffic_growth,
             light_elasticity=cfg.toll.dynamic.elasticity.light,
-            light_ferry_price=cfg.ferry.costs.light,
+            light_baseline_price=cfg.baseline.costs.light,
             light_vot=light_vot,
             light_voc=cfg.vehicle_costs.light * cfg.vehicle_costs.speed_factor,
             # heavy vehicle parameters
             heavy_initial_aadt_project=cfg.traffic.aadt_project * heavy_share,
-            heavy_time_saving_hr=cfg.ferry.extra_time.heavy,
+            heavy_time_saving_hr=cfg.baseline.extra_time.heavy,
             heavy_traffic_growth=heavy_traffic_growth,
             heavy_elasticity=cfg.toll.dynamic.elasticity.heavy,
             heavy_vot=cfg.time_values.heavy,
@@ -355,7 +359,7 @@ class TrafficBenefitCalculator:
 
         xprint(json.dumps(res, indent=4, ensure_ascii=False))
 
-    def _calculate_traffic_with_periods(self, base_aadt, growth_config, ferry=True):
+    def _calculate_traffic_with_periods(self, base_aadt, growth_config, baseline=True):
         """
         Calculate traffic for a vehicle type with different growth periods.
         Returns a list of values for each year in the dataframe.
@@ -405,7 +409,7 @@ class TrafficBenefitCalculator:
 
         # now modify the array if AADT is reduced by toll
         for row, year in enumerate(project_year):
-            if not ferry and year <= self.config.toll.repayment_period:
+            if not baseline and year <= self.config.toll.repayment_period:
                 multiplier = self.tolls["aadt_multiplier"]
                 result[row] *= multiplier
 
@@ -419,23 +423,23 @@ class TrafficBenefitCalculator:
         heavy_initial_share = self.config.traffic.heavy_share
         light_initial_share = 1 - heavy_initial_share
 
-        # Calculate ferry traffic for each vehicle type
+        # Calculate baseline traffic for each vehicle type
         for vehicle_type in ["light", "heavy"]:
             actual_share = (
                 light_initial_share if vehicle_type == "light" else heavy_initial_share
             )
-            base_aadt = self.config.traffic.aadt_ferry * actual_share
-            growth_config = self.config.traffic.traffic_growth_ferry[vehicle_type]
+            base_aadt = self.config.traffic.aadt_baseline * actual_share
+            growth_config = self.config.traffic.traffic_growth_baseline[vehicle_type]
 
-            column_name = "AADT_FER_" + vehicle_type.upper()
+            column_name = "AADT_BAS_" + vehicle_type.upper()
             traffic_values = self._calculate_traffic_with_periods(
-                base_aadt, growth_config, ferry=True
+                base_aadt, growth_config, baseline=True
             )
             self.df[column_name] = traffic_values
 
         # Create summary columns
-        self.df["AADT_FER"] = self.df[["AADT_FER_LIGHT", "AADT_FER_HEAVY"]].sum(axis=1)
-        self.df.loc[self.df["PRJ_YEAR"] < 0, "AADT_FER"] = np.nan
+        self.df["AADT_BAS"] = self.df[["AADT_BAS_LIGHT", "AADT_BAS_HEAVY"]].sum(axis=1)
+        self.df.loc[self.df["PRJ_YEAR"] < 0, "AADT_BAS"] = np.nan
 
         # Calculate project traffic for each vehicle type
         for vehicle_type in ["light", "heavy"]:
@@ -447,7 +451,7 @@ class TrafficBenefitCalculator:
 
             column_name = "AADT_PRJ_" + vehicle_type.upper()
             traffic_values = self._calculate_traffic_with_periods(
-                base_aadt, growth_config, ferry=False
+                base_aadt, growth_config, baseline=False
             )
             self.df[column_name] = traffic_values
 
@@ -484,24 +488,24 @@ class TrafficBenefitCalculator:
         xprint(f"Discounted building costs: {discounted_bcost:_.0f} NOK")
         self.result_construction_cost = discounted_bcost
 
-    def calculate_traffic_ferry_cost(self):
+    def calculate_traffic_baseline_cost(self):
         """
-        Calculate ferry cost based on the provided data and parameters.
-        It has two components: ferry cost and extra time cost, per leisure, etc
+        Calculate baseline cost based on the provided data and parameters.
+        It has two components: baseline cost and extra time cost, per leisure, etc
         """
         for travel_purpose in ["leisure", "work", "business", "heavy"]:
-            ferry_cost = (
-                self.config.ferry.costs.heavy
+            baseline_cost = (
+                self.config.baseline.costs.heavy
                 if travel_purpose == "heavy"
-                else self.config.ferry.costs.light
+                else self.config.baseline.costs.light
             )
 
             # the value of time increases with bnp growth
-            self.df[f"FER_COST_{travel_purpose.upper()}"] = ferry_cost + (
-                self.config.ferry.extra_time[travel_purpose]
+            self.df[f"BAS_COST_{travel_purpose.upper()}"] = baseline_cost + (
+                self.config.baseline.extra_time[travel_purpose]
                 * self.config.time_values[travel_purpose]
                 * self.df["BNP_GROWTH"]
-                * self.config.ferry.comfort_factor
+                * self.config.baseline.comfort_factor
             )
 
     def calculate_traffic_project_cost(self):
@@ -541,12 +545,12 @@ class TrafficBenefitCalculator:
         """
         for travel_purpose in ["leisure", "work", "business", "heavy"]:
             aadt_name = (
-                "AADT_FER_HEAVY" if travel_purpose == "heavy" else "AADT_FER_LIGHT"
+                "AADT_BAS_HEAVY" if travel_purpose == "heavy" else "AADT_BAS_LIGHT"
             )
 
             self.df[f"DIFF_BENEFIT_EXISTING_AADT_{travel_purpose.upper()}"] = (
                 (
-                    self.df[f"FER_COST_{travel_purpose.upper()}"]
+                    self.df[f"BAS_COST_{travel_purpose.upper()}"]
                     - self.df[f"PRJ_COST_{travel_purpose.upper()}"]
                 )
                 * self.df[aadt_name]
@@ -554,14 +558,14 @@ class TrafficBenefitCalculator:
             )
         for travel_purpose in ["leisure", "work", "business", "heavy"]:
             aadt_fer = (
-                "AADT_FER_HEAVY" if travel_purpose == "heavy" else "AADT_FER_LIGHT"
+                "AADT_BAS_HEAVY" if travel_purpose == "heavy" else "AADT_BAS_LIGHT"
             )
             aadt_prj = (
                 "AADT_PRJ_HEAVY" if travel_purpose == "heavy" else "AADT_PRJ_LIGHT"
             )
             self.df[f"DIFF_BENEFIT_ADDED_AADT_{travel_purpose.upper()}"] = (
                 (
-                    self.df[f"FER_COST_{travel_purpose.upper()}"]
+                    self.df[f"BAS_COST_{travel_purpose.upper()}"]
                     - self.df[f"PRJ_COST_{travel_purpose.upper()}"]
                 )
                 * (self.df[aadt_prj] - self.df[aadt_fer])
@@ -606,7 +610,7 @@ class TrafficBenefitCalculator:
         """Compute derived numbers for the DataFrame.
 
         * Discounted D&V costs
-        * Discounted ferry subsidy
+        * Discounted baseline subsidy
         * Dynamic tax revenue calculation
         """
         analysis_period = self._analysis_period
@@ -618,8 +622,8 @@ class TrafficBenefitCalculator:
         self.result_dv_costs = (
             self.config.annual_maintenance * self.df.loc[mask, "DISCOUNT_FACTOR"]
         ).sum()
-        self.result_ferry_subsidy_costs = (
-            self.config.annual_ferry_subsidy * self.df.loc[mask, "DISCOUNT_FACTOR"]
+        self.result_baseline_subsidy_costs = (
+            self.config.annual_baseline_subsidy * self.df.loc[mask, "DISCOUNT_FACTOR"]
         ).sum()
 
         # Calculate dynamic tax revenue
@@ -701,23 +705,25 @@ class TrafficBenefitCalculator:
             ).sum()
             total_tax_revenue += vehicle_cost_tax_component
 
-        # 3. Loss of VAT revenue from ferry tickets (negative tax revenue)
-        ferry_vat_loss = 0
-        ferry_revenue_light = (
-            self.df.loc[mask, "AADT_FER_LIGHT"] * self.config.ferry.costs.light * 365
+        # 3. Loss of VAT revenue from baseline tickets (negative tax revenue)
+        baseline_vat_loss = 0
+        baseline_revenue_light = (
+            self.df.loc[mask, "AADT_BAS_LIGHT"] * self.config.baseline.costs.light * 365
         )
-        ferry_revenue_heavy = (
-            self.df.loc[mask, "AADT_FER_HEAVY"] * self.config.ferry.costs.heavy * 365
+        baseline_revenue_heavy = (
+            self.df.loc[mask, "AADT_BAS_HEAVY"] * self.config.baseline.costs.heavy * 365
         )
 
-        # VAT loss on ferry revenue (25% VAT that is lost when ferry is replaced)
-        ferry_vat_loss = (
-            ferry_revenue_light + ferry_revenue_heavy
+        # VAT loss on baseline revenue (25% VAT that is lost when baseline is replaced)
+        baseline_vat_loss = (
+            baseline_revenue_light + baseline_revenue_heavy
         ) * self.config.vat_general
-        ferry_vat_loss_discounted = (
-            ferry_vat_loss * self.df.loc[mask, "DISCOUNT_FACTOR"]
+        baseline_vat_loss_discounted = (
+            baseline_vat_loss * self.df.loc[mask, "DISCOUNT_FACTOR"]
         ).sum()
-        total_tax_revenue -= ferry_vat_loss_discounted  # Subtract because it's a loss
+        total_tax_revenue -= (
+            baseline_vat_loss_discounted  # Subtract because it's a loss
+        )
 
         # 4. Conservative estimate: Tax revenue from economic activity generated by time savings
         # This represents genuine new economic activity, not transfers
@@ -738,8 +744,10 @@ class TrafficBenefitCalculator:
         xprint("   (25% VAT on toll revenue)")
         xprint(f"2. Vehicle fuel tax (discounted): {vehicle_cost_tax_component:_.0f}")
         xprint("   (20% of additional vehicle costs - fuel taxes only)")
-        xprint(f"3. Ferry VAT loss (discounted): {ferry_vat_loss_discounted:_.0f}")
-        xprint("   (25% VAT lost when ferry is replaced)")
+        xprint(
+            f"3. Baseline VAT loss (discounted): {baseline_vat_loss_discounted:_.0f}"
+        )
+        xprint("   (25% VAT lost when baseline is replaced)")
         xprint(
             f"4. Economic activity tax (discounted): {time_savings_tax_discounted:_.0f}"
         )
@@ -763,7 +771,7 @@ class TrafficBenefitCalculator:
         # These are already calculated with correct analysis period, no scaling needed
         inv = self.result_construction_cost
         dv = self.result_dv_costs
-        fer = self.result_ferry_subsidy_costs
+        fer = self.result_baseline_subsidy_costs
         tax = self.result_tax_revenue
         sum_public = inv + dv + fer + tax
 
@@ -839,7 +847,7 @@ class TrafficBenefitCalculator:
             f"{'Drift og vedlikehold :':<30} {round(self.result_dv_costs / 1000):>15_}"
         )
         print(
-            f"{'Overføringer (operatører):':<30} {round(self.result_ferry_subsidy_costs / 1000):>15_}"
+            f"{'Overføringer (operatører):':<30} {round(self.result_baseline_subsidy_costs / 1000):>15_}"
         )
         print(
             f"{'Skatte- og avgiftsinntekter*:':<30} {round(self.result_tax_revenue / 1000):>15_}"
@@ -870,16 +878,16 @@ class TrafficBenefitCalculator:
     def plot_aadt(self):
         """Make plot of AADT vs CALENDAR_YEAR"""
         # Filter out NaN values for cleaner plotting
-        mask = ~(self.df["AADT_FER"].isna() | self.df["AADT_PRJ"].isna())
+        mask = ~(self.df["AADT_BAS"].isna() | self.df["AADT_PRJ"].isna())
         plot_data = self.df[mask]
 
         plt.figure(figsize=(12, 8))
 
-        # Plot ferry AADT
+        # Plot baseline AADT
         plt.plot(
             plot_data["CALENDAR_YEAR"],
-            plot_data["AADT_FER"],
-            label="Ferry AADT",
+            plot_data["AADT_BAS"],
+            label="Baseline AADT",
             linewidth=2,
             marker="o",
             markersize=4,
@@ -897,7 +905,7 @@ class TrafficBenefitCalculator:
 
         plt.xlabel("Calendar Year")
         plt.ylabel("Annual Average Daily Traffic (AADT)")
-        plt.title("Traffic Development: Ferry vs Project AADT")
+        plt.title("Traffic Development: Baseline vs Project AADT")
         plt.legend()
         plt.grid(True, alpha=0.3)
 
@@ -922,7 +930,7 @@ def main():
     calc.estimate_toll_rates_aadt()
     calc.traffic_series()
     calc.compute_discounted_building_costs()
-    calc.calculate_traffic_ferry_cost()
+    calc.calculate_traffic_baseline_cost()
     calc.calculate_traffic_project_cost()
     calc.diff_benefit()
     # Print the full DataFrame
@@ -951,7 +959,7 @@ def nnb_graph():
         calc.estimate_toll_rates_aadt()
         calc.traffic_series()
         calc.compute_discounted_building_costs()
-        calc.calculate_traffic_ferry_cost()
+        calc.calculate_traffic_baseline_cost()
         calc.calculate_traffic_project_cost()
         calc.diff_benefit()
 

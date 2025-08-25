@@ -10,7 +10,7 @@ lifetime: 75
 construction_cost: -53_700_000_000  # incl. VAT
 tax_factor: 0.2
 annual_maintenance: -185_000_000
-annual_ferry_subsidy: 470_000_000
+annual_baseline_subsidy: 470_000_000
 capital_interest_0_40: 0.04
 capital_interest_41_75: 0.03
 bnp_growth: 0.007
@@ -28,8 +28,8 @@ other:
 
 # traffic at opening year and onwards
 traffic:
-  aadt_ferry: 4500
-  traffic_growth_ferry:
+  aadt_baseline: 4500
+  traffic_growth_baseline:
     light:
       "2025": 0.004
       "2060": 0.004
@@ -83,7 +83,8 @@ time_values:
   business: 790
   heavy: 900
 
-ferry:
+# typically ferry alternative, where costs are ferry tickets
+baseline:
   costs:
     light: 150  # SVV using wrong numbers?
     heavy: 600
