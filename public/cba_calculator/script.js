@@ -27,8 +27,8 @@ function getFormData() {
   const inputs = form.querySelectorAll("input, textarea");
   const config = {
     other: {},
-    traffic: { traffic_growth_ferry: {}, traffic_growth_project: {} },
-    ferry: { costs: {}, extra_time: {} },
+    traffic: { traffic_growth_baseline: {}, traffic_growth_project: {} },
+    baseline: { costs: {}, extra_time: {} },
     vehicle_costs: {},
     time_values: {},
     toll: {
@@ -74,7 +74,7 @@ function getFormData() {
   config.tax_factor = parseNum($("#tax_factor").value) / 100;
 
   // Traffic
-  config.traffic.aadt_ferry = parseNum($("#aadt_ferry").value);
+  config.traffic.aadt_baseline = parseNum($("#aadt_baseline").value);
   config.traffic.aadt_project = parseNum($("#aadt_project").value);
 
   // Normalize all vehicle shares to sum to 100%
@@ -104,11 +104,11 @@ function getFormData() {
   config.traffic.work_share = work_share / 100;
   config.traffic.business_share = business_share / 100;
 
-  config.traffic.traffic_growth_ferry.light = parseJson(
-    $("#ferry_growth_light").value
+  config.traffic.traffic_growth_baseline.light = parseJson(
+    $("#baseline_growth_light").value
   );
-  config.traffic.traffic_growth_ferry.heavy = parseJson(
-    $("#ferry_growth_heavy").value
+  config.traffic.traffic_growth_baseline.heavy = parseJson(
+    $("#baseline_growth_heavy").value
   );
   config.traffic.traffic_growth_project.light = parseJson(
     $("#project_growth_light").value
@@ -117,16 +117,22 @@ function getFormData() {
     $("#project_growth_heavy").value
   );
 
-  // Ferry
-  config.ferry.costs.light = parseNum($("#ferry_cost_light").value);
-  config.ferry.costs.heavy = parseNum($("#ferry_cost_heavy").value);
-  config.annual_ferry_subsidy =
-    parseNum($("#annual_ferry_subsidy").value) * COST_MULTIPLIER_MILL;
-  config.ferry.comfort_factor = parseNum($("#ferry_comfort_factor").value);
-  config.ferry.extra_time.leisure = parseNum($("#ferry_time_leisure").value);
-  config.ferry.extra_time.work = parseNum($("#ferry_time_work").value);
-  config.ferry.extra_time.business = parseNum($("#ferry_time_business").value);
-  config.ferry.extra_time.heavy = parseNum($("#ferry_time_heavy").value);
+  // baseline
+  config.baseline.costs.light = parseNum($("#baseline_cost_light").value);
+  config.baseline.costs.heavy = parseNum($("#baseline_cost_heavy").value);
+  config.annual_baseline_subsidy =
+    parseNum($("#annual_baseline_subsidy").value) * COST_MULTIPLIER_MILL;
+  config.baseline.comfort_factor = parseNum(
+    $("#baseline_comfort_factor").value
+  );
+  config.baseline.extra_time.leisure = parseNum(
+    $("#baseline_time_leisure").value
+  );
+  config.baseline.extra_time.work = parseNum($("#baseline_time_work").value);
+  config.baseline.extra_time.business = parseNum(
+    $("#baseline_time_business").value
+  );
+  config.baseline.extra_time.heavy = parseNum($("#baseline_time_heavy").value);
 
   // Vehicle & Time
   config.vehicle_costs.change_in_road_length = parseNum(
@@ -197,7 +203,7 @@ function exportFormDataAsJSON() {
       construction_cost: config.construction_cost,
       tax_factor: config.tax_factor,
       annual_maintenance: config.annual_maintenance,
-      annual_ferry_subsidy: config.annual_ferry_subsidy,
+      annual_baseline_subsidy: config.annual_baseline_subsidy,
       capital_interest_0_40: config.capital_interest_0_40,
       capital_interest_41_75: config.capital_interest_41_75,
       bnp_growth: config.bnp_growth,
@@ -210,10 +216,10 @@ function exportFormDataAsJSON() {
         operators_sum: config.other.operators_sum || 0,
       },
       traffic: {
-        aadt_ferry: config.traffic.aadt_ferry,
-        traffic_growth_ferry: {
-          light: config.traffic.traffic_growth_ferry.light,
-          heavy: config.traffic.traffic_growth_ferry.heavy,
+        aadt_baseline: config.traffic.aadt_baseline,
+        traffic_growth_baseline: {
+          light: config.traffic.traffic_growth_baseline.light,
+          heavy: config.traffic.traffic_growth_baseline.heavy,
         },
         aadt_project: config.traffic.aadt_project,
         traffic_growth_project: {
@@ -225,17 +231,17 @@ function exportFormDataAsJSON() {
         leisure_share: config.traffic.leisure_share,
         business_share: config.traffic.business_share,
       },
-      ferry: {
+      baseline: {
         costs: {
-          light: config.ferry.costs.light,
-          heavy: config.ferry.costs.heavy,
+          light: config.baseline.costs.light,
+          heavy: config.baseline.costs.heavy,
         },
-        comfort_factor: config.ferry.comfort_factor,
+        comfort_factor: config.baseline.comfort_factor,
         extra_time: {
-          leisure: config.ferry.extra_time.leisure,
-          work: config.ferry.extra_time.work,
-          business: config.ferry.extra_time.business,
-          heavy: config.ferry.extra_time.heavy,
+          leisure: config.baseline.extra_time.leisure,
+          work: config.baseline.extra_time.work,
+          business: config.baseline.extra_time.business,
+          heavy: config.baseline.extra_time.heavy,
         },
       },
       vehicle_costs: {
@@ -310,14 +316,14 @@ function calculateTollRates({
   light_time_saving_hr,
   light_traffic_growth,
   light_elasticity,
-  light_ferry_price,
+  light_baseline_price,
   light_vot,
   light_voc,
   heavy_initial_aadt_project,
   heavy_time_saving_hr,
   heavy_traffic_growth,
   heavy_elasticity,
-  heavy_ferry_price,
+  heavy_baseline_price,
   heavy_vot,
   heavy_voc,
   heavy_toll_factor,
@@ -333,11 +339,11 @@ function calculateTollRates({
 
   const net_benefit_light =
     light_time_saving_hr * light_vot +
-    light_ferry_price -
+    light_baseline_price -
     extra_dist_km * light_voc;
   const net_benefit_heavy =
     heavy_time_saving_hr * heavy_vot +
-    heavy_ferry_price -
+    heavy_baseline_price -
     extra_dist_km * heavy_voc;
 
   const get_npv_growth_factor = (r, g, n) => {
@@ -451,7 +457,7 @@ class TrafficBenefitCalculator {
 
     this.traffic_series();
     this.compute_discounted_building_costs();
-    this.calculate_traffic_ferry_cost();
+    this.calculate_traffic_baseline_cost();
     this.calculate_traffic_project_cost();
     this.diff_benefit();
     this.compute_derived_numbers();
@@ -582,17 +588,17 @@ class TrafficBenefitCalculator {
       gradual_loan_uptake: cfg.toll.gradual_loan_uptake,
       extra_dist_km: cfg.vehicle_costs.change_in_road_length,
       light_initial_aadt_project: cfg.traffic.aadt_project * light_share,
-      light_time_saving_hr: cfg.ferry.extra_time.leisure,
+      light_time_saving_hr: cfg.baseline.extra_time.leisure,
       light_traffic_growth: light_traffic_growth,
       light_elasticity: cfg.toll.dynamic.elasticity.light,
-      light_ferry_price: cfg.ferry.costs.light,
+      light_baseline_price: cfg.baseline.costs.light,
       light_vot: light_vot,
       light_voc: cfg.vehicle_costs.light * cfg.vehicle_costs.speed_factor,
       heavy_initial_aadt_project: cfg.traffic.aadt_project * heavy_share,
-      heavy_time_saving_hr: cfg.ferry.extra_time.heavy,
+      heavy_time_saving_hr: cfg.baseline.extra_time.heavy,
       heavy_traffic_growth: heavy_traffic_growth,
       heavy_elasticity: cfg.toll.dynamic.elasticity.heavy,
-      heavy_ferry_price: cfg.ferry.costs.heavy,
+      heavy_baseline_price: cfg.baseline.costs.heavy,
       heavy_vot: cfg.time_values.heavy,
       heavy_voc: cfg.vehicle_costs.heavy * cfg.vehicle_costs.speed_factor,
       heavy_toll_factor: cfg.toll.heavy_vehicle_toll_factor,
@@ -626,7 +632,11 @@ class TrafficBenefitCalculator {
     );
   }
 
-  _calculate_traffic_with_periods(base_aadt, growth_config, is_ferry = true) {
+  _calculate_traffic_with_periods(
+    base_aadt,
+    growth_config,
+    is_baseline = true
+  ) {
     const result = new Array(this.df.length).fill(base_aadt);
     if (!growth_config) return result;
 
@@ -663,7 +673,7 @@ class TrafficBenefitCalculator {
       previous_aadt = aadt;
     }
 
-    if (!is_ferry) {
+    if (!is_baseline) {
       for (let i = 0; i < this.df.length; i++) {
         if (
           this.df[i].PRJ_YEAR >= 0 &&
@@ -679,9 +689,9 @@ class TrafficBenefitCalculator {
   traffic_series() {
     const {
       heavy_share,
-      aadt_ferry,
+      aadt_baseline,
       aadt_project,
-      traffic_growth_ferry,
+      traffic_growth_baseline,
       traffic_growth_project,
     } = this.config.traffic;
     const light_initial_share = 1 - heavy_share;
@@ -689,8 +699,8 @@ class TrafficBenefitCalculator {
     ["light", "heavy"].forEach((type) => {
       const share = type === "light" ? light_initial_share : heavy_share;
       const fer_aadt = this._calculate_traffic_with_periods(
-        aadt_ferry * share,
-        traffic_growth_ferry[type],
+        aadt_baseline * share,
+        traffic_growth_baseline[type],
         true
       );
       const prj_aadt = this._calculate_traffic_with_periods(
@@ -700,14 +710,14 @@ class TrafficBenefitCalculator {
       );
 
       this.df.forEach((row, i) => {
-        row[`AADT_FER_${type.toUpperCase()}`] = fer_aadt[i];
+        row[`AADT_BAS_${type.toUpperCase()}`] = fer_aadt[i];
         row[`AADT_PRJ_${type.toUpperCase()}`] = prj_aadt[i];
       });
     });
 
     this.df.forEach((row) => {
-      row.AADT_FER = (row.AADT_FER_LIGHT || 0) + (row.AADT_FER_HEAVY || 0);
-      if (row.PRJ_YEAR < 0) row.AADT_FER = NaN;
+      row.AADT_BAS = (row.AADT_BAS_LIGHT || 0) + (row.AADT_BAS_HEAVY || 0);
+      if (row.PRJ_YEAR < 0) row.AADT_BAS = NaN;
       row.AADT_PRJ = (row.AADT_PRJ_LIGHT || 0) + (row.AADT_PRJ_HEAVY || 0);
     });
   }
@@ -743,18 +753,18 @@ class TrafficBenefitCalculator {
     );
   }
 
-  calculate_traffic_ferry_cost() {
-    const { ferry, time_values } = this.config;
+  calculate_traffic_baseline_cost() {
+    const { baseline, time_values } = this.config;
     ["leisure", "work", "business", "heavy"].forEach((purpose) => {
-      const ferry_cost =
-        purpose === "heavy" ? ferry.costs.heavy : ferry.costs.light;
+      const baseline_cost =
+        purpose === "heavy" ? baseline.costs.heavy : baseline.costs.light;
       this.df.forEach((row) => {
-        row[`FER_COST_${purpose.toUpperCase()}`] =
-          ferry_cost +
-          ferry.extra_time[purpose] *
+        row[`BAS_COST_${purpose.toUpperCase()}`] =
+          baseline_cost +
+          baseline.extra_time[purpose] *
             time_values[purpose] *
             row.BNP_GROWTH *
-            ferry.comfort_factor;
+            baseline.comfort_factor;
       });
     });
   }
@@ -786,7 +796,7 @@ class TrafficBenefitCalculator {
 
   diff_benefit() {
     ["leisure", "work", "business", "heavy"].forEach((purpose) => {
-      const aadt_fer_name = `AADT_FER_${
+      const aadt_fer_name = `AADT_BAS_${
         purpose === "heavy" ? "HEAVY" : "LIGHT"
       }`;
       const aadt_prj_name = `AADT_PRJ_${
@@ -795,12 +805,12 @@ class TrafficBenefitCalculator {
 
       this.df.forEach((row) => {
         const benefit_existing =
-          (row[`FER_COST_${purpose.toUpperCase()}`] -
+          (row[`BAS_COST_${purpose.toUpperCase()}`] -
             row[`PRJ_COST_${purpose.toUpperCase()}`]) *
           row[aadt_fer_name] *
           365;
         const benefit_added =
-          (row[`FER_COST_${purpose.toUpperCase()}`] -
+          (row[`BAS_COST_${purpose.toUpperCase()}`] -
             row[`PRJ_COST_${purpose.toUpperCase()}`]) *
           (row[aadt_prj_name] - row[aadt_fer_name]) *
           365 *
@@ -836,7 +846,7 @@ class TrafficBenefitCalculator {
 
   _calculate_tax_revenue() {
     let total_tax_revenue = 0;
-    const { toll, vat_general, vehicle_costs, ferry } = this.config;
+    const { toll, vat_general, vehicle_costs, baseline } = this.config;
     const analysis_period = this._analysis_period; // Use instance variable
     const mask = (row) => row.PRJ_YEAR >= 0 && row.PRJ_YEAR < analysis_period;
 
@@ -876,14 +886,14 @@ class TrafficBenefitCalculator {
       total_tax_revenue += vehicle_cost_tax_component;
     }
 
-    // 3. Ferry VAT loss
-    const ferry_revenue = filtered_df.reduce((sum, row) => {
-      const light = row.AADT_FER_LIGHT * ferry.costs.light * 365;
-      const heavy = row.AADT_FER_HEAVY * ferry.costs.heavy * 365;
+    // 3. baseline VAT loss
+    const baseline_revenue = filtered_df.reduce((sum, row) => {
+      const light = row.AADT_BAS_LIGHT * baseline.costs.light * 365;
+      const heavy = row.AADT_BAS_HEAVY * baseline.costs.heavy * 365;
       return sum + (light + heavy) * row.DISCOUNT_FACTOR;
     }, 0);
-    const ferry_vat_loss_discounted = ferry_revenue * vat_general;
-    total_tax_revenue -= ferry_vat_loss_discounted;
+    const baseline_vat_loss_discounted = baseline_revenue * vat_general;
+    total_tax_revenue -= baseline_vat_loss_discounted;
 
     // 4. Economic activity tax
     const time_savings_tax = filtered_df.reduce((sum, row) => {
@@ -896,7 +906,7 @@ class TrafficBenefitCalculator {
     this.results.tax_breakdown = {
       toll_tax_discounted,
       vehicle_cost_tax_component,
-      ferry_vat_loss_discounted,
+      baseline_vat_loss_discounted,
       time_savings_tax_discounted: time_savings_tax,
       total_tax_revenue,
     };
@@ -905,7 +915,7 @@ class TrafficBenefitCalculator {
   }
 
   compute_derived_numbers() {
-    const { annual_maintenance, annual_ferry_subsidy } = this.config;
+    const { annual_maintenance, annual_baseline_subsidy } = this.config;
     const analysis_period = this._analysis_period; // Use instance variable
     const lifetime = this._lifetime; // Use instance variable
     const mask = (row) => row.PRJ_YEAR >= 0 && row.PRJ_YEAR < analysis_period;
@@ -919,8 +929,8 @@ class TrafficBenefitCalculator {
       (sum, row) => sum + annual_maintenance * row.DISCOUNT_FACTOR,
       0
     );
-    this.results.ferry_subsidy_costs = filtered_df.reduce(
-      (sum, row) => sum + annual_ferry_subsidy * row.DISCOUNT_FACTOR,
+    this.results.baseline_subsidy_costs = filtered_df.reduce(
+      (sum, row) => sum + annual_baseline_subsidy * row.DISCOUNT_FACTOR,
       0
     );
     this.results.tax_revenue = this._calculate_tax_revenue();
@@ -953,7 +963,7 @@ class TrafficBenefitCalculator {
     const sum_public =
       res.construction_cost +
       res.dv_costs +
-      res.ferry_subsidy_costs +
+      res.baseline_subsidy_costs +
       res.tax_revenue;
 
     // Rest of society
@@ -1163,7 +1173,7 @@ class TrafficBenefitCalculator {
                   res.dv_costs
                 )}</td></tr>
                 <tr><td>Overføringer (operatører):</td><td colspan="1"></td><td>${f(
-                  res.ferry_subsidy_costs
+                  res.baseline_subsidy_costs
                 )}</td></tr>
                 <tr><td>Skatte- og avgiftsinntekter*:</td><td colspan="1"></td><td>${f(
                   res.tax_revenue
@@ -1215,11 +1225,11 @@ class TrafficBenefitCalculator {
                   "en-US",
                   { maximumFractionDigits: 0 }
                 )}</td></tr>
-                <tr><td>3. Fergebillett (MVA)</td><td>${(-tax.ferry_vat_loss_discounted).toLocaleString(
+                <tr><td>3. Basis alt. billett (ferge)(MVA)</td><td>${(-tax.baseline_vat_loss_discounted).toLocaleString(
                   "en-US",
                   { maximumFractionDigits: 0 }
                 )}</td></tr>
-                <tr><td>4. Økonomiaks aktivitet (fra spart tid)</td><td>${tax.time_savings_tax_discounted.toLocaleString(
+                <tr><td>4. Økonomisk aktivitet (fra spart tid)</td><td>${tax.time_savings_tax_discounted.toLocaleString(
                   "en-US",
                   { maximumFractionDigits: 0 }
                 )}</td></tr>
@@ -1241,14 +1251,14 @@ class TrafficBenefitCalculator {
     }
 
     const plot_data = this.df.filter(
-      (row) => !isNaN(row.AADT_FER) && !isNaN(row.AADT_PRJ)
+      (row) => !isNaN(row.AADT_BAS) && !isNaN(row.AADT_PRJ)
     );
     const options = {
       chart: { type: "line", height: 400 },
       series: [
         {
-          name: "Ferge ÅDT",
-          data: plot_data.map((d) => [d.CALENDAR_YEAR, d.AADT_FER]),
+          name: "Basisalternativ ÅDT",
+          data: plot_data.map((d) => [d.CALENDAR_YEAR, d.AADT_BAS]),
         },
         {
           name: "Prosjekt ÅDT",
@@ -1302,7 +1312,7 @@ class TrafficBenefitCalculator {
       calc.estimate_toll_rates_aadt();
       calc.traffic_series();
       calc.compute_discounted_building_costs();
-      calc.calculate_traffic_ferry_cost();
+      calc.calculate_traffic_baseline_cost();
       calc.calculate_traffic_project_cost();
       calc.diff_benefit();
       calc.compute_derived_numbers();
@@ -1738,8 +1748,8 @@ function initializeSliders() {
 function initializeTrafficGrowthTables() {
   // Initialize all traffic growth tables
   const tables = [
-    { tableId: "ferry-light-table", textareaId: "ferry_growth_light" },
-    { tableId: "ferry-heavy-table", textareaId: "ferry_growth_heavy" },
+    { tableId: "baseline-light-table", textareaId: "baseline_growth_light" },
+    { tableId: "baseline-heavy-table", textareaId: "baseline_growth_heavy" },
     { tableId: "project-light-table", textareaId: "project_growth_light" },
     { tableId: "project-heavy-table", textareaId: "project_growth_heavy" },
   ];

@@ -23,6 +23,12 @@
           style="padding: 0.3em 0.8em; font-size: 0.85em; border-radius: 4px"
         >
           <option
+            value="references/hfast_svv_2025_v2.json"
+            title="Fra SVV re..plan 2025 V2 uten bompenger - forsøker å komme gnaske likt offisielle SVV tall"
+          >
+            SVV reg.plan 2025 V2 uten bompenger
+          </option>
+          <option
             value="references/hfast_svv_2025.json"
             title="Fra SVV re..plan 2025 uten bompenger - forsøker å komme gnaske likt offisielle SVV tall"
           >
@@ -43,9 +49,9 @@
       </h1>
       <p style="margin-bottom: 15px">
         Denne verktøyet utfører en kostnads-nytteanalyse for et
-        transportinfrastrukturprosjekt (fergeavløsningsprosjekt), basert på
-        prinsippene som brukes i norsk transportanalyse. Denne kalkulatoren er
-        fortsatt under utvikling, og det kan forekomme feil i beregningene.
+        transportinfrastrukturprosjekt (for eks. fergeavløsningsprosjekt),
+        basert på prinsippene som brukes i norsk transportanalyse. Det tas ikke
+        ansvar for eventuelle feil under beregningene.
       </p>
 
       <div
@@ -64,8 +70,8 @@
           <button class="tab-link" onclick="openTab(event, 'traffic')">
             Trafikk
           </button>
-          <button class="tab-link" onclick="openTab(event, 'ferry')">
-            Ferje
+          <button class="tab-link" onclick="openTab(event, 'baseline')">
+            Basisalternativ
           </button>
           <button class="tab-link" onclick="openTab(event, 'vehicle')">
             Kjøretøy og tid
@@ -74,7 +80,7 @@
             Bompenger
           </button>
           <button class="tab-link" onclick="openTab(event, 'other')">
-            Andre kostnader/nytte
+            Andre poster
           </button>
         </div>
       </div>
@@ -129,11 +135,14 @@
             />
             <label for="construction_cost">Byggekostnad inkl moms (MRD):</label>
             <input type="number" id="construction_cost" value="53.7" />
-            <label for="annual_maintenance">Årlig vedlikehold (Mill):</label>
+            <label for="annual_maintenance"
+              >Årlig økt vedlikehold (Mill):</label
+            >
             <input
               type="number"
               id="annual_maintenance"
               value="50"
+              step="10"
               title="Årlige gjennomsnittelige vedlikeholdskostnader for prosjektet, uten mva."
             />
             <label for="vat_construction">MVA-sats bygging (%):</label>
@@ -144,7 +153,7 @@
               step="1"
               title="Gjennomsnittelig MVA-sats for veiprosjekter er typisk 22%."
             />
-            <label for="vat_general">MVA-sats annet (%):</label>
+            <label for="vat_general">MVA-sats generelt (%):</label>
             <input
               type="number"
               id="vat_general"
@@ -188,8 +197,8 @@
             Trafikkparametere
           </h2>
           <div class="form-grid">
-            <label for="aadt_ferry">ÅDT Ferje (basisår):</label>
-            <input type="number" id="aadt_ferry" value="4000" step="10" />
+            <label for="aadt_baseline">ÅDT Basis (basisår):</label>
+            <input type="number" id="aadt_baseline" value="4000" step="10" />
             <label for="aadt_project">ÅDT Prosjekt (basisår):</label>
             <input
               type="number"
@@ -257,15 +266,15 @@
             </div>
           </div>
 
-          <h3>Trafikkvekst Ferje</h3>
+          <h3>Trafikkvekst Basisalternativ</h3>
           <p>
-            Angi forventet trafikkvekst for ferje i prosent som kan endre seg
-            over årene:
+            Angi forventet trafikkvekst for basisalternativet i prosent som kan
+            endre seg over årene:
           </p>
 
           <div class="traffic-growth-section">
             <h4>Lette kjøretøy</h4>
-            <div class="traffic-growth-table" id="ferry-light-table">
+            <div class="traffic-growth-table" id="baseline-light-table">
               <div class="table-header">
                 <span>År</span>
                 <span>Vekstrate (%)</span>
@@ -275,16 +284,16 @@
             <button
               type="button"
               class="add-row-btn"
-              onclick="addTrafficGrowthRow('ferry-light-table', 'ferry_growth_light')"
+              onclick="addTrafficGrowthRow('baseline-light-table', 'baseline_growth_light')"
             >
               + Legg til år
             </button>
-            <textarea id="ferry_growth_light" style="display: none">
+            <textarea id="baseline_growth_light" style="display: none">
 {"2025": 0.01, "2040": 0.005}</textarea
             >
 
             <h4>Tunge kjøretøy</h4>
-            <div class="traffic-growth-table" id="ferry-heavy-table">
+            <div class="traffic-growth-table" id="baseline-heavy-table">
               <div class="table-header">
                 <span>År</span>
                 <span>Vekstrate (%)</span>
@@ -294,11 +303,11 @@
             <button
               type="button"
               class="add-row-btn"
-              onclick="addTrafficGrowthRow('ferry-heavy-table', 'ferry_growth_heavy')"
+              onclick="addTrafficGrowthRow('baseline-heavy-table', 'baseline_growth_heavy')"
             >
               + Legg til år
             </button>
-            <textarea id="ferry_growth_heavy" style="display: none">
+            <textarea id="baseline_growth_heavy" style="display: none">
 {"2025": 0.02, "2040": 0.01}</textarea
             >
           </div>
@@ -346,55 +355,78 @@
           </div>
         </div>
 
-        <div id="ferry" class="tab-content">
-          <h2 style="font-size: 1.4em; margin-bottom: 15px">Ferjeparametere</h2>
+        <div id="baseline" class="tab-content">
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">
+            Basisalternativ Parametere
+          </h2>
+          <p>
+            Basis alternativet, ofte kalt nullalternativet, representerer
+            situasjonen uten prosjektet. Det kan være med og uten ferge. Med
+            ferge vil det ofte innebærer en billettpris; hvis ikke kan feltene
+            settes til null.
+          </p>
           <div class="form-grid">
-            <label for="ferry_cost_light">Ferjebillett lette biler:</label>
+            <label for="baseline_cost_light">Billettpris lette biler:</label>
             <input
               type="number"
-              id="ferry_cost_light"
+              id="baseline_cost_light"
               value="218"
-              title="Ferjebillett pris for lette biler (personerbiler, varebiler) i gjennomsnitt"
+              title="Billettpris for lette biler (personerbiler, varebiler) i gjennomsnitt"
             />
-            <label for="ferry_cost_heavy">Ferjebillett tunge biler:</label>
+            <label for="baseline_cost_heavy">Billettpris tunge biler:</label>
             <input
               type="number"
-              id="ferry_cost_heavy"
+              id="baseline_cost_heavy"
               value="780"
-              title="Ferjebillett pris for tunge biler (busser, lastebiler) i gjennomsnitt"
+              title="Billettpris for tunge biler (busser, lastebiler) i gjennomsnitt"
             />
-            <label for="annual_ferry_subsidy"
-              >Årlig statlig ferjesubsidie (mill NOK):</label
+            <label for="annual_baseline_subsidy"
+              >Årlig statlig subsidie (for. eks fergetilskudd, mill NOK):</label
             >
-            <input type="number" id="annual_ferry_subsidy" value="100" />
-            <label for="ferry_comfort_factor">Komfortfaktor:</label>
             <input
               type="number"
-              id="ferry_comfort_factor"
+              id="annual_baseline_subsidy"
+              value="100"
+              step="10"
+            />
+            <label for="baseline_comfort_factor">Komfortfaktor:</label>
+            <input
+              type="number"
+              id="baseline_comfort_factor"
               value="1.1"
               step="0.1"
             />
           </div>
-          <h3>Ekstra tid på ferje (timer)</h3>
+          <h3>Ekstra tid i basisalternativ (timer)</h3>
           <div class="form-grid">
-            <label for="ferry_time_leisure">Fritid:</label>
+            <label for="baseline_time_leisure">Fritid:</label>
             <input
               type="number"
-              id="ferry_time_leisure"
+              id="baseline_time_leisure"
               value="0.5"
               step="0.1"
             />
-            <label for="ferry_time_work">Arbeid:</label>
-            <input type="number" id="ferry_time_work" value="0.5" step="0.1" />
-            <label for="ferry_time_business">Næring:</label>
+            <label for="baseline_time_work">Arbeid:</label>
             <input
               type="number"
-              id="ferry_time_business"
+              id="baseline_time_work"
               value="0.5"
               step="0.1"
             />
-            <label for="ferry_time_heavy">Tung:</label>
-            <input type="number" id="ferry_time_heavy" value="0.5" step="0.1" />
+            <label for="baseline_time_business">Næring:</label>
+            <input
+              type="number"
+              id="baseline_time_business"
+              value="0.5"
+              step="0.1"
+            />
+            <label for="baseline_time_heavy">Tung:</label>
+            <input
+              type="number"
+              id="baseline_time_heavy"
+              value="0.5"
+              step="0.1"
+            />
           </div>
         </div>
 
@@ -463,13 +495,19 @@
             <input
               type="checkbox"
               id="toll_enabled"
+              class="small-checkbox"
               unchecked
               title="Aktiver bruk av bompenger"
             />
             <label for="toll_dynamic_enabled"
               >Dynamisk bompengeberegning:</label
             >
-            <input type="checkbox" id="toll_dynamic_enabled" checked />
+            <input
+              type="checkbox"
+              id="toll_dynamic_enabled"
+              checked
+              class="small-checkbox"
+            />
             <label for="toll_loan">Bompengelån (MRD kr):</label>
             <input type="number" id="toll_loan" value="10" />
             <label for="repayment_period">Nedbetalingstid (år):</label>
@@ -487,6 +525,7 @@
             <input
               type="checkbox"
               id="gradual_loan_uptake"
+              class="small-checkbox"
               checked
               title="Aktiver konstant låneopptak per år; hvis ikke kommer bompengelånet tidlig i byggeprosessen slik det ofte gjør i praksis"
             />
@@ -526,14 +565,13 @@
         </div>
 
         <div id="other" class="tab-content">
-          <h2 style="font-size: 1.4em; margin-bottom: 15px">
-            Andre kostnader & nytte
-          </h2>
+          <h2 style="font-size: 1.4em; margin-bottom: 15px">Andre poster</h2>
           <p>
             Angi eventuelle andre kostnader og nytte som ikke allerede er dekket
             av de andre kategoriene. Disse blir ikke beregnet her, men man kan
             bruke inngangstall fra SVV sine analyser. Stort sett er disse
             tallene relativt små. Alle tall i mill. NOK, og i prisnivå angitt.
+            Negative tall bidrar til redusert NNB.
           </p>
           <div class="form-grid">
             <label for="health_gs">Helseffekter (GS):</label>
@@ -542,7 +580,7 @@
             <input type="number" id="operators_sum" value="0" />
             <label for="accidents">Ulykkeskostnad:</label>
             <input type="number" id="accidents" value="-500000000" />
-            <label for="ghg_emissions">Klimagassutslippskostnad:</label>
+            <label for="ghg_emissions">Kostnad klimagassutslipp:</label>
             <input type="number" id="ghg_emissions" value="-2000000000" />
             <label for="other_env_costs">Andre miljøkostnader:</label>
             <input type="number" id="other_env_costs" value="-200000000" />

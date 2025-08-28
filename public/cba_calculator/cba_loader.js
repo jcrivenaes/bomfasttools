@@ -40,7 +40,7 @@ async function loadCaseJSON(jsonFile) {
   setValue("tax_factor", data.tax_factor * 100);
 
   // Traffic
-  setValue("aadt_ferry", data.traffic?.aadt_ferry);
+  setValue("aadt_baseline", data.traffic?.aadt_baseline);
   setValue("aadt_project", data.traffic?.aadt_project);
   setValue("heavy_share", Math.round((data.traffic?.heavy_share || 0) * 100));
   setValue(
@@ -74,15 +74,18 @@ async function loadCaseJSON(jsonFile) {
     Math.round((data.traffic?.business_share || 0) * 100)
   );
 
-  // Ferry
-  setValue("ferry_cost_light", data.ferry?.costs?.light);
-  setValue("ferry_cost_heavy", data.ferry?.costs?.heavy);
-  setValue("annual_ferry_subsidy", Math.abs(data.annual_ferry_subsidy) / 1e6);
-  setValue("ferry_comfort_factor", data.ferry?.comfort_factor);
-  setValue("ferry_time_leisure", data.ferry?.extra_time?.leisure);
-  setValue("ferry_time_work", data.ferry?.extra_time?.work);
-  setValue("ferry_time_business", data.ferry?.extra_time?.business);
-  setValue("ferry_time_heavy", data.ferry?.extra_time?.heavy);
+  // Baseline
+  setValue("baseline_cost_light", data.baseline?.costs?.light);
+  setValue("baseline_cost_heavy", data.baseline?.costs?.heavy);
+  setValue(
+    "annual_baseline_subsidy",
+    Math.abs(data.annual_baseline_subsidy) / 1e6
+  );
+  setValue("baseline_comfort_factor", data.baseline?.comfort_factor);
+  setValue("baseline_time_leisure", data.baseline?.extra_time?.leisure);
+  setValue("baseline_time_work", data.baseline?.extra_time?.work);
+  setValue("baseline_time_business", data.baseline?.extra_time?.business);
+  setValue("baseline_time_heavy", data.baseline?.extra_time?.heavy);
 
   // Vehicle
   setValue("change_in_road_length", data.vehicle_costs?.change_in_road_length);
@@ -118,13 +121,13 @@ async function loadCaseJSON(jsonFile) {
   setValue("tax_income_correction", data.other?.tax_income_correction / 1e6);
 
   // Traffic growth (JSON textareas)
-  if (data.traffic?.traffic_growth_ferry?.light)
-    document.getElementById("ferry_growth_light").value = JSON.stringify(
-      data.traffic.traffic_growth_ferry.light
+  if (data.traffic?.traffic_growth_baseline?.light)
+    document.getElementById("baseline_growth_light").value = JSON.stringify(
+      data.traffic.traffic_growth_baseline.light
     );
-  if (data.traffic?.traffic_growth_ferry?.heavy)
-    document.getElementById("ferry_growth_heavy").value = JSON.stringify(
-      data.traffic.traffic_growth_ferry.heavy
+  if (data.traffic?.traffic_growth_baseline?.heavy)
+    document.getElementById("baseline_growth_heavy").value = JSON.stringify(
+      data.traffic.traffic_growth_baseline.heavy
     );
   if (data.traffic?.traffic_growth_project?.light)
     document.getElementById("project_growth_light").value = JSON.stringify(
@@ -169,18 +172,18 @@ function updateTrafficGrowthTablesFromJSON(trafficData) {
   }
 
   // Update all four traffic growth tables
-  if (trafficData?.traffic_growth_ferry?.light) {
+  if (trafficData?.traffic_growth_baseline?.light) {
     populateTable(
-      "ferry-light-table",
-      "ferry_growth_light",
-      trafficData.traffic_growth_ferry.light
+      "baseline-light-table",
+      "baseline_growth_light",
+      trafficData.traffic_growth_baseline.light
     );
   }
-  if (trafficData?.traffic_growth_ferry?.heavy) {
+  if (trafficData?.traffic_growth_baseline?.heavy) {
     populateTable(
-      "ferry-heavy-table",
-      "ferry_growth_heavy",
-      trafficData.traffic_growth_ferry.heavy
+      "baseline-heavy-table",
+      "baseline_growth_heavy",
+      trafficData.traffic_growth_baseline.heavy
     );
   }
   if (trafficData?.traffic_growth_project?.light) {

@@ -139,6 +139,12 @@ input[type="checkbox"] {
     margin-right: 10px;
 }
 
+.small-checkbox {
+    width: 18px;
+    height: 18px;
+    transform: scale(1.1);
+    margin-right: 8px;
+}
 /* Button */
 #calculate-btn {
     display: block;
