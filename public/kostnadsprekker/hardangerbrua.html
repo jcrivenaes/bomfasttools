@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -10,10 +10,11 @@
         font-family: Arial, sans-serif;
         display: flex;
         justify-content: center;
-        align-items: center;
-        min-height: 100vh;
+        align-items: flex-start;
         margin: 0;
+        padding: 8px 0;
         background-color: #f4f4f9;
+        box-sizing: border-box;
       }
 
       #chart {
@@ -30,80 +31,103 @@
   <body>
     <div id="chart"></div>
     <script>
-      // Initialize the ECharts instance
-      const chart = echarts.init(document.getElementById("chart"));
+      function initChart() {
+        if (typeof echarts === "undefined") {
+          // ECharts CDN not yet loaded — retry shortly
+          setTimeout(initChart, 100);
+          return;
+        }
 
-      var rkpi = [100, 109, 151, 175];
-      var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
-      var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
+        const chartEl = document.getElementById("chart");
+        // Initialize the ECharts instance
+        const chart = echarts.init(chartEl);
 
-      var text_1 = "Økning rel KVU: " + sprekk_kvu_kpi + "%";
+        var rkpi = [100, 109, 151, 175];
+        var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
+        var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
 
-      var text_2 =
-        "Økning rel St.ting: " +
-        sprekk_vedt_kpi +
-        "% (byggeprisindeks ikke tilgjengelig)";
+        var text_1 = "Økning rel KVU: " + sprekk_kvu_kpi + "%";
 
-      // combine text_1 and text_2
-      text_1 = text_1 + " -- " + text_2;
+        var text_2 =
+          "Økning rel St.ting: " +
+          sprekk_vedt_kpi +
+          "% (byggeprisindeks ikke tilgjengelig)";
 
-      // Configure the bar chart options
-      const options = {
-        title: {
-          text: "Hardangerbrua, indeksjustert relativ kostnad (KVU = 100)",
-          left: "center",
-          textStyle: {
-            fontSize: 20,
-            fontWeight: "bold",
+        // combine text_1 and text_2
+        text_1 = text_1 + " -- " + text_2;
+
+        // Configure the bar chart options
+        const options = {
+          title: {
+            text: "Hardangerbrua, indeksjustert relativ kostnad (KVU = 100)",
+            left: "center",
+            textStyle: {
+              fontSize: 20,
+              fontWeight: "bold",
+            },
+            subtext: text_1,
           },
-          subtext: text_1,
-        },
-        tooltip: {
-          trigger: "axis",
-          axisPointer: { type: "shadow" },
-        },
-        xAxis: {
-          type: "category",
-          data: ["~KVU 1988", "NTP 2002", "St.tings vedtak", "Sluttkostnad"],
-          axisLine: {
-            lineStyle: {
-              color: "#323",
+          tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+          },
+          xAxis: {
+            type: "category",
+            data: ["~KVU 1988", "NTP 2002", "St.tings vedtak", "Sluttkostnad"],
+            axisLine: {
+              lineStyle: {
+                color: "#323",
+              },
+            },
+            axisLabel: {
+              fontSize: 12,
+              fontWeight: "bold",
             },
           },
-          axisLabel: {
-            fontSize: 12,
-            fontWeight: "bold",
-          },
-        },
-        yAxis: {
-          type: "value",
-          axisLine: {
-            lineStyle: {
-              color: "#323",
+          yAxis: {
+            type: "value",
+            axisLine: {
+              lineStyle: {
+                color: "#323",
+              },
+            },
+            splitLine: {
+              lineStyle: {
+                type: "dashed",
+                color: "#ddd",
+              },
             },
           },
-          splitLine: {
-            lineStyle: {
-              type: "dashed",
-              color: "#ddd",
+          series: [
+            {
+              name: "Indeksjustert relativ kostnad",
+              type: "bar",
+              data: rkpi,
+              barWidth: "40%",
+              itemStyle: {
+                color: "#5470c6",
+              },
             },
-          },
-        },
-        series: [
-          {
-            name: "Indeksjustert relativ kostnad",
-            type: "bar",
-            data: rkpi,
-            barWidth: "40%",
-            itemStyle: {
-              color: "#5470c6",
-            },
-          },
-        ],
-      };
+          ],
+        };
 
-      // Set the options and render the chart
-      chart.setOption(options);
+        // Set the options and render the chart
+        chart.setOption(options);
+
+        // Resize chart when the iframe/window size changes
+        window.addEventListener("resize", function () {
+          chart.resize();
+        });
+
+        // Also watch the container element itself for size changes
+        if (typeof ResizeObserver !== "undefined") {
+          new ResizeObserver(function () {
+            chart.resize();
+          }).observe(chartEl);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", initChart);
     </script>
   </body>
 </html>

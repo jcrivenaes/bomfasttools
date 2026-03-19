@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -10,10 +10,11 @@
         font-family: Arial, sans-serif;
         display: flex;
         justify-content: center;
-        align-items: center;
-        min-height: 100vh;
+        align-items: flex-start;
         margin: 0;
+        padding: 8px 0;
         background-color: #f4f4f9;
+        box-sizing: border-box;
       }
 
       #chart {
@@ -30,93 +31,117 @@
   <body>
     <div id="chart"></div>
     <script>
-      // Initialize the ECharts instance
-      const chart = echarts.init(document.getElementById("chart"));
+      function initChart() {
+        if (typeof echarts === "undefined") {
+          setTimeout(initChart, 100);
+          return;
+        }
 
-      var rkpi = [100, 115, 144, 196];
-      var rbyg = [100, 101, 118, 148];
-      var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
-      var sprekk_kvu_byg = Math.round((100 * (rbyg[3] - rbyg[0])) / rbyg[0]);
-      var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
-      var sprekk_vedt_byg = Math.round((100 * (rbyg[3] - rbyg[2])) / rbyg[2]);
-      var text_1 =
-        "Økning rel KVU: " + sprekk_kvu_kpi + "% (" + sprekk_kvu_byg + "%)";
-      var text_2 =
-        "Økning rel St.ting: " +
-        sprekk_vedt_kpi +
-        "% (" +
-        sprekk_vedt_byg +
-        "%)";
+        const chartEl = document.getElementById("chart");
+        const chart = echarts.init(chartEl);
 
-      // combine text_1 and text_2
-      text_1 = text_1 + " -- " + text_2;
+        var rkpi = [100, 115, 144, 196];
+        var rbyg = [100, 101, 118, 148];
+        var sprekk_kvu_kpi = Math.round((100 * (rkpi[3] - rkpi[0])) / rkpi[0]);
+        var sprekk_kvu_byg = Math.round((100 * (rbyg[3] - rbyg[0])) / rbyg[0]);
+        var sprekk_vedt_kpi = Math.round((100 * (rkpi[3] - rkpi[2])) / rkpi[2]);
+        var sprekk_vedt_byg = Math.round((100 * (rbyg[3] - rbyg[2])) / rbyg[2]);
+        var text_1 =
+          "Økning rel KVU: " + sprekk_kvu_kpi + "% (" + sprekk_kvu_byg + "%)";
+        var text_2 =
+          "Økning rel St.ting: " +
+          sprekk_vedt_kpi +
+          "% (" +
+          sprekk_vedt_byg +
+          "%)";
 
-      // Configure the bar chart options
-      const options = {
-        title: {
-          text: "Hålogolandsbrua, indeksjustert relativ kostnad (KVU = 100)",
-          left: "center",
-          textStyle: {
-            fontSize: 20,
-            fontWeight: "bold",
-          },
-          subtext: text_1,
-        },
-        tooltip: {
-          trigger: "axis",
-          axisPointer: { type: "shadow" },
-        },
-        xAxis: {
-          type: "category",
-          data: ["KVU 2004", "2008 (KMD?)", "St.tings vedtak", "Reell kostnad"],
-          axisLine: {
-            lineStyle: {
-              color: "#323",
-            },
-          },
-          axisLabel: {
-            fontSize: 12,
-            fontWeight: "bold",
-          },
-        },
-        yAxis: {
-          type: "value",
-          axisLine: {
-            lineStyle: {
-              color: "#323",
-            },
-          },
-          splitLine: {
-            lineStyle: {
-              type: "dashed",
-              color: "#ddd",
-            },
-          },
-        },
-        series: [
-          {
-            name: "Indeksjustert relativ kostnad (KPI)",
-            type: "bar",
-            data: rkpi,
-            barWidth: "20%",
-            itemStyle: {
-              color: "darkred",
-            },
-          },
-          {
-            name: "Indeksjustert relativ kostnad (byggekostindeks)",
-            type: "bar",
-            data: rbyg,
-            barWidth: "20%",
-            itemStyle: {
-              color: "pink",
-            },
-          },
-        ],
-      };
+        // combine text_1 and text_2
+        text_1 = text_1 + " -- " + text_2;
 
-      // Set the options and render the chart
-      chart.setOption(options);
+        // Configure the bar chart options
+        const options = {
+          title: {
+            text: "Hålogolandsbrua, indeksjustert relativ kostnad (KVU = 100)",
+            left: "center",
+            textStyle: {
+              fontSize: 20,
+              fontWeight: "bold",
+            },
+            subtext: text_1,
+          },
+          tooltip: {
+            trigger: "axis",
+            axisPointer: { type: "shadow" },
+          },
+          xAxis: {
+            type: "category",
+            data: [
+              "KVU 2004",
+              "2008 (KMD?)",
+              "St.tings vedtak",
+              "Reell kostnad",
+            ],
+            axisLine: {
+              lineStyle: {
+                color: "#323",
+              },
+            },
+            axisLabel: {
+              fontSize: 12,
+              fontWeight: "bold",
+            },
+          },
+          yAxis: {
+            type: "value",
+            axisLine: {
+              lineStyle: {
+                color: "#323",
+              },
+            },
+            splitLine: {
+              lineStyle: {
+                type: "dashed",
+                color: "#ddd",
+              },
+            },
+          },
+          series: [
+            {
+              name: "Indeksjustert relativ kostnad (KPI)",
+              type: "bar",
+              data: rkpi,
+              barWidth: "20%",
+              itemStyle: {
+                color: "darkred",
+              },
+            },
+            {
+              name: "Indeksjustert relativ kostnad (byggekostindeks)",
+              type: "bar",
+              data: rbyg,
+              barWidth: "20%",
+              itemStyle: {
+                color: "pink",
+              },
+            },
+          ],
+        };
+
+        // Set the options and render the chart
+        chart.setOption(options);
+
+        window.addEventListener("resize", function () {
+          chart.resize();
+        });
+
+        if (typeof ResizeObserver !== "undefined") {
+          new ResizeObserver(function () {
+            chart.resize();
+          }).observe(chartEl);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", initChart);
     </script>
   </body>
 </html>
