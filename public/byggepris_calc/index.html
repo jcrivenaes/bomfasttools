@@ -181,6 +181,58 @@
                     sans-serif;
             }
 
+            .chart-panel {
+                margin-top: 32px;
+                padding-top: 24px;
+                border-top: 1px solid var(--line);
+            }
+
+            .chart-panel h3 {
+                margin: 0 0 16px;
+            }
+
+            .chart-wrap {
+                position: relative;
+                height: 360px;
+            }
+
+            #comparison-chart {
+                display: block;
+                width: 100%;
+                height: 100%;
+            }
+
+            .chart-legend {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px;
+                margin-top: 12px;
+                color: var(--muted);
+                font:
+                    0.82rem Arial,
+                    sans-serif;
+            }
+
+            .legend-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 7px;
+            }
+
+            .legend-line {
+                display: inline-block;
+                width: 24px;
+                height: 3px;
+            }
+
+            .legend-line.road {
+                background: var(--accent);
+            }
+
+            .legend-line.kpi {
+                background: var(--green);
+            }
+
             @media (max-width: 600px) {
                 main {
                     margin: 28px auto;
@@ -262,6 +314,24 @@
                         <strong id="kpi-indices">-</strong>
                     </div>
                 </div>
+                <section class="chart-panel" aria-labelledby="chart-heading">
+                    <h3 id="chart-heading">Indeksutvikling fra 2000</h3>
+                    <div class="chart-wrap">
+                        <canvas
+                            id="comparison-chart"
+                            role="img"
+                            aria-label="Graf som sammenligner byggeprisindeks og KPI, begge med år 2000 som indeks 100"
+                        ></canvas>
+                    </div>
+                    <div class="chart-legend" aria-hidden="true">
+                        <span class="legend-item"
+                            ><span class="legend-line road"></span>Byggeprisindeks</span
+                        >
+                        <span class="legend-item"
+                            ><span class="legend-line kpi"></span>KPI</span
+                        >
+                    </div>
+                </section>
                 <p id="status" role="status">Henter verdier fra SSB...</p>
                 <p class="note">
                     Dersom valgt kvartal for et år mangler, beregnes en lineær
@@ -280,8 +350,93 @@
                 var toYear = document.getElementById("to-year");
                 var quarter = document.getElementById("quarter");
                 var status = document.getElementById("status");
+                var chart = document.getElementById("comparison-chart");
                 var activeIndex = null;
                 var activeKpiIndex = null;
+
+                function drawComparisonChart() {
+                    if (!activeIndex || !activeKpiIndex) return;
+
+                    var years = yearsFrom(activeIndex).filter(function (year) {
+                        return (
+                            Number(year) >= 2000 && activeKpiIndex[year] !== undefined
+                        );
+                    });
+                    var baseRoad = activeIndex["2000"];
+                    var baseKpi = activeKpiIndex["2000"];
+                    if (!years.length || !baseRoad || !baseKpi) return;
+
+                    var context = chart.getContext("2d");
+                    var width = chart.clientWidth;
+                    var height = chart.clientHeight;
+                    var pixelRatio = window.devicePixelRatio || 1;
+                    chart.width = width * pixelRatio;
+                    chart.height = height * pixelRatio;
+                    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+
+                    var padding = { top: 18, right: 18, bottom: 38, left: 48 };
+                    var plotWidth = width - padding.left - padding.right;
+                    var plotHeight = height - padding.top - padding.bottom;
+                    var roadValues = years.map(function (year) {
+                        return (activeIndex[year] / baseRoad) * 100;
+                    });
+                    var kpiValues = years.map(function (year) {
+                        return (activeKpiIndex[year] / baseKpi) * 100;
+                    });
+                    var allValues = roadValues.concat(kpiValues);
+                    var minimum = Math.floor(Math.min.apply(null, allValues) / 10) * 10;
+                    var maximum = Math.ceil(Math.max.apply(null, allValues) / 10) * 10;
+                    var valueRange = Math.max(maximum - minimum, 10);
+
+                    function xPosition(index) {
+                        return padding.left + (index / (years.length - 1)) * plotWidth;
+                    }
+
+                    function yPosition(value) {
+                        return (
+                            padding.top + ((maximum - value) / valueRange) * plotHeight
+                        );
+                    }
+
+                    context.clearRect(0, 0, width, height);
+                    context.font = "12px Arial";
+                    context.lineWidth = 1;
+                    context.strokeStyle = "#d8d1c5";
+                    context.fillStyle = "#5d6a75";
+                    for (var tick = minimum; tick <= maximum; tick += 10) {
+                        var tickY = yPosition(tick);
+                        context.beginPath();
+                        context.moveTo(padding.left, tickY);
+                        context.lineTo(width - padding.right, tickY);
+                        context.stroke();
+                        context.textAlign = "right";
+                        context.fillText(String(tick), padding.left - 8, tickY + 4);
+                    }
+
+                    function drawSeries(values, color) {
+                        context.beginPath();
+                        values.forEach(function (value, index) {
+                            var x = xPosition(index);
+                            var y = yPosition(value);
+                            if (index === 0) context.moveTo(x, y);
+                            else context.lineTo(x, y);
+                        });
+                        context.lineWidth = 2.5;
+                        context.strokeStyle = color;
+                        context.stroke();
+                    }
+
+                    drawSeries(roadValues, "#c64b2c");
+                    drawSeries(kpiValues, "#1d6b58");
+                    context.textAlign = "center";
+                    context.fillStyle = "#5d6a75";
+                    var labelStep = Math.max(1, Math.ceil(years.length / 8));
+                    years.forEach(function (year, index) {
+                        if (index % labelStep === 0 || index === years.length - 1) {
+                            context.fillText(year, xPosition(index), height - 12);
+                        }
+                    });
+                }
 
                 function yearsFrom(index) {
                     return Object.keys(index).sort(function (a, b) {
@@ -314,7 +469,7 @@
                     document.getElementById("percentage").textContent =
                         result.percentage.toFixed(2) + "%";
                     document.getElementById("indices").textContent =
-                        result.indexFrom + " / " + result.indexTo;
+                        result.indexFrom.toFixed(1) + " / " + result.indexTo.toFixed(1);
                 }
 
                 function renderKpi(result) {
@@ -323,7 +478,7 @@
                     document.getElementById("kpi-percentage").textContent =
                         result.percentage.toFixed(2) + "%";
                     document.getElementById("kpi-indices").textContent =
-                        result.indexFrom + " / " + result.indexTo;
+                        result.indexFrom.toFixed(1) + " / " + result.indexTo.toFixed(1);
                 }
 
                 function calculate() {
@@ -343,6 +498,7 @@
                                 activeKpiIndex,
                             ),
                         );
+                        drawComparisonChart();
                     } catch (error) {
                         status.textContent = error.message;
                     }
@@ -369,6 +525,7 @@
                         ]);
                         activeIndex = indexes[0];
                         activeKpiIndex = indexes[1];
+                        drawComparisonChart();
                         populateYears(activeIndex);
                         var availableYears = yearsFrom(activeIndex);
                         var defaultFromYear =
@@ -409,6 +566,7 @@
                 }
 
                 quarter.addEventListener("change", loadSsb);
+                window.addEventListener("resize", drawComparisonChart);
                 loadSsb();
             })();
         </script>

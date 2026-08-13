@@ -1,5 +1,6 @@
-"""Byggepris calculator module."""
-#! /usr/bin/env python3
+#!/usr/bin/env python3
+
+import sys
 
 
 def relative_price_increase(price_index, year1, year2):
@@ -40,7 +41,7 @@ price_index = {
     2025: 232.5,
 }
 
-year2 = max(price_index)
+year2 = int(sys.argv[1]) if len(sys.argv) > 1 else max(price_index)
 for year1, _ in price_index.items():
     increase = relative_price_increase(price_index, year1, year2)
     print(f"Relativ prisstigning fra {year1} til {year2}: {increase:.2f}")
