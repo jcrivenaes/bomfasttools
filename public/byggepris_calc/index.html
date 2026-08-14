@@ -187,6 +187,24 @@
                 border-top: 1px solid var(--line);
             }
 
+            .amount-panel {
+                margin-top: 32px;
+                padding-top: 24px;
+                border-top: 1px solid var(--line);
+            }
+
+            .amount-panel h3 {
+                margin: 0 0 16px;
+            }
+
+            .amount-input {
+                max-width: 280px;
+            }
+
+            .amount-result {
+                grid-template-columns: 1fr 1fr;
+            }
+
             .chart-panel h3 {
                 margin: 0 0 16px;
             }
@@ -314,13 +332,36 @@
                         <strong id="kpi-indices">-</strong>
                     </div>
                 </div>
+                <section class="amount-panel" aria-labelledby="amount-heading">
+                    <h3 id="amount-heading">Indeksreguler beløp</h3>
+                    <label class="amount-input" for="amount"
+                        >Beløp fra valgt fra-år
+                        <input
+                            id="amount"
+                            type="number"
+                            min="0"
+                            step="any"
+                            value="1000"
+                        />
+                    </label>
+                    <div class="result amount-result" aria-live="polite">
+                        <div>
+                            <small>Byggeprisindeks</small>
+                            <strong id="indexed-road-amount">-</strong>
+                        </div>
+                        <div>
+                            <small>KPI</small>
+                            <strong id="indexed-kpi-amount">-</strong>
+                        </div>
+                    </div>
+                </section>
                 <section class="chart-panel" aria-labelledby="chart-heading">
-                    <h3 id="chart-heading">Indeksutvikling fra 2000</h3>
+                    <h3 id="chart-heading">Indeksregulert beløp</h3>
                     <div class="chart-wrap">
                         <canvas
                             id="comparison-chart"
                             role="img"
-                            aria-label="Graf som sammenligner byggeprisindeks og KPI, begge med år 2000 som indeks 100"
+                            aria-label="Graf som sammenligner indeksregulert beløp for byggeprisindeks og KPI"
                         ></canvas>
                     </div>
                     <div class="chart-legend" aria-hidden="true">
@@ -349,10 +390,17 @@
                 var fromYear = document.getElementById("from-year");
                 var toYear = document.getElementById("to-year");
                 var quarter = document.getElementById("quarter");
+                var amount = document.getElementById("amount");
                 var status = document.getElementById("status");
                 var chart = document.getElementById("comparison-chart");
                 var activeIndex = null;
                 var activeKpiIndex = null;
+
+                function parsedAmount() {
+                    if (amount.value.trim() === "") return NaN;
+                    var value = Number(amount.value);
+                    return value < 0 ? NaN : value;
+                }
 
                 function drawComparisonChart() {
                     if (!activeIndex || !activeKpiIndex) return;
@@ -362,9 +410,20 @@
                             Number(year) >= 2000 && activeKpiIndex[year] !== undefined
                         );
                     });
-                    var baseRoad = activeIndex["2000"];
-                    var baseKpi = activeKpiIndex["2000"];
-                    if (!years.length || !baseRoad || !baseKpi) return;
+                    var baseRoad = activeIndex[fromYear.value];
+                    var baseKpi = activeKpiIndex[fromYear.value];
+                    var baseAmount = parsedAmount();
+                    if (
+                        !years.length ||
+                        !baseRoad ||
+                        !baseKpi ||
+                        !Number.isFinite(baseAmount)
+                    ) {
+                        chart
+                            .getContext("2d")
+                            .clearRect(0, 0, chart.width, chart.height);
+                        return;
+                    }
 
                     var context = chart.getContext("2d");
                     var width = chart.clientWidth;
@@ -378,15 +437,33 @@
                     var plotWidth = width - padding.left - padding.right;
                     var plotHeight = height - padding.top - padding.bottom;
                     var roadValues = years.map(function (year) {
-                        return (activeIndex[year] / baseRoad) * 100;
+                        return (activeIndex[year] / baseRoad) * baseAmount;
                     });
                     var kpiValues = years.map(function (year) {
-                        return (activeKpiIndex[year] / baseKpi) * 100;
+                        return (activeKpiIndex[year] / baseKpi) * baseAmount;
                     });
                     var allValues = roadValues.concat(kpiValues);
-                    var minimum = Math.floor(Math.min.apply(null, allValues) / 10) * 10;
-                    var maximum = Math.ceil(Math.max.apply(null, allValues) / 10) * 10;
-                    var valueRange = Math.max(maximum - minimum, 10);
+                    var dataMinimum = Math.min.apply(null, allValues);
+                    var dataMaximum = Math.max.apply(null, allValues);
+                    var rawTickStep = (dataMaximum - dataMinimum) / 6;
+                    var magnitude = Math.pow(
+                        10,
+                        Math.floor(Math.log10(rawTickStep || 1)),
+                    );
+                    var normalizedTickStep = rawTickStep / magnitude;
+                    var tickStep =
+                        normalizedTickStep <= 1
+                            ? magnitude
+                            : normalizedTickStep <= 2
+                              ? 2 * magnitude
+                              : normalizedTickStep <= 5
+                                ? 5 * magnitude
+                                : 10 * magnitude;
+                    var minimum = Math.floor(dataMinimum / tickStep) * tickStep;
+                    var maximum = Math.ceil(dataMaximum / tickStep) * tickStep;
+                    var valueRange = Math.max(maximum - minimum, baseAmount / 10 || 10);
+                    var tickDecimals =
+                        tickStep < 1 ? Math.ceil(-Math.log10(tickStep)) : 0;
 
                     function xPosition(index) {
                         return padding.left + (index / (years.length - 1)) * plotWidth;
@@ -403,14 +480,22 @@
                     context.lineWidth = 1;
                     context.strokeStyle = "#d8d1c5";
                     context.fillStyle = "#5d6a75";
-                    for (var tick = minimum; tick <= maximum; tick += 10) {
+                    for (
+                        var tick = minimum;
+                        tick <= maximum + tickStep / 10;
+                        tick += tickStep
+                    ) {
                         var tickY = yPosition(tick);
                         context.beginPath();
                         context.moveTo(padding.left, tickY);
                         context.lineTo(width - padding.right, tickY);
                         context.stroke();
                         context.textAlign = "right";
-                        context.fillText(String(tick), padding.left - 8, tickY + 4);
+                        context.fillText(
+                            formatNumber(tick, tickDecimals),
+                            padding.left - 8,
+                            tickY + 4,
+                        );
                     }
 
                     function drawSeries(values, color) {
@@ -426,8 +511,34 @@
                         context.stroke();
                     }
 
+                    function drawMarker(values, year, color) {
+                        var index = years.indexOf(year);
+                        if (index < 0) return;
+
+                        context.beginPath();
+                        context.arc(
+                            xPosition(index),
+                            yPosition(values[index]),
+                            5,
+                            0,
+                            Math.PI * 2,
+                        );
+                        context.fillStyle = "#fffdf8";
+                        context.fill();
+                        context.lineWidth = 2.5;
+                        context.strokeStyle = color;
+                        context.stroke();
+                    }
+
                     drawSeries(roadValues, "#c64b2c");
                     drawSeries(kpiValues, "#1d6b58");
+                    [
+                        [roadValues, "#c64b2c"],
+                        [kpiValues, "#1d6b58"],
+                    ].forEach(function (series) {
+                        drawMarker(series[0], fromYear.value, series[1]);
+                        drawMarker(series[0], toYear.value, series[1]);
+                    });
                     context.textAlign = "center";
                     context.fillStyle = "#5d6a75";
                     var labelStep = Math.max(1, Math.ceil(years.length / 8));
@@ -463,41 +574,63 @@
                     if (!toYear.value) toYear.value = years[years.length - 1];
                 }
 
-                function render(result) {
-                    document.getElementById("multiplier").textContent =
-                        result.multiplier.toFixed(3) + "x";
-                    document.getElementById("percentage").textContent =
-                        result.percentage.toFixed(2) + "%";
-                    document.getElementById("indices").textContent =
-                        result.indexFrom.toFixed(1) + " / " + result.indexTo.toFixed(1);
+                function renderResult(prefix, result) {
+                    document.getElementById(prefix + "multiplier").textContent =
+                        formatNumber(result.multiplier, 3) + "x";
+                    document.getElementById(prefix + "percentage").textContent =
+                        formatNumber(result.percentage, 2) + "%";
+                    document.getElementById(prefix + "indices").textContent =
+                        formatNumber(result.indexFrom, 1) +
+                        " / " +
+                        formatNumber(result.indexTo, 1);
                 }
 
-                function renderKpi(result) {
-                    document.getElementById("kpi-multiplier").textContent =
-                        result.multiplier.toFixed(3) + "x";
-                    document.getElementById("kpi-percentage").textContent =
-                        result.percentage.toFixed(2) + "%";
-                    document.getElementById("kpi-indices").textContent =
-                        result.indexFrom.toFixed(1) + " / " + result.indexTo.toFixed(1);
+                function formatNumber(value, decimals) {
+                    return value.toLocaleString("nb-NO", {
+                        minimumFractionDigits: decimals,
+                        maximumFractionDigits: decimals,
+                    });
+                }
+
+                function formatAmount(value) {
+                    return formatNumber(value, 2);
+                }
+
+                function renderIndexedAmount(roadResult, kpiResult) {
+                    var baseAmount = parsedAmount();
+                    var roadOutput = document.getElementById("indexed-road-amount");
+                    var kpiOutput = document.getElementById("indexed-kpi-amount");
+
+                    if (!Number.isFinite(baseAmount)) {
+                        roadOutput.textContent = "-";
+                        kpiOutput.textContent = "-";
+                        return;
+                    }
+
+                    roadOutput.textContent = formatAmount(
+                        baseAmount * roadResult.multiplier,
+                    );
+                    kpiOutput.textContent = formatAmount(
+                        baseAmount * kpiResult.multiplier,
+                    );
                 }
 
                 function calculate() {
                     if (!activeIndex || !activeKpiIndex) return;
                     try {
-                        render(
-                            calculator.calculate(
-                                fromYear.value,
-                                toYear.value,
-                                activeIndex,
-                            ),
+                        var roadResult = calculator.calculate(
+                            fromYear.value,
+                            toYear.value,
+                            activeIndex,
                         );
-                        renderKpi(
-                            calculator.calculate(
-                                fromYear.value,
-                                toYear.value,
-                                activeKpiIndex,
-                            ),
+                        var kpiResult = calculator.calculate(
+                            fromYear.value,
+                            toYear.value,
+                            activeKpiIndex,
                         );
+                        renderResult("", roadResult);
+                        renderResult("kpi-", kpiResult);
+                        renderIndexedAmount(roadResult, kpiResult);
                         drawComparisonChart();
                     } catch (error) {
                         status.textContent = error.message;
@@ -506,8 +639,11 @@
 
                 fromYear.addEventListener("change", calculate);
                 toYear.addEventListener("change", calculate);
+                amount.addEventListener("input", calculate);
 
                 async function loadSsb() {
+                    var selectedFromYear = fromYear.value;
+                    var selectedToYear = toYear.value;
                     status.textContent = "Henter valgt kvartal fra SSB...";
                     try {
                         var currentYear = new Date().getFullYear();
@@ -525,7 +661,6 @@
                         ]);
                         activeIndex = indexes[0];
                         activeKpiIndex = indexes[1];
-                        drawComparisonChart();
                         populateYears(activeIndex);
                         var availableYears = yearsFrom(activeIndex);
                         var defaultFromYear =
@@ -540,8 +675,8 @@
                         if (Number(defaultFromYear) > Number(defaultToYear)) {
                             defaultFromYear = availableYears[0];
                         }
-                        fromYear.value = defaultFromYear;
-                        toYear.value = defaultToYear;
+                        if (!selectedFromYear) fromYear.value = defaultFromYear;
+                        if (!selectedToYear) toYear.value = defaultToYear;
                         calculate();
                         var extrapolatedRoad = activeIndex.extrapolatedYears;
                         var extrapolatedKpi = activeKpiIndex.extrapolatedYears;
