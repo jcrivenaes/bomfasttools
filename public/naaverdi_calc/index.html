@@ -1,0 +1,363 @@
+<!-- cspell:disable -->
+<!doctype html>
+<html lang="no">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Nåverdikalkulator</title>
+        <style>
+            :root {
+                --ink: #18212b;
+                --muted: #5d6a75;
+                --paper: #f4f1ea;
+                --panel: #fffdf8;
+                --line: #d8d1c5;
+                --accent: #c64b2c;
+                --accent-dark: #86331f;
+                --green: #1d6b58;
+            }
+
+            * {
+                box-sizing: border-box;
+            }
+
+            body {
+                margin: 0;
+                color: var(--ink);
+                background: var(--paper);
+                font-family: Georgia, "Times New Roman", serif;
+                line-height: 1.5;
+            }
+
+            main {
+                width: min(820px, calc(100% - 32px));
+                margin: 48px auto;
+            }
+
+            .eyebrow {
+                margin: 0 0 8px;
+                color: var(--accent-dark);
+                font:
+                    700 0.78rem/1.2 Arial,
+                    sans-serif;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+            }
+
+            h1 {
+                max-width: none;
+                margin: 0;
+                font-size: 1.8rem;
+                line-height: 1.05;
+                letter-spacing: 0;
+            }
+
+            .intro {
+                margin: 20px 0 32px;
+                color: var(--muted);
+                font-size: 1.08rem;
+            }
+
+            .panel {
+                padding: 28px;
+                border: 1px solid var(--line);
+                background: var(--panel);
+                box-shadow: 10px 10px 0 rgba(198, 75, 44, 0.12);
+            }
+
+            .fields {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 20px;
+            }
+
+            label {
+                display: block;
+                color: var(--muted);
+                font:
+                    700 0.78rem/1.2 Arial,
+                    sans-serif;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            input {
+                width: 100%;
+                margin-top: 8px;
+                padding: 12px 13px;
+                border: 1px solid var(--line);
+                border-radius: 0;
+                color: var(--ink);
+                background: white;
+                font: inherit;
+            }
+
+            .result {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 1px;
+                margin-top: 28px;
+                background: var(--line);
+            }
+
+            .result div {
+                min-width: 0;
+                padding: 18px;
+                background: var(--panel);
+            }
+
+            .result small {
+                display: block;
+                color: var(--muted);
+                font:
+                    700 0.72rem/1.2 Arial,
+                    sans-serif;
+                letter-spacing: 0.04em;
+                text-transform: uppercase;
+            }
+
+            .result strong {
+                display: block;
+                margin-top: 4px;
+                font-size: clamp(1.35rem, 4vw, 2.1rem);
+                overflow-wrap: anywhere;
+            }
+
+            .note {
+                margin: 24px 0 0;
+                color: var(--muted);
+                font:
+                    0.84rem/1.45 Arial,
+                    sans-serif;
+            }
+
+            @media (max-width: 600px) {
+                main {
+                    margin: 28px auto;
+                }
+                .panel {
+                    padding: 20px;
+                }
+                .fields,
+                .result {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <p class="eyebrow">Samfunnsøkonomisk analyse</p>
+            <h1>Nåverdikalkulator</h1>
+            <p class="intro">
+                Beregner nåverdien av en årlig, tilbakevendende sum (f.eks. årlig
+                innsparing eller kostnad) med den trinnvise diskonteringsrenten som
+                brukes i transportanalyser (jf. NTP): én rente for de første 40 årene
+                regnet fra beregningsåret, og en lavere rente for årene deretter.
+            </p>
+
+            <section class="panel" aria-labelledby="calculator-heading">
+                <h2 id="calculator-heading">Beregn nåverdi</h2>
+                <div class="fields">
+                    <label for="sum"
+                        >Årlig sum
+                        <input id="sum" type="number" step="any" value="900" />
+                    </label>
+                    <label for="price-year"
+                        >Prisår (kroneverdi summen er oppgitt i)
+                        <input id="price-year" type="number" step="1" value="2026" />
+                    </label>
+                    <label for="reference-year"
+                        >Beregningsår (diskonteres til)
+                        <input
+                            id="reference-year"
+                            type="number"
+                            step="1"
+                            value="2026"
+                        />
+                    </label>
+                    <label for="start-year"
+                        >Åpningsår (første år med sum)
+                        <input id="start-year" type="number" step="1" value="2036" />
+                    </label>
+                    <label for="duration"
+                        >Varighet (antall år med årlig sum)
+                        <input id="duration" type="number" step="1" value="75" />
+                    </label>
+                    <label for="growth"
+                        >Realvekst i årlig sum (%)
+                        <input
+                            id="growth"
+                            type="number"
+                            step="0.1"
+                            min="-99.9"
+                            value="0"
+                        />
+                    </label>
+                    <label for="rate-0-40"
+                        >Rente, år 0&ndash;40 fra beregningsår (%)
+                        <input
+                            id="rate-0-40"
+                            type="number"
+                            step="0.1"
+                            min="-99.9"
+                            value="4"
+                        />
+                    </label>
+                    <label for="rate-after-40"
+                        >Rente, etter år 40 (%)
+                        <input
+                            id="rate-after-40"
+                            type="number"
+                            step="0.1"
+                            min="-99.9"
+                            value="3"
+                        />
+                    </label>
+                </div>
+
+                <h3>Resultat</h3>
+                <div class="result" aria-live="polite">
+                    <div>
+                        <small
+                            >Nåverdi (sum), <span id="result-price-year">-</span></small
+                        >
+                        <strong id="result-value">-</strong>
+                    </div>
+                    <div>
+                        <small>Udiskontert sum</small>
+                        <strong id="result-undiscounted">-</strong>
+                    </div>
+                    <div>
+                        <small>Utbetalingsår</small>
+                        <strong id="result-years">-</strong>
+                    </div>
+                </div>
+                <p class="note">
+                    Prisår og beregningsår holdes fra hverandre slik det ofte gjøres i
+                    NTP: prisår er kroneverdien (prisnivået) summen er oppgitt i, mens
+                    beregningsår er året man diskonterer til (tilsvarer
+                    "sammenligningsår"). Hvert års sum diskonteres enkeltvis tilbake til
+                    beregningsåret. Antall år fra beregningsåret til det enkelte
+                    utbetalingsår avgjør hvilken rente som gjelder: renten for år
+                    0&ndash;40 brukes for den delen av perioden som ligger innenfor 40
+                    år fra beregningsåret, den lavere renten for resten. Realvekst lar
+                    den årlige summen øke (eller synke, ved negativ verdi) med en fast
+                    prosent for hvert år fra åpningsåret. Kalkulatoren gjør ingen
+                    KPI-justering mellom prisår og beregningsår, og bruker ikke en egen
+                    (enda lavere) rente for perioden utover 75 år.
+                </p>
+            </section>
+        </main>
+
+        <script>
+            (function () {
+                "use strict";
+
+                var sumInput = document.getElementById("sum");
+                var priceYearInput = document.getElementById("price-year");
+                var referenceYearInput = document.getElementById("reference-year");
+                var startYearInput = document.getElementById("start-year");
+                var durationInput = document.getElementById("duration");
+                var growthInput = document.getElementById("growth");
+                var rate1Input = document.getElementById("rate-0-40");
+                var rate2Input = document.getElementById("rate-after-40");
+
+                var resultValue = document.getElementById("result-value");
+                var resultUndiscounted = document.getElementById("result-undiscounted");
+                var resultYears = document.getElementById("result-years");
+                var resultPriceYear = document.getElementById("result-price-year");
+
+                // n = antall år (kan være negativt) mellom beregningsår og utbetalingsår
+                function discountFactor(n, rate1, rate2) {
+                    var absYears = Math.abs(n);
+                    var years0to40 = Math.min(absYears, 40);
+                    var yearsAfter40 = Math.max(0, absYears - 40);
+                    return (
+                        Math.pow(1 + rate1, years0to40) *
+                        Math.pow(1 + rate2, yearsAfter40)
+                    );
+                }
+
+                function formatAmount(value) {
+                    return value.toLocaleString("no-NO", { maximumFractionDigits: 0 });
+                }
+
+                function calculate() {
+                    var annualSum = parseFloat(sumInput.value);
+                    var priceYear = parseInt(priceYearInput.value, 10);
+                    var referenceYear = parseInt(referenceYearInput.value, 10);
+                    var startYear = parseInt(startYearInput.value, 10);
+                    var duration = parseInt(durationInput.value, 10);
+                    var growth = parseFloat(growthInput.value) / 100;
+                    var rate1 = parseFloat(rate1Input.value) / 100;
+                    var rate2 = parseFloat(rate2Input.value) / 100;
+
+                    if (
+                        !Number.isFinite(annualSum) ||
+                        !Number.isFinite(priceYear) ||
+                        !Number.isFinite(referenceYear) ||
+                        !Number.isFinite(startYear) ||
+                        !Number.isFinite(duration) ||
+                        duration <= 0 ||
+                        !Number.isFinite(growth) ||
+                        growth <= -1 ||
+                        !Number.isFinite(rate1) ||
+                        rate1 <= -1 ||
+                        !Number.isFinite(rate2) ||
+                        rate2 <= -1
+                    ) {
+                        resultValue.textContent = "-";
+                        resultUndiscounted.textContent = "-";
+                        resultYears.textContent = "-";
+                        resultPriceYear.textContent = "-";
+                        return;
+                    }
+
+                    var presentValue = 0;
+                    var undiscountedSum = 0;
+                    for (var i = 0; i < duration; i++) {
+                        var payoutYear = startYear + i;
+                        var yearSum = annualSum * Math.pow(1 + growth, i);
+                        var n = payoutYear - referenceYear;
+                        var factor = discountFactor(n, rate1, rate2);
+                        presentValue += n >= 0 ? yearSum / factor : yearSum * factor;
+                        undiscountedSum += yearSum;
+                    }
+
+                    if (
+                        !Number.isFinite(presentValue) ||
+                        !Number.isFinite(undiscountedSum)
+                    ) {
+                        resultValue.textContent = "-";
+                        resultUndiscounted.textContent = "-";
+                        resultYears.textContent = "-";
+                        resultPriceYear.textContent = "-";
+                        return;
+                    }
+
+                    resultValue.textContent = formatAmount(presentValue);
+                    resultUndiscounted.textContent = formatAmount(undiscountedSum);
+                    resultYears.textContent =
+                        startYear + "\u2013" + (startYear + duration - 1);
+                    resultPriceYear.textContent = priceYear + "-nivå";
+                }
+
+                [
+                    sumInput,
+                    priceYearInput,
+                    referenceYearInput,
+                    startYearInput,
+                    durationInput,
+                    growthInput,
+                    rate1Input,
+                    rate2Input,
+                ].forEach(function (input) {
+                    input.addEventListener("input", calculate);
+                });
+
+                calculate();
+            })();
+        </script>
+    </body>
+</html>
