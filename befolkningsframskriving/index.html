@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="no">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Befolkningsframskrivinger – SSB</title>
+        <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+        <link rel="stylesheet" href="./style.css" />
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>📈 Befolkningsframskrivinger</h1>
+                <p>
+                    Fremskrevet folkemengde for grupper av kommuner og fylker — Kilde:
+                    SSB tabell 14746
+                </p>
+            </div>
+
+            <div class="content">
+                <div class="panel">
+                    <h2>1. Velg kommuner/fylker</h2>
+                    <p class="hint">
+                        Velger du et fylke, summerer SSB automatisk alle kommunene i
+                        fylket. Kryss av flere kommuner fra ulike fylker for å lage en
+                        egendefinert region.
+                    </p>
+                    <input
+                        type="text"
+                        id="search"
+                        placeholder="Søk etter kommune eller fylke …"
+                        autocomplete="off"
+                    />
+                    <div id="regionList" class="region-list">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Henter regionliste fra SSB…</p>
+                        </div>
+                    </div>
+
+                    <div class="group-builder">
+                        <input
+                            type="text"
+                            id="groupName"
+                            placeholder="Navn på gruppe (f.eks. «Bergensregionen»)"
+                        />
+                        <button id="addGroupBtn" class="primary">
+                            ➕ Legg til gruppe
+                        </button>
+                        <button id="clearSelectionBtn" class="secondary">
+                            Nullstill valg
+                        </button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>2. Grupper</h2>
+                    <div id="groupList" class="chip-list">
+                        <p class="hint">Ingen grupper lagt til ennå.</p>
+                    </div>
+                    <button id="presetLandsdelerBtn" class="secondary">
+                        ✨ Legg til landsdeler som grupper
+                    </button>
+                </div>
+
+                <div class="panel">
+                    <h2>3. Framskrivingsalternativ</h2>
+                    <div id="altList" class="alt-list">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Henter alternativer…</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>4. Aldersgrupper (valgfritt)</h2>
+                    <p class="hint">
+                        Kryss av én eller flere aldersgrupper for å dele opp
+                        befolkningen i stedet for å vise totalbefolkningen. Grensene er
+                        forslag — juster «fra/til år» selv om noe annet passer bedre.
+                        Ingen avkrysset = total befolkning.
+                    </p>
+                    <div id="ageGroupList" class="age-group-list">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Henter aldersinndeling…</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel actions">
+                    <button id="renderBtn" class="primary large">📊 Vis graf</button>
+                    <label class="axis-range-inline">
+                        Y-akse min
+                        <input
+                            type="text"
+                            inputmode="numeric"
+                            id="yAxisMin"
+                            class="axis-range-input"
+                        />
+                    </label>
+                    <label class="axis-range-inline">
+                        Y-akse maks
+                        <input
+                            type="text"
+                            inputmode="numeric"
+                            id="yAxisMax"
+                            class="axis-range-input"
+                        />
+                    </label>
+                </div>
+
+                <div class="chart-section">
+                    <p id="chartCaption" class="chart-caption"></p>
+                    <div id="chart">
+                        <p class="hint">
+                            Velg minst én gruppe og ett alternativ, og trykk «Vis graf».
+                        </p>
+                    </div>
+                </div>
+
+                <div class="footnote">
+                    <strong>Kilde:</strong> Statistisk sentralbyrå (SSB),
+                    Statistikkbanken tabell
+                    <a
+                        href="https://www.ssb.no/statbank/table/07459"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >07459</a
+                    >
+                    (registrert folkemengde 2000–2025) og tabell
+                    <a
+                        href="https://www.ssb.no/statbank/table/14746"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >14746</a
+                    >
+                    (framskrevet folkemengde 2026–2050, 2026-framskrivingen).
+                </div>
+            </div>
+        </div>
+
+        <script src="./script.js"></script>
+    </body>
+</html>
