@@ -59,14 +59,14 @@ let ageGroups = [
 ];
 
 const COLORS = [
-    "#667eea",
-    "#e05c5c",
-    "#43c97b",
-    "#f0a500",
-    "#00b4d8",
-    "#9b5de5",
-    "#ef476f",
-    "#06d6a0",
+    "#4a8d2a",
+    "#2f6a4f",
+    "#8b6f26",
+    "#6c7460",
+    "#9a5a2e",
+    "#6f7e3d",
+    "#7a5f52",
+    "#b86a3f",
 ];
 
 function primaryName(text) {
@@ -929,7 +929,7 @@ async function renderChart() {
                           {
                               x: AXIS_START_YEAR.toString(),
                               x2: lastHistYear,
-                              fillColor: "#8fc9a0",
+                              fillColor: "#d5e4cf",
                               opacity: 0.45,
                           },
                       ]
