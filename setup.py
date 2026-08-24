@@ -42,7 +42,7 @@ setuptools.setup(
     author_email="",
     url="",
     keywords=[],
-    license="Not open source (violating TR1621)",
+    license="MIT",
     platforms="any",
     include_package_data=True,
     packages=find_packages("src"),
