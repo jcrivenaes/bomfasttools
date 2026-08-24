@@ -1,8 +1,18 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+:root {
+  --bf-green: #4a8d2a;
+  --bf-green-dark: #356b1f;
+  --bf-green-soft: #eef5ea;
+  --bf-olive: #76824b;
+  --bf-text: #263238;
+  --bf-muted: #607074;
+  --bf-border: #d7e2d1;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f2f4ed 0%, #e5ebdd 100%);
   min-height: 100vh;
   padding: 2rem;
 }
@@ -17,7 +27,7 @@ body {
 }
 
 .header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #4e5840 0%, var(--bf-olive) 100%);
   color: white;
   padding: 2rem;
   text-align: center;
@@ -41,7 +51,7 @@ body {
   color: #333;
   margin-bottom: 0.6rem;
   padding-bottom: 0.4rem;
-  border-bottom: 2px solid #667eea;
+  border-bottom: 2px solid var(--bf-green);
   display: inline-block;
 }
 
@@ -55,12 +65,12 @@ input[type="text"] {
   font-size: 0.95rem;
   margin-bottom: 0.6rem;
 }
-input[type="text"]:focus { outline: none; border-color: #667eea; }
+input[type="text"]:focus { outline: none; border-color: var(--bf-green); }
 
 .region-list {
   max-height: 260px;
   overflow-y: auto;
-  border: 1px solid #ddd;
+  border: 1px solid var(--bf-border);
   border-radius: 6px;
   padding: 0.4rem 0.6rem;
 }
@@ -72,7 +82,7 @@ input[type="text"]:focus { outline: none; border-color: #667eea; }
   padding: 0.3rem 0.2rem;
   border-radius: 4px;
 }
-.region-row:hover { background: #f5f5fb; }
+.region-row:hover { background: var(--bf-green-soft); }
 .region-row label { flex: 1; font-size: 0.9rem; cursor: pointer; }
 
 .badge {
@@ -83,8 +93,8 @@ input[type="text"]:focus { outline: none; border-color: #667eea; }
   color: white;
   text-transform: uppercase;
 }
-.badge.fylke { background: #667eea; }
-.badge.kommune { background: #43c97b; }
+.badge.fylke { background: var(--bf-green); }
+.badge.kommune { background: #5aa45b; }
 .badge.land { background: #f0a500; }
 
 .group-builder {
@@ -107,7 +117,7 @@ button {
 }
 button:hover { opacity: 0.9; }
 button:active { transform: scale(0.98); }
-button.primary { background: #667eea; color: white; }
+button.primary { background: var(--bf-green); color: white; }
 button.secondary { background: #eee; color: #333; }
 button.large { font-size: 1rem; padding: 0.8rem 1.6rem; }
 .actions { text-align: center; border-bottom: none; }
@@ -131,8 +141,8 @@ button.large { font-size: 1rem; padding: 0.8rem 1.6rem; }
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #f0f0fb;
-  border: 1px solid #d8d8f0;
+  background: #f5f8f3;
+  border: 1px solid var(--bf-border);
   border-radius: 20px;
   padding: 0.4rem 0.5rem 0.4rem 0.9rem;
   font-size: 0.85rem;
@@ -147,7 +157,7 @@ button.large { font-size: 1rem; padding: 0.8rem 1.6rem; }
 .chip .chip-name { font-weight: 600; color: #333; }
 .chip .chip-count { color: #666; }
 .chip button.remove-chip {
-  background: #d8d8f0;
+  background: #dce8d6;
   color: #333;
   border-radius: 50%;
   width: 1.4rem;
@@ -175,7 +185,7 @@ button.large { font-size: 1rem; padding: 0.8rem 1.6rem; }
   font-size: 0.85rem;
   margin-bottom: 0;
 }
-.age-input:focus { outline: none; border-color: #667eea; }
+.age-input:focus { outline: none; border-color: var(--bf-green); }
 
 .chart-section { margin-top: 1rem; }
 
@@ -196,7 +206,7 @@ button.large { font-size: 1rem; padding: 0.8rem 1.6rem; }
   width: 36px;
   height: 36px;
   border: 4px solid #eee;
-  border-top-color: #667eea;
+  border-top-color: var(--bf-green);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin-bottom: 1rem;
@@ -221,7 +231,7 @@ button.large { font-size: 1rem; padding: 0.8rem 1.6rem; }
   border-radius: 4px;
   margin-top: 1rem;
 }
-.footnote a { color: #667eea; }
+.footnote a { color: var(--bf-green-dark); }
 
 @media (max-width: 680px) {
   body     { padding: 1rem; }
