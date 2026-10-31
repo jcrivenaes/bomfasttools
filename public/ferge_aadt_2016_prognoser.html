@@ -10,11 +10,9 @@
         year[index++] = i.toString();
       }
 
-      halj_stord = [
-        1460, 1575, 1659, 1690, 1712, 1740, 1848, 2089, 2289, 2366, 2406, 2454,
-        2513, 2553, 2649, 2648, 2656, 2709, 2745, 2683, 2541, 2736, 2976, 3199,
-        3395,
-      ];
+      // 2000-2006 manuelt, fra 2007 fra ferge_aadt_hfast/aadt.json (Ferjedatabanken)
+      var manual = [1460, 1575, 1659, 1690, 1712, 1740, 1848];
+      var halj_stord = [];
 
       var start = 2454;
       var high = [];
@@ -73,6 +71,20 @@
         },
       });
 
+      fetch("ferge_aadt_hfast/aadt.json")
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          var api = data.series.hal_sandv;
+          halj_stord = manual.slice();
+          for (var y = 2007; api[y] !== undefined; y++) {
+            halj_stord.push(api[y]);
+          }
+          drawChart();
+        });
+
+      function drawChart() {
       new Chart(document.getElementById("line-chart"), {
         type: "line",
 
@@ -121,6 +133,7 @@
           },
         },
       });
+      }
     </script>
   </body>
 </html>
