@@ -1,241 +1,141 @@
-let ydata1 = [30, 40, 45, 50, 49, 60, 70, 91, 125];
-let ydata2 = [30, 40, 45, 50, 89, null, 70, 91, 25];
-let yeardata = [];
-var index = 0;
-for (i = 2000; i < 2035; i++) {
-  yeardata[index++] = i;
+const FIRST_YEAR = 2000;
+const LAST_YEAR = 2034;
+const yeardata = [];
+for (let y = FIRST_YEAR; y <= LAST_YEAR; y++) {
+    yeardata.push(y);
 }
 
-jekt_hodn = [
-  367,
-  355,
-  378,
-  386,
-  389,
-  397,
-  410,
-  424,
-  434,
-  448,
-  439,
-  455,
-  462,
-  470,
-  506,
-  535,
-  544,
-  538,
-  549,
-  541,
-  515,
-  536,
-  557,
-  574,
-  574,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-];
-
-hal_vaage = [
-  309,
-  322,
-  338,
-  370,
-  364,
-  375,
-  386,
-  416,
-  438,
-  448,
-  434,
-  450,
-  465,
-  476,
-  503,
-  510,
-  524,
-  528,
-  514,
-  503,
-  448,
-  486,
-  514,
-  555,
-  585,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-];
-
-hal_sandv = [
-  1460,
-  1575,
-  1659,
-  1690,
-  1712,
-  1740,
-  1848,
-  2089,
-  2289,
-  2366,
-  2406,
-  2454,
-  2513,
-  2553,
-  2649,
-  2648,
-  2656,
-  2709,
-  2745,
-  2683,
-  2541,
-  2736,
-  2976,
-  3199,
-  3385,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-  null,
-];
-
-var options = {
-  chart: {
-    type: "line",
-    height: 500,
-    fontSize: "18px",
-  },
-  title: {
-    text: "Historisk trafikk fergene langs Hordfast",
-    align: "left",
-    style: {
-      fontSize: "18px",
-      color: "#333",
+// Manuelt innlagte ÅDT (før Ferjedatabanken har data, den starter i 2007).
+// Fra 2007 hentes tallene fra aadt.json, som lages av fetch_aadt.py.
+const MANUAL = {
+    jekt_hodn: {
+        2000: 367,
+        2001: 355,
+        2002: 378,
+        2003: 386,
+        2004: 389,
+        2005: 397,
+        2006: 410,
     },
-  },
-  subtitle: {
-    text: "Gjelder kjøretøy tellinger utenom motorsykkel/moped. Kilde SVV rapporter + fergedatabanken",
-    align: "left",
-    style: {
-      fontSize: "14px",
-      color: "#666",
+    hal_vaage: {
+        2000: 309,
+        2001: 322,
+        2002: 338,
+        2003: 370,
+        2004: 364,
+        2005: 375,
+        2006: 386,
     },
-  },
-  series: [
-    {
-      name: "ÅDT Jektevik-Huglo-Hodnanes",
-      data: jekt_hodn,
+    hal_sandv: {
+        2000: 1460,
+        2001: 1575,
+        2002: 1659,
+        2003: 1690,
+        2004: 1712,
+        2005: 1740,
+        2006: 1848,
     },
-    {
-      name: "ÅDT Halhjem-Våge",
-      data: hal_vaage,
-    },
-    {
-      name: "ÅDT Halhjem-Sandvikvåg",
-      data: hal_sandv,
-    },
-  ],
-  yaxis: {
-    labels: {
-      style: {
-        fontSize: "14px",
-      },
-    },
-    min: 0,
-    max: 6000,
-  },
-  xaxis: {
-    categories: yeardata,
-    labels: {
-      style: {
-        fontSize: "14px",
-      },
-    },
-    tickAmount: 8,
-    // max: 2050,
-  },
-  annotations: {
-    xaxis: [
-      {
-        x: 2020,
-        borderColor: "blue",
-        label: {
-          style: {
-            color: "red",
-            fontSize: "11px",
-          },
-          text: "Corona",
-        },
-      },
-      {
-        x: 2022,
-        borderColor: "blue",
-        label: {
-          style: {
-            color: "green",
-            fontSize: "11px",
-          },
-          text: "Kraftig reduksjon fergepriser",
-        },
-      },
-    ],
-    points: [
-      {
-        x: 2033,
-        y: 5700,
-        marker: {
-          size: 8,
-          fillColor: "#ff0000",
-          strokeColor: "#fff",
-          radius: 2,
-        },
-        label: {
-          borderColor: "#ff0000",
-          offsetY: 0,
-          style: {
-            color: "#fff",
-            background: "#ff0000",
-          },
-          text: "SVV prognose hvis Hordfast",
-        },
-      },
-    ],
-  },
 };
 
-var chart = new ApexCharts(document.querySelector("#chart"), options);
+const SERIES = [
+    { key: "jekt_hodn", name: "ÅDT Jektevik-Huglo-Hodnanes" },
+    { key: "hal_vaage", name: "ÅDT Halhjem-Våge" },
+    { key: "hal_sandv", name: "ÅDT Halhjem-Sandvikvåg" },
+];
 
-chart.render();
+// Info-tekster om hendelser som påvirker trafikken (korona, endringer i billettpriser osv.).
+// Legg til nye linjer her. offsetY brukes hvis to tekster havner oppå hverandre.
+const EVENTS = [
+    { year: 2020, text: "Corona", color: "red" },
+    { year: 2022, text: "Kraftig reduksjon fergepriser", color: "green" },
+];
+
+function seriesData(key, apiSeries) {
+    const values = { ...MANUAL[key], ...(apiSeries[key] || {}) };
+    return yeardata.map((year) => (year in values ? values[year] : null));
+}
+
+function buildOptions(apiSeries) {
+    return {
+        chart: {
+            type: "line",
+            height: 500,
+            fontSize: "18px",
+        },
+        title: {
+            text: "Historisk trafikk fergene Os - Tysnes - Stord",
+            align: "left",
+            style: {
+                fontSize: "18px",
+                color: "#333",
+            },
+        },
+        subtitle: {
+            text: "Gjelder kjøretøytellinger utenom motorsykkel/moped. 2000-2006: SVV rapporter. Fra 2007: Ferjedatabanken",
+            align: "left",
+            style: {
+                fontSize: "14px",
+                color: "#666",
+            },
+        },
+        series: SERIES.map(({ key, name }) => ({
+            name,
+            data: seriesData(key, apiSeries),
+        })),
+        yaxis: {
+            labels: {
+                style: {
+                    fontSize: "14px",
+                },
+            },
+            min: 0,
+            max: 4000,
+        },
+        xaxis: {
+            categories: yeardata,
+            labels: {
+                style: {
+                    fontSize: "14px",
+                },
+            },
+            tickAmount: 8,
+        },
+        annotations: {
+            xaxis: EVENTS.map((e) => ({
+                x: e.year,
+                borderColor: "blue",
+                label: {
+                    offsetY: e.offsetY || 0,
+                    style: {
+                        color: e.color || "red",
+                        fontSize: "11px",
+                    },
+                    text: e.text,
+                },
+            })),
+        },
+    };
+}
+
+async function loadApiSeries() {
+    const response = await fetch("aadt.json");
+    if (!response.ok) {
+        throw new Error(`aadt.json: HTTP ${response.status}`);
+    }
+    return (await response.json()).series;
+}
+
+loadApiSeries()
+    .catch((err) => {
+        console.error(
+            "Kunne ikke laste ÅDT fra Ferjedatabanken, viser kun manuelle tall",
+            err,
+        );
+        return {};
+    })
+    .then((apiSeries) => {
+        new ApexCharts(
+            document.querySelector("#chart"),
+            buildOptions(apiSeries),
+        ).render();
+    });
