@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="no">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Hordfast-kalkulator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">E39 Hordfast · kontroll av Deloitte-rapporten 12.08.2026</div>
+  <h1>Hva koster Hordfast staten?</h1>
+  <p class="lede">Kalkulatoren gjenskaper Deloittes finansielle modell for Stavanger2Bergen og lar deg endre premissene. Udiskontert netto er Deloittes egen måleenhet; nåverdien regnes på investeringsutbetalingene, slik staten som långiver faktisk betaler.</p>
+</header>
+
+<div class="grid">
+<aside aria-label="Forutsetninger">
+  <fieldset>
+    <legend>Scenario</legend>
+    <div class="presets" id="presets">
+      <button type="button" data-p="deloitte" title="Gjenskaper Deloittes rapport uten endringer: alle ferjesamband spart, ferjeutgifter vokser 2,5 % per år og D&V er 44 mill. kr/år (50 % mer etter 20 år).">Deloitte</button>
+      <button type="button" data-p="utenAus" title="Som Deloitte, men uten Austevoll-sambandene. Disse må trolig videreføres, så de regnes ikke som spart ferjeutgift.">Uten Austevoll</button>
+      <button type="button" data-p="stat" title="Som «Uten Austevoll», men bare statens ferjesamband (Halhjem–Sandvikvåg) regnes som spart. Fylkessambandene tas ikke med.">Kun staten</button>
+      <button type="button" data-p="real" title="Kun staten, men med ferjeutgifter som holder følge med prisveksten (ikke 2,5 % vekst per år) og D&V på 197 mill. kr/år, flatt, basert på fagrapporten fra SVV/COWI.">Kombinert</button>
+      <button type="button" data-p="hoy" title="Som «Kombinert», men med D&V på 600 mill. kr/år. Viser hvor følsomt resultatet er for driftskostnadene.">Høy D&amp;V</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Ferjebesparelse</legend>
+    <select id="basis" aria-label="Tallgrunnlag for ferjeutgifter">
+      <option value="deloitte">Deloittes 897 mill. kr, fordelt etter BT-tall</option>
+      <option value="bt">BT-tall per samband (netto 2026)</option>
+    </select>
+    <p class="hint">Halhjem–Sandvikvåg (statlig) er alltid med.</p>
+    <label class="lbl" for="county">Halhjem–Våge og Jektevik–Hodnanes (fylke)</label>
+    <select id="county">
+      <option value="all">Spart fra åpning</option>
+      <option value="none">Ikke statens (kun staten)</option>
+    </select>
+    <div class="row"><label for="huglo">Huglo-ferja videreføres</label><output id="hugloO"></output></div>
+    <input type="range" id="huglo" min="0" max="52" step="1">
+    <label class="chk"><input type="checkbox" id="austevoll"> <span>Austevoll-sambandene legges ned (netto 116 mill. kr/år, krever nytt fylkessamband)</span></label>
+    <label class="lbl" for="fidx">Vekst i ferjeutgiftene</label>
+    <select id="fidx">
+      <option value="2.5">2,5 % per år (Deloitte, 0,5 % realvekst)</option>
+      <option value="kpi">Konstant kjøpekraft (Deloittes KPI-bane)</option>
+    </select>
+  </fieldset>
+
+  <fieldset>
+    <legend>Trafikk og bompenger</legend>
+    <div class="row"><label for="traffic">Trafikk mot Deloitte (8 350 ÅDT)</label><output id="trafficO"></output></div>
+    <input type="range" id="traffic" min="-40" max="40" step="5">
+    <div class="row"><label for="premium">Takst over ferjepris</label><output id="premiumO"></output></div>
+    <input type="range" id="premium" min="0" max="60" step="5">
+    <p class="hint">Deloitte 40 %, Initiativ Vest om lag 10 %.</p>
+    <label class="chk"><input type="checkbox" id="expost"> <span>Bompengelånet fastsettes på Deloittes prognose; staten dekker avvik</span></label>
+  </fieldset>
+
+  <fieldset>
+    <legend>Vegen</legend>
+    <div class="row"><label for="dv">D&amp;V og reinvesteringer</label><output id="dvO"></output></div>
+    <input type="range" id="dv" min="40" max="800" step="5">
+    <label class="chk"><input type="checkbox" id="dvStep"> <span>+50 % etter 20 år (Deloitte)</span></label>
+    <p class="hint">Deloitte 44, fagrapporten annualisert 197, Storebælt ~660.</p>
+    <div class="row"><label for="build">Byggetid</label><output id="buildO"></output></div>
+    <input type="range" id="build" min="6" max="12" step="1">
+    <p class="hint">Deloitte 6 år, SVV minst 7, Rogfast om lag 12. Byggestart 2029.</p>
+    <div class="row"><label for="inv">Investeringskostnad</label><output id="invO"></output></div>
+    <input type="range" id="inv" min="-20" max="60" step="5">
+    <label class="chk"><input type="checkbox" id="fixPrice"> <span>Rettet prisår: ta med 2023-indeksen (+2,1 %) som Deloitte utelater</span></label>
+    <div class="row"><label for="rate">Lånerente, tillegg</label><output id="rateO"></output></div>
+    <input type="range" id="rate" min="-1" max="2" step="0.25">
+  </fieldset>
+
+  <fieldset>
+    <legend>Nåverdi før finansiering</legend>
+    <select id="dr" aria-label="Kalkulasjonsrente">
+      <option value="R109">R-109: 4 % (år 1–40), 3 % (41–75)</option>
+      <option value="0.02">2 % reelt</option>
+      <option value="0.03">3 % reelt</option>
+      <option value="0.04">4 % reelt</option>
+    </select>
+  </fieldset>
+</aside>
+
+<main>
+  <section class="kpis" aria-label="Nøkkeltall">
+    <div class="kpi"><span class="k">Netto, udiskontert 75 år</span><span class="v" id="kU"></span><span class="u">mrd 2025-kr · Deloittes metode</span></div>
+    <div class="kpi"><span class="k">Nåverdi for staten</span><span class="v" id="kN"></span><span class="u" id="kNu"></span></div>
+    <div class="kpi"><span class="k">Største akkumulerte underskudd</span><span class="v" id="kM"></span><span class="u">mrd 2025-kr, udiskontert</span></div>
+    <div class="kpi"><span class="k">Første år med overskudd</span><span class="v" id="kF"></span><span class="u" id="kFu"></span></div>
+    <div class="kpi"><span class="k">Internrente</span><span class="v" id="kI"></span><span class="u" id="kIu">reell rente der nåverdien er null</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Statens årlige netto</h2>
+    <p class="sub">Sparte ferjeutgifter minus renter, avdrag og D&amp;V per driftsår i 75 år, mill. 2025-kr. Tilsvarer Deloittes figur på s. 5, men i faste priser.</p>
+    <div class="legend"><span><i class="sw" style="background:var(--gain)"></i>Overskudd</span><span><i class="sw" style="background:var(--loss)"></i>Merutgift for staten</span></div>
+    <div class="chartbox"><canvas id="c1" role="img" aria-label="Årlig netto for staten 2035–2109"></canvas></div>
+  </section>
+
+  <section class="card">
+    <h2>Akkumulert resultat</h2>
+    <p class="sub">Udiskontert: Deloittes metode fra åpning. Nåverdi før finansiering: investeringsutbetalinger ekskl. mva, D&amp;V og netto bompenger mot sparte ferjeutgifter, diskontert til 2025.</p>
+    <div class="legend"><span><i class="ln" style="background:var(--ink-series)"></i>Udiskontert</span><span><i class="ln" style="background:var(--gain)"></i>Nåverdi, valgt rente</span></div>
+    <div class="chartbox"><canvas id="c2" role="img" aria-label="Akkumulert resultat for staten"></canvas></div>
+  </section>
+
+  <section class="card">
+    <h2>Regnskap over 75 år</h2>
+    <div class="dls"><button type="button" id="xlsxBtn" class="dl" title="Regneark med formler som gjenskaper modellen. Forutsetningene kan endres i Excel eller LibreOffice.">Last ned regneark med formler (xlsx)</button> <button type="button" id="csvBtn" class="dl">Last ned år-for-år-tall (CSV)</button></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Post</th><th class="n">mrd 2025-kr, udiskontert</th></tr></thead>
+      <tbody id="ledger"></tbody>
+    </table></div>
+    <h3 class="ledger-h">Diskontert til 2025 <span id="drLabel"></span></h3>
+    <p class="sub"><strong>Hva betyr dette?</strong> Nåverdi er hva alle fremtidige inn- og utbetalinger er verdt regnet i dagens penger. En krone om 50 år teller mindre enn en krone i dag, så beløpene i fremtiden «diskonteres» ned. Tallet under viser prosjektets reelle inn- og utbetalinger: byggekostnader, drift og vedlikehold og bompenger mot det staten sparer på ferjene. «Før finansiering» betyr at lånekostnadene (renter og avdrag) er holdt utenfor. Å låne penger er bare en måte å betale på og kommer i tillegg til prosjektets egne kostnader. Diskonteringsrenten tar allerede hensyn til at penger har en kostnad over tid, og lånekostnadene kommer ikke i tillegg. Negativt tall betyr at prosjektet koster mer enn det gir tilbake i sparte ferjeutgifter og bompenger. Tallet er ikke det samme som «Netto for staten» i tabellen over, som er Deloittes udiskonterte regnskap med lånekostnader.</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Post</th><th class="n">mrd 2025-kr, diskontert</th></tr></thead>
+      <tbody id="ledgerPv"></tbody>
+    </table></div>
+  </section>
+
+  <section class="notes">
+    <p><strong>Modell.</strong> Gjenskapt fra forutsetningene i Deloitte, «Hordfast. Finansiell analyse – Endelig rapport», 12.08.2026, s. 6–13: byggelån 58 146 mill. kr refinansiert med bompengelån (12 345) og serielån over 45 år (45 801), rente 4,9 % fallende til 4,0 %, byggelånsrenter med halvårseffekt på årets trekk, byggeprofilen 5/15/20/25/20/15 % strukket over valgt byggetid, KPI 2,0 % fra 2030, renter av gjennomsnittlig saldo. Deloittes basis gir 27,7 mrd (rapporten: 27,673) og +20 % investering 14,6 mrd (rapporten: 14,533).</p>
+    <p><strong>Ferjetall.</strong> Netto 2026 per samband fra Bergens Tidende (SD og Skyss via Stavanger2Bergen): Halhjem–Sandvikvåg 642,2, Halhjem–Våge 82, Jektevik–Hodnanes 52, Austevoll-sambandene 186 minus 70 for et nytt samband til Gjøvåg. Alle scenarioer bruker Deloittes 897 mill. kr fordelt etter disse tallene. Investering i et nytt Austevoll-samband er ikke med i noe scenario.</p>
+    <p><strong>Trafikk og bompenger.</strong> Deloitte bruker SVVs fagrapport (9 340 lette + 940 tunge ÅDT i 2032), minus 20/10 % for bom, og takst lik et veid snitt av rabattert pris (80 %) og fullpris (20 %) på Halhjem–Sandvikvåg pluss 40 % (148/728 kr, 2026-kr) i 20 år. Bompengelånet (12 345 mill. kr) skaleres med netto inntekt; resten blir statens lån.</p>
+    <p><strong>Nåverdi før finansiering.</strong> Investering ekskl. mva fordelt over byggetiden, bompenger netto innkrevingskostnader i 20 år. Dette er offentlige nettobetalinger, ikke en full samfunnsøkonomisk analyse. Reinvesteringer regnes som et jevnt årlig snitt, noe som gir litt for negativ nåverdi.</p>
+  </section>
+</main>
+</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="model.js"></script>
+    <script src="xlsx_export.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
